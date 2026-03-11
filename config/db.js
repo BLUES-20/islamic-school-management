@@ -10,11 +10,14 @@ const pool = process.env.DATABASE_URL
       }
     })
   : new Pool({
-      host: process.env.DB_HOST || 'localhost',
-      user: process.env.DB_USER || 'postgres',
-      password: process.env.DB_PASSWORD || 'Hammad@1007',
-      database: process.env.DB_NAME || 'school_management',
+      host: process.env.DB_HOST || 'dpg-d6ofa24r85hc739dj8p0-a.oregon-postgres.render.com',
+      user: process.env.DB_USER || 'islamic_school_db_user',
+      password: process.env.DB_PASSWORD || 'gT8QBtf9dWXUSHWsvwh9tvgC9WKoPX3k',
+      database: process.env.DB_NAME || 'islamic_school_db',
       port: process.env.DB_PORT || 5432,
+      ssl: {
+        rejectUnauthorized: false
+      }
     });
 
 pool.connect()
