@@ -50,6 +50,7 @@ CREATE TABLE IF NOT EXISTS students (
     email VARCHAR(255) UNIQUE NOT NULL,
     date_of_birth DATE,
     gender gender_type,
+    picture VARCHAR(255),
     class VARCHAR(50),
     parent_name VARCHAR(100),
     parent_phone VARCHAR(20),

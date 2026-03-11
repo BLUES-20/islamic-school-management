@@ -10,7 +10,7 @@ router.get('/contact', (req, res) => {
     });
 });
 
-// POST Contact Form - Send Email Directly (No Database)
+// POST Contact Form - Save to DB and Send Email
 router.post('/contact', async (req, res) => {
     const { name, email, subject, message } = req.body;
 
@@ -20,54 +20,67 @@ router.post('/contact', async (req, res) => {
     }
 
     try {
-        // Configure Email Sender
-        const transporter = nodemailer.createTransport({
-            service: 'gmail',
-            auth: {
-                user: 'hammadibikunle@gmail.com',
-                pass: 'aozh wrwo icaq bajq'
-            }
-        });
+        // Save message to database first
+        const db = require('../config/db');
+        await db.query(
+            `INSERT INTO contact_messages (name, email, subject, message, status) VALUES ($1, $2, $3, $4, 'unread')`,
+            [name, email, subject, message]
+        );
 
-        // Email Content
-        const mailOptions = {
-            from: email, // Sender's email
-            to: 'hammadibikunle@gmail.com', // Your email (where you want to receive it)
-            replyTo: email, // So you can click "Reply" in your email
-            subject: `New Message: ${subject}`,
-            html: `
-                <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-                    <div style="background-color: #1a5f3f; color: white; padding: 20px; text-align: center; border-radius: 5px 5px 0 0;">
-                        <h2 style="margin: 0;">📬 New Contact Form Message</h2>
-                        <p style="margin: 5px 0 0 0;">Islamic School Management System</p>
-                    </div>
-                    <div style="background-color: #f9f9f9; padding: 30px; border: 1px solid #ddd; border-radius: 0 0 5px 5px;">
-                        <h3>Contact Details:</h3>
-                        <p><strong>Name:</strong> ${name}</p>
-                        <p><strong>Email:</strong> ${email}</p>
-                        <p><strong>Subject:</strong> ${subject}</p>
-                        
-                        <hr style="border: none; border-top: 1px solid #ddd; margin: 20px 0;">
-                        
-                        <h3>Message:</h3>
-                        <div style="background-color: #fff; padding: 15px; border-left: 4px solid #1a5f3f; border-radius: 3px;">
-                            <p style="margin: 0; white-space: pre-wrap;">${message.replace(/\n/g, '<br>')}</p>
+        // Also send email notification
+        try {
+            const transporter = nodemailer.createTransport({
+                service: 'gmail',
+                auth: {
+                    user: process.env.EMAIL_USER,
+                    pass: process.env.EMAIL_PASS
+                }
+            });
+
+            const mailOptions = {
+                from: process.env.EMAIL_USER,
+                to: process.env.EMAIL_USER,
+                replyTo: email,
+                subject: `New Contact Message: ${subject}`,
+                html: `
+                    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+                        <div style="background-color: #1a5f3f; color: white; padding: 20px; text-align: center; border-radius: 5px 5px 0 0;">
+                            <h2 style="margin: 0;">📬 New Contact Form Message</h2>
+                            <p style="margin: 5px 0 0 0;">Islamic School Management System</p>
+                        </div>
+                        <div style="background-color: #f9f9f9; padding: 30px; border: 1px solid #ddd; border-radius: 0 0 5px 5px;">
+                            <h3>Contact Details:</h3>
+                            <p><strong>Name:</strong> ${name}</p>
+                            <p><strong>Email:</strong> ${email}</p>
+                            <p><strong>Subject:</strong> ${subject}</p>
+                            
+                            <hr style="border: none; border-top: 1px solid #ddd; margin: 20px 0;">
+                            
+                            <h3>Message:</h3>
+                            <div style="background-color: #fff; padding: 15px; border-left: 4px solid #1a5f3f; border-radius: 3px;">
+                                <p style="margin: 0; white-space: pre-wrap;">${message.replace(/\n/g, '<br>')}</p>
+                            </div>
+                            <p style="margin-top: 20px; color: #666; font-size: 0.9em;">View this message in your <a href="${process.env.APP_URL || 'http://localhost:3000'}/staff/contact-messages">Staff Portal</a></p>
                         </div>
                     </div>
-                </div>
-            `
-        };
+                `
+            };
 
-        // Send the email
-        await transporter.sendMail(mailOptions);
-        req.flash('success', 'Message sent successfully! We will contact you via email.');
+            await transporter.sendMail(mailOptions);
+        } catch (emailErr) {
+            // Email failed, but message was saved to DB - that's ok
+            console.error('Email notification failed:', emailErr.message);
+        }
+
+        req.flash('success', 'Message sent successfully! We will get back to you soon.');
         res.redirect('/contact');
 
     } catch (err) {
-        console.error('Email error:', err);
+        console.error('Contact form error:', err);
         req.flash('error', 'Error sending message. Please try again later.');
         res.redirect('/contact');
     }
 });
+
 
 module.exports = router;

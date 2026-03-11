@@ -1,134 +1,198 @@
 <%- include('../layout/header') %>
 
-<div class="container mt-5">
+<style>
+    :root {
+        --islamic-primary: #1a5f3f;
+        --islamic-secondary: #2d7a5f;
+    }
+
+    body {
+        background-color: #f4f7f6;
+    }
+
+    .page-header {
+        background: linear-gradient(135deg, #1b5e20, #2e7d32);
+        color: white;
+        padding: 3rem 0;
+        border-radius: 0 0 2rem 2rem;
+    }
+
+    .glass-card {
+        background: white;
+        border-radius: 1.5rem;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+        border: 1px solid #eee;
+        overflow: hidden;
+    }
+
+    .subject-row {
+        background: #fcfdfc;
+        border: 1px solid #edf2ef;
+        border-radius: 1rem;
+        padding: 1.5rem;
+        transition: all 0.3s ease;
+        position: relative;
+    }
+
+    .subject-row:hover {
+        background: white;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+        border-color: var(--islamic-primary);
+    }
+
+    .section-title {
+        border-left: 5px solid var(--islamic-primary);
+        padding-left: 1rem;
+        margin-bottom: 2rem;
+        font-weight: 700;
+        color: #333;
+    }
+
+    .form-control, .form-select {
+        border-radius: 0.8rem;
+        padding: 0.75rem 1rem;
+        border: 1px solid #e0e0e0;
+        background-color: #fcfcfc;
+    }
+
+    .form-control:focus {
+        border-color: var(--islamic-primary);
+        box-shadow: 0 0 0 0.25rem rgba(26, 95, 63, 0.1);
+        background-color: white;
+    }
+
+    .remove-subject-btn {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        width: 30px;
+        height: 30px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: #ffebee;
+        color: #c62828;
+        border: none;
+        transition: all 0.2s ease;
+    }
+
+    .remove-subject-btn:hover {
+        background: #c62828;
+        color: white;
+    }
+</style>
+
+<div class="page-header text-center shadow-sm">
+    <div class="container">
+        <h1 class="fw-bold"><i class="fas fa-file-upload me-3"></i>Academic Result Entry</h1>
+        <p class="opacity-75">Securely upload and manage student exam scores</p>
+    </div>
+</div>
+
+<div class="container mt-n4 mb-5" style="position: relative; z-index: 10;">
     <div class="row justify-content-center">
-        <div class="col-md-10">
-            <div class="card shadow">
-                <div class="card-header bg-success text-white">
-                    <h4 class="mb-0"><i class="fas fa-upload me-2"></i>Upload Student Results</h4>
-                    <small class="text-white-50">Upload multiple subjects for a student</small>
-                </div>
-                <div class="card-body p-4">
+        <div class="col-lg-10">
+            <div class="glass-card shadow-lg border-0">
+                <div class="p-5">
                     <form action="/staff/upload-result" method="POST" id="resultForm">
-
-                        <!-- Student Information -->
-                        <div class="row mb-4">
-                            <div class="col-md-6 mb-3">
-                                <label class="form-label fw-bold">Student Admission Number</label>
-                                <input type="text" name="admission_number" class="form-control" required placeholder="e.g. STU2025001" value="<%= (typeof query !== 'undefined' && query.admission_number) ? query.admission_number : '' %>">
-                                <div class="form-text">Enter the exact admission number of the student.</div>
+                        
+                        <div class="section-title">Step 1: Student Information</div>
+                        <div class="row g-4 mb-5">
+                            <div class="col-md-6">
+                                <label class="form-label small fw-bold text-muted text-uppercase">Admission ID</label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-white border-end-0"><i class="fas fa-fingerprint text-success"></i></span>
+                                    <input type="text" name="admission_number" class="form-control border-start-0" required placeholder="STU2025001" value="<%= (typeof query !== 'undefined' && query.admission_number) ? query.admission_number : '' %>">
+                                </div>
                             </div>
-
-                            <div class="col-md-6 mb-3">
-                                <label class="form-label fw-bold">Class</label>
+                            <div class="col-md-6">
+                                <label class="form-label small fw-bold text-muted text-uppercase">Current Class</label>
                                 <select name="class_name" id="classSelect" class="form-select" required>
-                                    <option value="">Select Class...</option>
-                                    <option value="PRELIMINARY 2" <%= (typeof query !== 'undefined' && query.class_name === 'PRELIMINARY 2') ? 'selected' : '' %>>PRELIMINARY 2</option>
-                                    <option value="PRELIMINARY 3" <%= (typeof query !== 'undefined' && query.class_name === 'PRELIMINARY 3') ? 'selected' : '' %>>PRELIMINARY 3</option>
-                                    <option value="ALIF CLASS" <%= (typeof query !== 'undefined' && query.class_name === 'ALIF CLASS') ? 'selected' : '' %>>ALIF CLASS</option>
-                                    <option value="BA CLASS" <%= (typeof query !== 'undefined' && query.class_name === 'BA CLASS') ? 'selected' : '' %>>BA CLASS</option>
-                                    <option value="TA CLASS" <%= (typeof query !== 'undefined' && query.class_name === 'TA CLASS') ? 'selected' : '' %>>TA CLASS</option>
+                                    <option value="">Choose class...</option>
+                                    <% ['PRELIMINARY 2', 'PRELIMINARY 3', 'ALIF CLASS', 'BA CLASS', 'TA CLASS'].forEach(cls => { %>
+                                        <option value="<%= cls %>" <%= (typeof query !== 'undefined' && query.class_name === cls) ? 'selected' : '' %>><%= cls %></option>
+                                    <% }); %>
                                 </select>
                             </div>
                         </div>
 
-                        <!-- Academic Information -->
-                        <div class="row mb-4">
-                            <div class="col-md-6 mb-3">
-                                <label class="form-label fw-bold">Term</label>
+                        <div class="section-title">Step 2: Session Details</div>
+                        <div class="row g-4 mb-5">
+                            <div class="col-md-6">
+                                <label class="form-label small fw-bold text-muted text-uppercase">Academic Term</label>
                                 <select name="term" class="form-select" required>
                                     <option value="1st Term" <%= (typeof query !== 'undefined' && query.term === '1st Term') ? 'selected' : '' %>>1st Term</option>
                                     <option value="2nd Term" <%= (typeof query !== 'undefined' && query.term === '2nd Term') ? 'selected' : '' %>>2nd Term</option>
                                     <option value="3rd Term" <%= (typeof query !== 'undefined' && query.term === '3rd Term') ? 'selected' : '' %>>3rd Term</option>
                                 </select>
                             </div>
-                            <div class="col-md-6 mb-3">
-                                <label class="form-label fw-bold">Academic Year</label>
+                            <div class="col-md-6">
+                                <label class="form-label small fw-bold text-muted text-uppercase">Academic year</label>
                                 <input type="text" name="academic_year" class="form-control" value="<%= (typeof query !== 'undefined' && query.academic_year) ? query.academic_year : '2024/2025' %>" required>
                             </div>
                         </div>
 
-                        <!-- Subjects Section -->
-                        <div class="mb-4">
-                            <div class="d-flex justify-content-between align-items-center mb-3">
-                                <h5 class="mb-0"><i class="fas fa-book me-2"></i>Subjects & Scores</h5>
-                                <button type="button" class="btn btn-outline-primary btn-sm" id="addSubjectBtn">
-                                    <i class="fas fa-plus me-1"></i>Add Subject
-                                </button>
-                            </div>
-
-<div id="subjectsContainer" data-initial-count="<%= (typeof uploadedSubjects !== 'undefined' && uploadedSubjects.length > 0) ? uploadedSubjects.length : 1 %>">
-                                <% if (typeof uploadedSubjects !== 'undefined' && uploadedSubjects.length > 0) { %>
-                                    <% uploadedSubjects.forEach((subject, index) => { %>
-                                        <!-- Existing Subject Row -->
-                                        <div class="subject-row border rounded p-3 mb-3 bg-light">
-                                            <div class="row align-items-end">
-                                                <div class="col-md-4 mb-2">
-                                                    <label class="form-label fw-bold">Subject Name</label>
-                                                    <input type="text" name="subjects[]" class="form-control subject-input" placeholder="e.g. Mathematics, English, Science" value="<%= subject.subject %>" required>
-                                                    <!-- Hidden field to track existing subjects -->
-                                                    <input type="hidden" name="existing_subjects[]" value="<%= subject.subject %>">
-                                                </div>
-                                                <div class="col-md-4 mb-2">
-                                                    <label class="form-label fw-bold">Score (0-100)</label>
-                                                    <input type="number" name="scores[]" class="form-control score-input" min="0" max="100" step="0.01" placeholder="85.5" value="<%= subject.score %>" required>
-                                                </div>
-                                                <div class="col-md-2 mb-2">
-                                                    <label class="form-label fw-bold">Delete</label>
-                                                    <div class="form-check">
-                                                        <input type="checkbox" name="delete_subjects[]" value="<%= subject.subject %>" class="form-check-input delete-checkbox" id="delete_<%= index %>">
-                                                        <label class="form-check-label text-danger" for="delete_<%= index %>">
-                                                            <small>Mark for deletion</small>
-                                                        </label>
-                                                    </div>
-                                                </div>
-                                                <div class="col-md-2 mb-2">
-                                                    <button type="button" class="btn btn-outline-danger btn-sm remove-subject-btn">
-                                                        <i class="fas fa-times"></i>
-                                                    </button>
-                                                </div>
+                        <div class="section-title d-flex justify-content-between align-items-center">
+                            <span>Step 3: Subject Scores</span>
+                            <button type="button" class="btn btn-sm btn-outline-success rounded-pill px-3" id="addSubjectBtn">
+                                <i class="fas fa-plus me-1"></i>Add Subject
+                            </button>
+                        </div>
+                        
+                        <div id="subjectsContainer" class="mb-4" data-initial-count="<%= (typeof uploadedSubjects !== 'undefined' && uploadedSubjects.length > 0) ? uploadedSubjects.length : 1 %>">
+                            <% if (typeof uploadedSubjects !== 'undefined' && uploadedSubjects.length > 0) { %>
+                                <% uploadedSubjects.forEach((subject, index) => { %>
+                                    <div class="subject-row mb-3" data-existing="true">
+                                        <button type="button" class="remove-subject-btn" title="Mark for deletion"><i class="fas fa-trash-alt"></i></button>
+                                        <div class="row g-3">
+                                            <div class="col-md-6">
+                                                <label class="form-label small fw-bold">Subject Name</label>
+                                                <input type="text" name="subjects[]" class="form-control" value="<%= subject.subject %>" required>
+                                                <input type="hidden" name="existing_subjects[]" value="<%= subject.subject %>">
                                             </div>
-                                            <% if (index === 0) { %>
-                                                <div class="mt-2">
-                                                    <small class="text-info"><i class="fas fa-info-circle me-1"></i>Edit existing results, mark subjects for deletion, or add new subjects below</small>
+                                            <div class="col-md-4">
+                                                <label class="form-label small fw-bold">Score Obtained</label>
+                                                <input type="number" name="scores[]" class="form-control" min="0" max="100" step="0.01" value="<%= subject.score %>" required>
+                                            </div>
+                                            <div class="col-md-2 d-flex align-items-end justify-content-center">
+                                                <div class="form-check">
+                                                    <input type="checkbox" name="delete_subjects[]" value="<%= subject.subject %>" class="form-check-input" id="del_<%= index %>">
+                                                    <label class="form-check-label text-danger small fst-italic" for="del_<%= index %>">Delete</label>
                                                 </div>
-                                            <% } %>
-                                        </div>
-                                    <% }); %>
-                                <% } else { %>
-                                    <!-- Default Empty Subject Row -->
-                                    <div class="subject-row border rounded p-3 mb-3 bg-light">
-                                        <div class="row align-items-end">
-                                            <div class="col-md-5 mb-2">
-                                                <label class="form-label fw-bold">Subject Name</label>
-                                                <input type="text" name="subjects[]" class="form-control subject-input" placeholder="e.g. Mathematics, English, Science" required>
-                                            </div>
-                                            <div class="col-md-5 mb-2">
-                                                <label class="form-label fw-bold">Score (0-100)</label>
-                                                <input type="number" name="scores[]" class="form-control score-input" min="0" max="100" step="0.01" placeholder="85.5" required>
-                                            </div>
-                                            <div class="col-md-2 mb-2">
-                                                <button type="button" class="btn btn-outline-danger btn-sm remove-subject-btn">
-                                                    <i class="fas fa-trash"></i>
-                                                </button>
                                             </div>
                                         </div>
                                     </div>
-                                <% } %>
-                            </div>
-
-                            <div class="text-muted small">
-                                <i class="fas fa-info-circle me-1"></i>
-                                Grades are automatically calculated: A (70+), B (60+), C (50+), D (45+), E (40+), F (<40)
-                            </div>
+                                <% }); %>
+                            <% } else { %>
+                                <div class="subject-row mb-3">
+                                    <div class="row g-3">
+                                        <div class="col-md-8">
+                                            <label class="form-label small fw-bold">Subject Name</label>
+                                            <input type="text" name="subjects[]" class="form-control" placeholder="e.g. Mathematics, Quran Kareem" required>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <label class="form-label small fw-bold">Score (100)</label>
+                                            <input type="number" name="scores[]" class="form-control" min="0" max="100" step="0.01" placeholder="0-100" required>
+                                        </div>
+                                    </div>
+                                </div>
+                            <% } %>
                         </div>
 
-                        <!-- Submit Buttons -->
-                        <div class="d-grid gap-2 mt-4">
-                            <button type="submit" class="btn btn-success btn-lg">
-                                <i class="fas fa-upload me-2"></i>Upload All Results
-                            </button>
-                            <a href="/staff/dashboard" class="btn btn-outline-secondary">Back to Dashboard</a>
+                        <div class="alert alert-info border-0 rounded-3 small">
+                            <i class="fas fa-info-circle me-2"></i> Grades will be calculated automatically based on the Islamic School scoring standard.
+                        </div>
+
+                        <div class="row g-3 mt-4">
+                            <div class="col-md-8">
+                                <button type="submit" class="btn btn-success btn-lg w-100 py-3 fw-bold">
+                                    <i class="fas fa-check-circle me-2"></i>Apply & Upload Records
+                                </button>
+                            </div>
+                            <div class="col-md-4">
+                                <a href="/staff/dashboard" class="btn btn-outline-secondary btn-lg w-100 py-3 mb-0">Cancel</a>
+                            </div>
                         </div>
                     </form>
                 </div>
@@ -139,125 +203,146 @@
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    const subjectsContainer = document.getElementById('subjectsContainer');
-    const addSubjectBtn = document.getElementById('addSubjectBtn');
-    let subjectCount = parseInt(subjectsContainer.getAttribute('data-initial-count')) || 1;
+    const container = document.getElementById('subjectsContainer');
+    const addBtn = document.getElementById('addSubjectBtn');
+    const admissionInput = document.querySelector('input[name="admission_number"]');
+    const classSelect = document.getElementById('classSelect');
+    const form = document.getElementById('resultForm');
 
-    // Function to create a new subject row
-    function createSubjectRow() {
+    // Add status message element
+    const statusMsg = document.createElement('div');
+    statusMsg.className = 'small mt-1 px-2';
+    admissionInput.parentNode.parentNode.appendChild(statusMsg);
+
+    let studentData = null;
+
+    async function checkStudent() {
+        const admissionId = admissionInput.value.trim();
+        if (!admissionId) {
+            statusMsg.innerHTML = '';
+            studentData = null;
+            return;
+        }
+
+        statusMsg.innerHTML = '<span class="text-muted"><i class="fas fa-spinner fa-spin me-1"></i>Verifying...</span>';
+        
+        try {
+            const response = await fetch(`/staff/api/student/${admissionId}`);
+            const data = await response.json();
+            
+            if (data.success) {
+                studentData = data.student;
+                statusMsg.innerHTML = `<span class="text-success"><i class="fas fa-check-circle me-1"></i> Found: ${studentData.first_name} ${studentData.last_name} (${studentData.class || 'No Class Assigned'})</span>`;
+                
+                // If student has a class and we haven't selected one, or it's different
+                if (studentData.class) {
+                    // Try to normalize and find the option
+                    const normalizedClass = studentData.class.toUpperCase().trim();
+                    let found = false;
+                    for (let option of classSelect.options) {
+                        if (option.value.toUpperCase().trim() === normalizedClass) {
+                            classSelect.value = option.value;
+                            found = true;
+                            break;
+                        }
+                    }
+                    
+                    if (!found) {
+                        statusMsg.innerHTML += `<div class="text-warning small mt-1">Note: Student class "${studentData.class}" is not in the dropdown list.</div>`;
+                    }
+                }
+            } else {
+                studentData = null;
+                statusMsg.innerHTML = '<span class="text-danger"><i class="fas fa-exclamation-triangle me-1"></i> Student not found</span>';
+            }
+        } catch (err) {
+            console.error('Error fetching student:', err);
+            statusMsg.innerHTML = '<span class="text-danger">Error verifying student ID</span>';
+        }
+    }
+
+    admissionInput.addEventListener('blur', checkStudent);
+    
+    // Also check on initial load if value exists
+    if (admissionInput.value) checkStudent();
+
+    form.addEventListener('submit', function(e) {
+        const admissionId = admissionInput.value.trim();
+        const selectedClass = classSelect.value;
+        
+        if (studentData && studentData.class) {
+            if (selectedClass.toUpperCase().trim() !== studentData.class.toUpperCase().trim()) {
+                alert(`Class Mismatch Error:\n\nStudent ${admissionId} is registered in "${studentData.class}".\nYou selected "${selectedClass}".\n\nPlease ensure the "Current Class" matches the student's registered class.`);
+                e.preventDefault();
+                return;
+            }
+        }
+    });
+    
+    addBtn.addEventListener('click', () => {
         const row = document.createElement('div');
-        row.className = 'subject-row border rounded p-3 mb-3 bg-light';
+        row.className = 'subject-row mb-3 animate__animated animate__fadeInUp';
         row.innerHTML = `
-            <div class="row align-items-end">
-                <div class="col-md-5 mb-2">
-                    <label class="form-label fw-bold">Subject Name</label>
-                    <input type="text" name="subjects[]" class="form-control subject-input" placeholder="e.g. Mathematics, English, Science" required>
+            <button type="button" class="remove-subject-btn"><i class="fas fa-times"></i></button>
+            <div class="row g-3">
+                <div class="col-md-8">
+                    <label class="form-label small fw-bold">Subject Name</label>
+                    <input type="text" name="subjects[]" class="form-control" required>
                 </div>
-                <div class="col-md-5 mb-2">
-                    <label class="form-label fw-bold">Score (0-100)</label>
-                    <input type="number" name="scores[]" class="form-control score-input" min="0" max="100" step="0.01" placeholder="85.5" required>
-                </div>
-                <div class="col-md-2 mb-2">
-                    <button type="button" class="btn btn-outline-danger btn-sm remove-subject-btn">
-                        <i class="fas fa-trash"></i>
-                    </button>
+                <div class="col-md-4">
+                    <label class="form-label small fw-bold">Score (100)</label>
+                    <input type="number" name="scores[]" class="form-control" min="0" max="100" step="0.01" required>
                 </div>
             </div>
         `;
-        return row;
-    }
-
-    // Add new subject row
-    addSubjectBtn.addEventListener('click', function() {
-        const newRow = createSubjectRow();
-        subjectsContainer.appendChild(newRow);
-        subjectCount++;
-
-        // Update remove buttons visibility
-        updateRemoveButtons();
+        container.appendChild(row);
     });
 
-    // Remove subject row
-    subjectsContainer.addEventListener('click', function(e) {
-        if (e.target.classList.contains('remove-subject-btn') || e.target.closest('.remove-subject-btn')) {
-            if (subjectCount > 1) {
-                e.target.closest('.subject-row').remove();
-                subjectCount--;
-
-                // Update remove buttons visibility
-                updateRemoveButtons();
+    container.addEventListener('click', (e) => {
+        const btn = e.target.closest('.remove-subject-btn');
+        if (btn) {
+            const row = btn.closest('.subject-row');
+            const isExisting = row.getAttribute('data-existing') === 'true';
+            
+            if (isExisting) {
+                const checkbox = row.querySelector('input[name="delete_subjects[]"]');
+                checkbox.checked = !checkbox.checked;
+                
+                if (checkbox.checked) {
+                    row.style.opacity = '0.5';
+                    row.style.background = '#fff5f5';
+                    row.style.borderColor = '#dc3545';
+                    btn.innerHTML = '<i class="fas fa-undo"></i>';
+                    btn.className = 'remove-subject-btn bg-soft-primary text-primary';
+                    btn.title = 'Restore record';
+                    // Add a "To be deleted" label if not exists
+                    if (!row.querySelector('.delete-label')) {
+                        const label = document.createElement('div');
+                        label.className = 'delete-label badge bg-danger position-absolute top-50 start-50 translate-middle p-2 shadow-sm';
+                        label.style.zIndex = '5';
+                        label.innerHTML = '<i class="fas fa-trash-alt me-1"></i> MARKED FOR DELETION';
+                        row.appendChild(label);
+                    }
+                } else {
+                    row.style.opacity = '1';
+                    row.style.background = '#fcfdfc';
+                    row.style.borderColor = '#edf2ef';
+                    btn.innerHTML = '<i class="fas fa-trash-alt"></i>';
+                    btn.className = 'remove-subject-btn';
+                    btn.title = 'Mark for deletion';
+                    const label = row.querySelector('.delete-label');
+                    if (label) label.remove();
+                }
             } else {
-                alert('You must have at least one subject.');
+                if (container.querySelectorAll('.subject-row').length > 1) {
+                    row.remove();
+                } else {
+                    alert('At least one subject record is required.');
+                }
             }
-        }
-    });
-
-    // Update remove buttons visibility
-    function updateRemoveButtons() {
-        const removeButtons = document.querySelectorAll('.remove-subject-btn');
-        removeButtons.forEach(btn => {
-            btn.style.display = subjectCount > 1 ? 'block' : 'none';
-        });
-    }
-
-    // Initialize remove buttons
-    updateRemoveButtons();
-
-    // Form validation
-    document.getElementById('resultForm').addEventListener('submit', function(e) {
-        const subjects = document.querySelectorAll('input[name="subjects[]"]');
-        const scores = document.querySelectorAll('input[name="scores[]"]');
-        let isValid = true;
-
-        // Check if at least one subject is filled
-        let hasValidSubject = false;
-        subjects.forEach(subject => {
-            if (subject.value.trim() !== '') {
-                hasValidSubject = true;
-            }
-        });
-
-        if (!hasValidSubject) {
-            e.preventDefault();
-            alert('Please enter at least one subject.');
-            return false;
-        }
-
-        // Validate score ranges
-        scores.forEach(score => {
-            const value = parseFloat(score.value);
-            if (score.value !== '' && (isNaN(value) || value < 0 || value > 100)) {
-                isValid = false;
-                score.classList.add('is-invalid');
-            } else {
-                score.classList.remove('is-invalid');
-            }
-        });
-
-        if (!isValid) {
-            e.preventDefault();
-            alert('Please ensure all scores are between 0 and 100.');
-            return false;
         }
     });
 });
 </script>
-
-<style>
-.subject-row {
-    transition: all 0.3s ease;
-}
-.subject-row:hover {
-    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-}
-.remove-subject-btn {
-    min-width: 40px;
-}
-@media (max-width: 768px) {
-    .subject-row .col-md-5 {
-        margin-bottom: 10px !important;
-    }
-}
-</style>
 
 <%- include('../layout/footer') %>

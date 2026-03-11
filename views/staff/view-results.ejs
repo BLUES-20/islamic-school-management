@@ -1,432 +1,378 @@
 <%- include('../layout/header') %>
 
-<div class="container mt-5">
-    <div class="row justify-content-center">
-        <div class="col-md-10">
-            
-            <!-- Search Card -->
-            <div class="card shadow mb-4">
-                <div class="card-header bg-primary text-white">
-                    <h4 class="mb-0"><i class="fas fa-search me-2"></i>Check Student Results</h4>
-                </div>
-                <div class="card-body">
-                    <form action="/staff/view-results" method="POST" class="row g-3 align-items-end">
-                        <div class="col-md-4">
-                            <label class="form-label fw-bold">Admission Number</label>
-                            <input type="text" name="admission_number" class="form-control" required placeholder="STU2025001" value="<%= typeof student !== 'undefined' && student ? student.admission_number : '' %>">
+<style>
+    :root {
+        --islamic-primary: #1a5f3f;
+        --islamic-secondary: #2d7a5f;
+        --glass-bg: rgba(255, 255, 255, 0.95);
+        --glass-border: rgba(255, 255, 255, 0.2);
+    }
+
+    body {
+        background-color: #f4f7f6;
+    }
+
+    .page-header {
+        background: linear-gradient(135deg, var(--islamic-primary), var(--islamic-secondary));
+        color: white;
+        padding: 3rem 0;
+        border-radius: 0 0 2rem 2rem;
+        margin-bottom: 2rem;
+    }
+
+    .glass-card {
+        background: white;
+        border-radius: 1.5rem;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+        border: 1px solid #eee;
+        overflow: hidden;
+    }
+
+    .search-section {
+        margin-top: -4rem;
+    }
+
+    .result-table thead th {
+        background: #f8f9fa;
+        text-transform: uppercase;
+        font-size: 0.8rem;
+        letter-spacing: 1px;
+        color: #666;
+        padding: 1.2rem 1rem;
+    }
+
+    .grade-badge {
+        width: 35px;
+        height: 35px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 8px;
+        font-weight: 700;
+    }
+
+    .grade-A { background: #e8f5e9; color: #2e7d32; }
+    .grade-F { background: #ffebee; color: #c62828; }
+    .grade-other { background: #f5f5f5; color: #616161; }
+
+    .summary-card {
+        background: linear-gradient(135deg, #fdfbfb 0%, #ebedee 100%);
+        border-radius: 1rem;
+        padding: 1.5rem;
+        text-align: center;
+    }
+
+    /* Modal Styling */
+    .modal-content {
+        border-radius: 1.5rem;
+        border: none;
+    }
+
+</style>
+
+<div class="page-header text-center">
+    <div class="container">
+        <h1 class="fw-bold"><i class="fas fa-chart-bar me-3"></i>Academic Performance Registry</h1>
+        <p class="opacity-75">Search and manage student academic records for all terms</p>
+    </div>
+</div>
+
+<div class="container mb-5">
+    <!-- Search Section -->
+    <div class="row justify-content-center search-section mb-4">
+        <div class="col-lg-10">
+            <div class="glass-card p-4 shadow-lg border-0">
+                <form action="/staff/view-results" method="POST" class="row g-3">
+                    <div class="col-md-4">
+                        <label class="form-label small fw-bold text-uppercase text-muted">Admission Number</label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-light border-0"><i class="fas fa-id-card text-success"></i></span>
+                            <input type="text" name="admission_number" class="form-control border-light bg-light" required placeholder="STU2025001" value="<%= typeof student !== 'undefined' && student ? student.admission_number : '' %>">
                         </div>
-                        <div class="col-md-3">
-                            <label class="form-label fw-bold">Term</label>
-                            <select name="term" class="form-select" required>
-                                <option value="1st Term" <%= typeof term !== 'undefined' && term === '1st Term' ? 'selected' : '' %>>1st Term</option>
-                                <option value="2nd Term" <%= typeof term !== 'undefined' && term === '2nd Term' ? 'selected' : '' %>>2nd Term</option>
-                                <option value="3rd Term" <%= typeof term !== 'undefined' && term === '3rd Term' ? 'selected' : '' %>>3rd Term</option>
-                            </select>
-                        </div>
-                        <div class="col-md-3">
-                            <label class="form-label fw-bold">Academic Year</label>
-                            <input type="text" name="academic_year" class="form-control" value="<%= typeof academic_year !== 'undefined' ? academic_year : '2024/2025' %>" required>
-                        </div>
-                        <div class="col-md-2">
-                            <button type="submit" class="btn btn-primary w-100">Check</button>
-                        </div>
-                    </form>
-                </div>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label small fw-bold text-uppercase text-muted">Term Selection</label>
+                        <select name="term" class="form-select border-light bg-light" required>
+                            <option value="1st Term" <%= typeof term !== 'undefined' && term === '1st Term' ? 'selected' : '' %>>1st Term</option>
+                            <option value="2nd Term" <%= typeof term !== 'undefined' && term === '2nd Term' ? 'selected' : '' %>>2nd Term</option>
+                            <option value="3rd Term" <%= typeof term !== 'undefined' && term === '3rd Term' ? 'selected' : '' %>>3rd Term</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label small fw-bold text-uppercase text-muted">Academic Session</label>
+                        <input type="text" name="academic_year" class="form-control border-light bg-light" value="<%= typeof academic_year !== 'undefined' ? academic_year : '2024/2025' %>" required>
+                    </div>
+                    <div class="col-md-2 d-flex align-items-end">
+                        <button type="submit" class="btn btn-success w-100 py-2 fw-bold">
+                            <i class="fas fa-search me-2"></i>Verify
+                        </button>
+                    </div>
+                </form>
             </div>
+        </div>
+    </div>
 
-            <!-- Results Display -->
-            <% if (search && student) { %>
-                <div class="card shadow">
+    <!-- Results Display -->
+    <% if (search && student) { %>
+        <div class="row justify-content-center">
+            <div class="col-lg-10">
+                <div class="glass-card mb-4 border-0">
                     <div class="card-body p-4">
-                        <div class="text-center mb-4">
-                            <h3 class="fw-bold"><%= student.first_name %> <%= student.last_name %></h3>
-                            <p class="text-muted mb-0">Admission No: <%= student.admission_number %> | Class: <%= student.class %></p>
-                            <p class="text-muted">Term: <%= term %> | Year: <%= academic_year %></p>
+                        <div class="row align-items-center mb-4">
+                            <div class="col-md-8">
+                                <h4 class="fw-bold mb-0 text-dark"><%= student.first_name %> <%= student.last_name %></h4>
+                                <span class="text-muted small">ID: <%= student.admission_number %> • Class: <%= student.class %></span>
+                            </div>
+                            <div class="col-md-4 text-md-end mt-2 mt-md-0">
+                                <span class="badge bg-success px-3 py-2 rounded-pill"><%= term %> | <%= academic_year %></span>
+                                <% if (staff && staff.role === 'admin') { %>
+                                    <span class="badge bg-dark px-3 py-2 rounded-pill ms-2"><i class="fas fa-shield-alt me-1"></i> Admin Editor</span>
+                                <% } %>
+                            </div>
                         </div>
-
                         <% if (results && results.length > 0) { %>
+                            <div class="row mb-4">
+                                <div class="col-md-4">
+                                    <div class="summary-card">
+                                        <div class="small text-muted text-uppercase mb-1">Subjects Recorded</div>
+                                        <div class="h3 fw-bold mb-0"><%= results.length %></div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="summary-card">
+                                        <div class="small text-muted text-uppercase mb-1">Average Percentage</div>
+                                        <div class="h3 fw-bold mb-0 text-success"><%= (totalScore / results.length).toFixed(1) %>%</div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="summary-card">
+                                        <div class="small text-muted text-uppercase mb-1">Overall Status</div>
+                                        <div class="h3 fw-bold mb-0 <%= (totalScore / results.length) >= 50 ? 'text-primary' : 'text-danger' %>">
+                                            <%= (totalScore / results.length) >= 50 ? 'PASS' : 'FAIL' %>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
                             <div class="table-responsive">
-                                <table class="table table-bordered table-hover">
-                                    <thead class="table-light">
+                                <table class="table result-table">
+                                    <thead>
                                         <tr>
-                                            <th>Subject</th>
-                                            <th class="text-center">Score</th>
+                                            <th>Subject / Module</th>
+                                            <th class="text-center">Score (100)</th>
                                             <th class="text-center">Grade</th>
-                                            <th class="text-center">Actions</th>
+                                            <th class="text-end">Admin Actions</th>
                                         </tr>
                                     </thead>
                                     <tbody>
                                         <% results.forEach(result => { %>
                                             <tr>
-                                                <td><%= result.subject %></td>
-                                                <td class="text-center fw-bold"><%= result.score %></td>
-                                                <td class="text-center">
-                                                    <span class="badge bg-<%= result.grade === 'A' ? 'success' : (result.grade === 'F' ? 'danger' : 'secondary') %>">
-                                                        <%= result.grade %>
-                                                    </span>
+                                                <td class="fw-bold py-3"><%= result.subject %></td>
+                                                <td class="text-center py-3">
+                                                    <div class="progress" style="height: 8px; width: 100px; margin: 0 auto 5px auto;">
+                                                        <div class="progress-bar bg-success" role="progressbar" style="width: <%= result.score %>%;"></div>
+                                                    </div>
+                                                    <span class="fw-bold"><%= result.score %></span>
                                                 </td>
-                                                <td class="text-center">
-                                                    <div class="btn-group" role="group">
-                                                        <button type="button" class="btn btn-sm btn-outline-primary edit-subject-btn"
-                                                                data-subject="<%= result.subject %>"
-                                                                data-student="<%= student.admission_number %>"
-                                                                data-term="<%= term %>"
-                                                                data-year="<%= academic_year %>"
-                                                                data-score="<%= result.score %>"
-                                                                onclick="startEdit(this)">
-                                                            <i class="fas fa-edit"></i> Edit
+                                                <td class="text-center py-3">
+                                                    <div class="grade-badge grade-<%= result.grade === 'A' ? 'A' : (result.grade === 'F' ? 'F' : 'other') %>">
+                                                        <%= result.grade %>
+                                                    </div>
+                                                </td>
+                                                <td class="text-end py-3">
+                                                    <div class="btn-group">
+                                                        <button type="button" class="btn btn-sm btn-outline-primary" 
+                                                                onclick="academicRegistry_startEdit(this, '<%= Buffer.from(result.subject).toString('base64') %>', '<%= Buffer.from(student.admission_number).toString('base64') %>', '<%= Buffer.from(term).toString('base64') %>', '<%= Buffer.from(academic_year).toString('base64') %>', '<%= result.score %>')">
+                                                            <i class="fas fa-edit"></i>
                                                         </button>
-                                                        <button type="button" class="btn btn-sm btn-outline-danger delete-subject-btn"
-                                                                data-subject="<%= result.subject %>"
-                                                                data-student="<%= student.admission_number %>"
-                                                                data-term="<%= term %>"
-                                                                data-year="<%= academic_year %>"
-                                                                onclick="confirmDelete(this)">
-                                                            <i class="fas fa-trash"></i> Delete
+                                                        <button type="button" class="btn btn-sm btn-outline-danger"
+                                                                onclick="academicRegistry_triggerDelete('<%= Buffer.from(result.subject).toString('base64') %>', '<%= Buffer.from(student.admission_number).toString('base64') %>', '<%= Buffer.from(term).toString('base64') %>', '<%= Buffer.from(academic_year).toString('base64') %>')">
+                                                            <i class="fas fa-trash"></i>
                                                         </button>
                                                     </div>
                                                 </td>
                                             </tr>
                                         <% }); %>
-
-                                        <!-- TOTAL ROW -->
-                                        <tr class="table-success border-top border-dark">
-                                            <td class="fw-bold text-end">AVERAGE SCORE (%)</td>
-                                            <td class="text-center fw-bold fs-5"><%= results.length > 0 ? (totalScore / results.length).toFixed(2) : '0.00' %>%</td>
-                                            <td colspan="2"></td>
-                                        </tr>
                                     </tbody>
                                 </table>
                             </div>
                         <% } else { %>
-                            <div class="alert alert-warning text-center">
-                                No results found for this student in the selected term.
+                            <div class="text-center py-5">
+                                <i class="fas fa-file-excel fa-4x text-light mb-3"></i>
+                                <h5 class="text-muted">No academic records found for this selection.</h5>
+                                <button class="btn btn-success mt-3" onclick="toggleAddSubject()">
+                                    <i class="fas fa-plus me-2"></i>Start Recording
+                                </button>
                             </div>
                         <% } %>
                         
-                        <div class="text-center mt-4">
-                            <div class="btn-group" role="group">
-                                <a href="/staff/download-result/<%= encodeURIComponent(student.admission_number) %>/<%= encodeURIComponent(term) %>/<%= encodeURIComponent(academic_year) %>" class="btn btn-primary">
-                                    <i class="fas fa-download me-2"></i>Download PDF
+                        <div class="d-flex justify-content-between align-items-center mt-5">
+                            <button type="button" class="btn btn-light px-4" onclick="window.location.href='/staff/dashboard'">
+                                <i class="fas fa-arrow-left me-2"></i>Dashboard
+                            </button>
+                            <div class="btn-group">
+                                <a href="/staff/download-result/<%= encodeURIComponent(student.admission_number) %>/<%= encodeURIComponent(term) %>/<%= encodeURIComponent(academic_year) %>" class="btn btn-primary px-4">
+                                    <i class="fas fa-download me-2"></i>Download Report
                                 </a>
-                                <button type="button" class="btn btn-success" onclick="toggleAddSubject()">
-                                    <i class="fas fa-plus me-2"></i>Add Subject
+                                <% if (results && results.length > 0) { %>
+                                <button type="button" class="btn btn-success px-4" onclick="toggleAddSubject()">
+                                    <i class="fas fa-plus me-2"></i>New Subject
                                 </button>
-                                <a href="/staff/upload-result" class="btn btn-outline-success">
-                                    <i class="fas fa-upload me-2"></i>Upload Results
-                                </a>
+                                <% } %>
                             </div>
                         </div>
 
-                        <!-- Add Subject Form (Hidden by default) -->
-                        <div id="addSubjectForm" class="card mt-3" style="display: none;">
-                            <div class="card-header bg-success text-white">
-                                <h5 class="mb-0"><i class="fas fa-plus me-2"></i>Add New Subject</h5>
-                            </div>
-                            <div class="card-body">
-                                <form action="/staff/add-single-result" method="POST" id="addSubjectFormElement">
-                                    <input type="hidden" name="admission_number" value="<%= student.admission_number %>">
-                                    <input type="hidden" name="term" value="<%= term %>">
-                                    <input type="hidden" name="academic_year" value="<%= academic_year %>">
-                                    
-                                    <div class="row">
-                                        <div class="col-md-6 mb-3">
-                                            <label class="form-label fw-bold">Subject Name</label>
-                                            <input type="text" name="subject" class="form-control" required placeholder="e.g. Chemistry, History, Geography">
-                                        </div>
-                                        <div class="col-md-6 mb-3">
-                                            <label class="form-label fw-bold">Score (0-100)</label>
-                                            <input type="number" name="score" class="form-control" min="0" max="100" step="0.01" required placeholder="85.5">
-                                        </div>
+                        <!-- Add Subject Form (Professional Styled) -->
+                        <div id="addSubjectForm" class="mt-4 p-4 bg-light rounded-3" style="display: none; border: 2px dashed #ddd;">
+                            <h5 class="fw-bold mb-4">Record New Subject Score</h5>
+                            <form action="/staff/add-single-result" method="POST" id="addSubjectFormElement" class="row g-3">
+                                <input type="hidden" name="admission_number" value="<%= student.admission_number %>">
+                                <input type="hidden" name="term" value="<%= term %>">
+                                <input type="hidden" name="academic_year" value="<%= academic_year %>">
+                                
+                                <div class="col-md-6">
+                                    <label class="form-label small fw-bold">Subject Name</label>
+                                    <input type="text" name="subject" class="form-control" required placeholder="e.g. Arabiyyah, Mathematics">
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="form-label small fw-bold">Score Obtained</label>
+                                    <div class="input-group">
+                                        <input type="number" name="score" class="form-control" min="0" max="100" step="0.01" required placeholder="0-100">
+                                        <span class="input-group-text">/ 100</span>
                                     </div>
-                                    
-                                    <div class="text-center">
-                                        <button type="submit" class="btn btn-success me-2">
-                                            <i class="fas fa-check me-2"></i>Add Subject
-                                        </button>
-                                        <button type="button" class="btn btn-secondary" onclick="toggleAddSubject()">
-                                            <i class="fas fa-times me-2"></i>Cancel
-                                        </button>
-                                    </div>
-                                </form>
-                            </div>
+                                </div>
+                                <div class="col-md-3 d-flex align-items-end">
+                                    <button type="submit" class="btn btn-success w-100">Add Record</button>
+                                </div>
+                            </form>
                         </div>
                     </div>
                 </div>
-            <% } %>
-
+            </div>
         </div>
-    </div>
+    <% } %>
 </div>
 
 <script>
-function startEdit(buttonElement) {
-    // Extract parameters from data attributes
-    const subject = buttonElement.getAttribute('data-subject');
-    const admissionNumber = buttonElement.getAttribute('data-student');
-    const term = buttonElement.getAttribute('data-term');
-    const academicYear = buttonElement.getAttribute('data-year');
-    const currentScore = buttonElement.getAttribute('data-score');
-    
-    // Find the table row
-    const row = buttonElement.closest('tr');
-    const scoreCell = row.querySelector('td:nth-child(2)'); // Score column
-    const gradeCell = row.querySelector('td:nth-child(3)'); // Grade column
-    const actionsCell = row.querySelector('td:nth-child(4)'); // Actions column
-    
-    // Store original values as data attributes on the row
-    row.setAttribute('data-edit-mode', 'true');
-    row.setAttribute('data-original-score', scoreCell.textContent.trim());
-    row.setAttribute('data-original-grade', gradeCell.innerHTML);
-    row.setAttribute('data-edit-subject', subject);
-    row.setAttribute('data-edit-student', admissionNumber);
-    row.setAttribute('data-edit-term', term);
-    row.setAttribute('data-edit-year', academicYear);
-    
-    // Replace score cell with input
-    scoreCell.innerHTML = `
-        <input type="number" class="form-control form-control-sm score-input" 
-               value="${currentScore}" min="0" max="100" step="0.01" 
-               style="width: 80px; margin: 0 auto;">
-    `;
-    
-    // Replace grade cell with loading message
-    gradeCell.innerHTML = '<span class="badge bg-info">Updating...</span>';
-    
-    // Replace actions with save/cancel buttons
-    actionsCell.innerHTML = `
-        <div class="btn-group" role="group">
-            <button type="button" class="btn btn-sm btn-success save-edit-btn" 
-                    onclick="saveEdit(this)">
-                <i class="fas fa-check"></i> Save
-            </button>
-            <button type="button" class="btn btn-sm btn-secondary cancel-edit-btn" 
-                    onclick="cancelEdit(this)">
-                <i class="fas fa-times"></i> Cancel
-            </button>
-        </div>
-    `;
+// Logic preserved from original file but adapted for new UI
+function academicRegistry_startEdit(btn, b64_subj, b64_adm, b64_term, b64_year, s_score) {
+    try {
+        const s_subj = atob(b64_subj);
+        const s_adm = atob(b64_adm);
+        const s_term = atob(b64_term);
+        const s_year = atob(b64_year);
+
+        const row = btn.closest('tr');
+        const cellSubj = row.querySelector('td:first-child');
+        const cellScore = row.querySelector('td:nth-child(2)');
+        const cellActions = row.querySelector('td:nth-child(4)');
+        
+        row.setAttribute('data-edit-subject', s_subj);
+        row.setAttribute('data-edit-student', s_adm);
+        row.setAttribute('data-edit-term', s_term);
+        row.setAttribute('data-edit-year', s_year);
+        
+        cellSubj.innerHTML = `<input type="text" class="form-control form-control-sm" value="${s_subj}" style="width: 100%;">`;
+        cellScore.innerHTML = `<input type="number" class="form-control form-control-sm" value="${s_score}" min="0" max="100" step="0.01" style="width: 80px; margin: 0 auto;">`;
+        
+        cellActions.innerHTML = `
+            <div class="btn-group">
+                <button class="btn btn-sm btn-success" title="Save Changes" onclick="academicRegistry_saveEdit(this)"><i class="fas fa-check"></i></button>
+                <button class="btn btn-sm btn-secondary" title="Cancel" onclick="location.reload()"><i class="fas fa-times"></i></button>
+            </div>
+        `;
+    } catch (e) {
+        console.error('Error starting edit:', e);
+        alert('Failed to start edit mode.');
+    }
 }
 
-function saveEdit(buttonElement) {
-    const row = buttonElement.closest('tr');
-    const scoreInput = row.querySelector('.score-input');
-    const newScore = parseFloat(scoreInput.value);
+function academicRegistry_saveEdit(btn) {
+    const row = btn.closest('tr');
+    const inpSubj = row.querySelector('td:first-child input');
+    const inpScore = row.querySelector('td:nth-child(2) input');
     
-    // Extract data from row attributes
-    const subject = row.getAttribute('data-edit-subject');
-    const admissionNumber = row.getAttribute('data-edit-student');
-    const term = row.getAttribute('data-edit-term');
-    const academicYear = row.getAttribute('data-edit-year');
+    if (!inpSubj || !inpScore) return;
+
+    const newS = inpSubj.value.trim();
+    const newSc = parseFloat(inpScore.value);
     
-    // Validate score
-    if (isNaN(newScore) || newScore < 0 || newScore > 100) {
-        alert('Please enter a valid score between 0 and 100.');
-        scoreInput.focus();
-        return;
-    }
+    const oldS = row.getAttribute('data-edit-subject');
+    const admN = row.getAttribute('data-edit-student');
+    const rTerm = row.getAttribute('data-edit-term');
+    const rYear = row.getAttribute('data-edit-year');
     
-    // Calculate grade based on score
+    if (!newS) { alert('Subject name is required'); return; }
+    if (isNaN(newSc) || newSc < 0 || newSc > 100) { alert('Valid score (0-100) required'); return; }
+    
     let grade = 'F';
-    if (newScore >= 70) grade = 'A';
-    else if (newScore >= 60) grade = 'B';
-    else if (newScore >= 50) grade = 'C';
-    else if (newScore >= 45) grade = 'D';
-    else if (newScore >= 40) grade = 'E';
-    
-    // Update UI immediately
-    const scoreCell = row.querySelector('td:nth-child(2)');
-    const gradeCell = row.querySelector('td:nth-child(3)');
-    const actionsCell = row.querySelector('td:nth-child(4)');
-    
-    scoreCell.innerHTML = `<span class="fw-bold">${newScore}</span>`;
-    gradeCell.innerHTML = `<span class="badge bg-${grade === 'A' ? 'success' : (grade === 'F' ? 'danger' : 'secondary')}">${grade}</span>`;
-    actionsCell.innerHTML = '<div class="text-muted"><i class="fas fa-spinner fa-spin"></i> Saving...</div>';
-    
-    // Submit the edit request
+    if (newSc >= 70) grade = 'A';
+    else if (newSc >= 60) grade = 'B';
+    else if (newSc >= 50) grade = 'C';
+    else if (newSc >= 45) grade = 'D';
+    else if (newSc >= 40) grade = 'E';
+
     const form = document.createElement('form');
     form.method = 'POST';
-    form.action = `/staff/edit-result/${encodeURIComponent(admissionNumber)}/${encodeURIComponent(term)}/${encodeURIComponent(academicYear)}`;
+    form.action = `/staff/edit-result/${encodeURIComponent(admN)}/${encodeURIComponent(rTerm)}/${encodeURIComponent(rYear)}`;
     
-    // Add form fields
-    const fields = {
-        'subject': subject,
-        'score': newScore,
-        'grade': grade
+    const payload = { 
+        'subject': newS, 
+        'old_subject': oldS,
+        'score': newSc, 
+        'grade': grade 
     };
-    
-    for (const [name, value] of Object.entries(fields)) {
+    for (const [name, val] of Object.entries(payload)) {
         const input = document.createElement('input');
-        input.type = 'hidden';
-        input.name = name;
-        input.value = value;
+        input.type = 'hidden'; 
+        input.name = name; 
+        input.value = val;
         form.appendChild(input);
     }
-    
-    // Add CSRF token if available
-    const csrfToken = document.querySelector('meta[name="csrf-token"]');
-    if (csrfToken) {
-        const csrfInput = document.createElement('input');
-        csrfInput.type = 'hidden';
-        csrfInput.name = '_token';
-        csrfInput.value = csrfToken.getAttribute('content');
-        form.appendChild(csrfInput);
-    }
-    
-    // Submit the form
     document.body.appendChild(form);
     form.submit();
 }
 
-function cancelEdit(buttonElement) {
-    const row = buttonElement.closest('tr');
-    const scoreCell = row.querySelector('td:nth-child(2)');
-    const gradeCell = row.querySelector('td:nth-child(3)');
-    const actionsCell = row.querySelector('td:nth-child(4)');
-    
-    // Extract original values from row attributes
-    const originalScore = row.getAttribute('data-original-score');
-    const originalGrade = row.getAttribute('data-original-grade');
-    const subject = row.getAttribute('data-edit-subject');
-    const admissionNumber = row.getAttribute('data-edit-student');
-    const term = row.getAttribute('data-edit-term');
-    const academicYear = row.getAttribute('data-edit-year');
-    
-    // Restore original values
-    scoreCell.innerHTML = `<span class="fw-bold">${originalScore}</span>`;
-    gradeCell.innerHTML = originalGrade;
-    
-    // Restore original Edit/Delete buttons
-    actionsCell.innerHTML = `
-        <div class="btn-group" role="group">
-            <button type="button" class="btn btn-sm btn-outline-primary edit-subject-btn"
-                    data-subject="${subject}"
-                    data-student="${admissionNumber}"
-                    data-term="${term}"
-                    data-year="${academicYear}"
-                    data-score="${originalScore}"
-                    onclick="startEdit(this)">
-                <i class="fas fa-edit"></i> Edit
-            </button>
-            <button type="button" class="btn btn-sm btn-outline-danger delete-subject-btn"
-                    data-subject="${subject}"
-                    data-student="${admissionNumber}"
-                    data-term="${term}"
-                    data-year="${academicYear}"
-                    onclick="confirmDelete(this)">
-                <i class="fas fa-trash"></i> Delete
-            </button>
-        </div>
-    `;
-    
-    // Clean up edit mode attributes
-    row.removeAttribute('data-edit-mode');
-    row.removeAttribute('data-original-score');
-    row.removeAttribute('data-original-grade');
-    row.removeAttribute('data-edit-subject');
-    row.removeAttribute('data-edit-student');
-    row.removeAttribute('data-edit-term');
-    row.removeAttribute('data-edit-year');
-}
+function academicRegistry_triggerDelete(b64_subj, b64_adm, b64_term, b64_year) {
+    try {
+        const s_subj = atob(b64_subj);
+        const s_adm = atob(b64_adm);
+        const s_term = atob(b64_term);
+        const s_year = atob(b64_year);
 
-function confirmDelete(buttonElement) {
-    // Extract parameters from data attributes
-    const subject = buttonElement.getAttribute('data-subject');
-    const admissionNumber = buttonElement.getAttribute('data-student');
-    const term = buttonElement.getAttribute('data-term');
-    const academicYear = buttonElement.getAttribute('data-year');
-    
-    console.log('Delete button clicked:', { subject, admissionNumber, term, academicYear });
-    
-    if (confirm(`Are you sure you want to delete the "${subject}" result for this student? This action cannot be undone.`)) {
-        console.log('Confirmed deletion, creating form...');
-        
-        // Create a form to submit the delete request
-        const form = document.createElement('form');
-        form.method = 'POST';
-        form.action = `/staff/delete-result/${encodeURIComponent(admissionNumber)}/${encodeURIComponent(term)}/${encodeURIComponent(academicYear)}`;
-        
-        console.log('Form action:', form.action);
+        if (confirm(`⚠️ DELETE RECORD: Are you sure you want to permanently delete the "${s_subj}" record for this student?\n\nThis action cannot be undone.`)) {
+            const form = document.createElement('form');
+            form.method = 'POST';
+            form.action = '/staff/delete-result';
+            
+            const data = {
+                'admission_number': s_adm,
+                'term': s_term,
+                'academic_year': s_year,
+                'subject': s_subj
+            };
 
-        // Add hidden inputs
-        const subjectInput = document.createElement('input');
-        subjectInput.type = 'hidden';
-        subjectInput.name = 'subject';
-        subjectInput.value = subject;
-        form.appendChild(subjectInput);
-        
-        console.log('Added subject input:', subject);
-
-        // Add CSRF token if available (optional)
-        const csrfToken = document.querySelector('meta[name="csrf-token"]');
-        if (csrfToken) {
-            const csrfInput = document.createElement('input');
-            csrfInput.type = 'hidden';
-            csrfInput.name = '_token';
-            csrfInput.value = csrfToken.getAttribute('content');
-            form.appendChild(csrfInput);
-            console.log('Added CSRF token');
-        }
-
-        // Add form to body and submit
-        document.body.appendChild(form);
-        console.log('Form added to body, submitting...');
-        
-        // Submit the form
-        try {
+            for (const [name, val] of Object.entries(data)) {
+                const input = document.createElement('input');
+                input.type = 'hidden'; 
+                input.name = name; 
+                input.value = val;
+                form.appendChild(input);
+            }
+            
+            document.body.appendChild(form);
             form.submit();
-            console.log('Form submitted successfully');
-        } catch (error) {
-            console.error('Error submitting delete form:', error);
-            alert('Error deleting result. Please try again.');
         }
-    } else {
-        console.log('Deletion cancelled by user');
+    } catch (e) {
+        console.error('Error triggering delete:', e);
+        alert('Failed to process delete request.');
     }
 }
 
 function toggleAddSubject() {
     const form = document.getElementById('addSubjectForm');
-    const button = event.target.closest('button');
-    
-    if (form.style.display === 'none' || form.style.display === '') {
-        form.style.display = 'block';
-        button.innerHTML = '<i class="fas fa-minus me-2"></i>Hide Form';
-        button.className = 'btn btn-danger';
-        // Focus on the subject input
-        setTimeout(() => {
-            const subjectInput = form.querySelector('input[name="subject"]');
-            if (subjectInput) subjectInput.focus();
-        }, 100);
-    } else {
-        form.style.display = 'none';
-        button.innerHTML = '<i class="fas fa-plus me-2"></i>Add Subject';
-        button.className = 'btn btn-success';
-    }
+    form.style.display = form.style.display === 'none' ? 'block' : 'none';
 }
-
-// Form validation for add subject form
-document.addEventListener('DOMContentLoaded', function() {
-    const addSubjectForm = document.getElementById('addSubjectFormElement');
-    if (addSubjectForm) {
-        addSubjectForm.addEventListener('submit', function(e) {
-            const subject = this.querySelector('input[name="subject"]').value.trim();
-            const score = parseFloat(this.querySelector('input[name="score"]').value);
-            
-            if (!subject) {
-                e.preventDefault();
-                alert('Please enter a subject name.');
-                return false;
-            }
-            
-            if (isNaN(score) || score < 0 || score > 100) {
-                e.preventDefault();
-                alert('Please enter a valid score between 0 and 100.');
-                return false;
-            }
-        });
-    }
-});
 </script>
 
 <%- include('../layout/footer') %>

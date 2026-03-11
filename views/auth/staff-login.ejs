@@ -1,98 +1,63 @@
 <%- include('../layout/header') %>
 
-<section class="py-5" style="min-height: 80vh; display: flex; align-items: center;">
-    <div class="container">
-        <div class="row justify-content-center">
-            <div class="col-lg-5 col-md-7">
-                <div class="card card-islamic shadow-lg">
-                    <div class="card-header text-center py-4">
-                        <i class="fas fa-user-tie fa-3x mb-3"></i>
-                        <h3 class="mb-0 fw-bold">Staff Login</h3>
-                        <p class="mb-0 text-light">Sign in to access your dashboard</p>
+<div class="container py-5 mt-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-5 col-md-8">
+            <div class="card-islamic shadow-lg border-0">
+                <div class="card-header text-center">
+                    <div class="mb-3">
+                        <i class="fas fa-mosque fa-3x text-white opacity-75"></i>
                     </div>
-                    <div class="card-body p-4">
-                        <form action="/auth/staff-login" method="POST" class="needs-validation" novalidate>
-                            <!-- Email Field -->
-                            <div class="mb-3">
-                                <label for="email" class="form-label">
-                                    <i class="fas fa-envelope me-2"></i>Email Address
-                                </label>
-                                <input 
-                                    type="email" 
-                                    class="form-control form-control-lg" 
-                                    id="email" 
-                                    name="email" 
-                                    placeholder="Enter your email"
-                                    required
-                                >
-                                <div class="invalid-feedback">
-                                    Please enter a valid email address.
-                                </div>
-                            </div>
-
-                            <!-- Password Field -->
-                            <div class="mb-3">
-                                <label for="password" class="form-label">
-                                    <i class="fas fa-lock me-2"></i>Password
-                                </label>
-                                <input 
-                                    type="password" 
-                                    class="form-control form-control-lg" 
-                                    id="password" 
-                                    name="password" 
-                                    placeholder="Enter your password"
-                                    required
-                                >
-                                <div class="invalid-feedback">
-                                    Please enter your password.
-                                </div>
-                            </div>
-
-                            <!-- Remember Me & Forgot Password -->
-                            <div class="d-flex justify-content-between align-items-center mb-4">
-                                <div class="form-check">
-                                    <input class="form-check-input" type="checkbox" id="remember" name="remember">
-                                    <label class="form-check-label" for="remember">
-                                        Remember me
-                                    </label>
-                                </div>
-                                <a href="#" class="text-islamic text-decoration-none">Forgot Password?</a>
-                            </div>
-
-                            <!-- Submit Button -->
-                            <button type="submit" class="btn btn-islamic w-100 btn-lg">
-                                <i class="fas fa-sign-in-alt me-2"></i>Login
-                            </button>
-
-                            <!-- Demo Credentials Info -->
-                            <div class="alert alert-info mt-4 mb-0" role="alert">
-                                <strong><i class="fas fa-info-circle me-2"></i>Demo Login:</strong><br>
-                                <small>
-                                    Email: <code>admin@school.com</code><br>
-                                    Password: <code>admin123</code>
-                                </small>
-                            </div>
-                        </form>
-                    </div>
-                    <div class="card-footer text-center py-3 bg-light">
-                        <small class="text-muted">
-                            Not a staff member? 
-                            <a href="/auth/student-login" class="text-islamic fw-bold text-decoration-none">
-                                Student Login
-                            </a>
-                        </small>
-                    </div>
+                    <h2 class="fw-bold mb-1">Administrative Login</h2>
+                    <p class="small mb-0 opacity-75">Secure portal for staff & management</p>
                 </div>
+                <div class="card-body p-5">
+                    <form action="/auth/staff-login" method="POST" class="needs-validation" novalidate>
+                        <div class="mb-4">
+                            <label class="form-label small fw-bold text-uppercase">Email Address</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light border-0"><i class="fas fa-envelope text-success"></i></span>
+                                <input type="email" name="email" class="form-control bg-light border-0" required placeholder="name@school.com">
+                            </div>
+                        </div>
 
-                <!-- Back to Home -->
-                <div class="text-center mt-4">
-                    <a href="/" class="text-muted text-decoration-none">
-                        <i class="fas fa-arrow-left me-2"></i>Back to Home
-                    </a>
+                        <div class="mb-4">
+                            <label class="form-label small fw-bold text-uppercase">Password</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light border-0"><i class="fas fa-key text-success"></i></span>
+                                <input type="password" name="password" class="form-control bg-light border-0" required placeholder="••••••••">
+                            </div>
+                        </div>
+
+                        <div class="d-flex justify-content-between align-items-center mb-4">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="remember">
+                                <label class="form-check-label small text-muted" for="remember">Keep me logged in</label>
+                            </div>
+                            <a href="/auth/forgot-password" class="small text-success fw-bold text-decoration-none">Reset Password</a>
+                        </div>
+
+                        <button type="submit" class="btn btn-islamic w-100 py-3 fw-bold mb-4">
+                            ACCESS DASHBOARD <i class="fas fa-chevron-right ms-2"></i>
+                        </button>
+
+                        <div class="alert bg-light border-0 rounded-3 mb-0">
+                            <div class="d-flex align-items-center">
+                                <i class="fas fa-info-circle text-info me-3 fa-lg"></i>
+                                <div class="small">
+                                    <span class="fw-bold d-block">Staff Access Only</span>
+                                    Unauthorized access attempts are logged.
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="card-footer bg-white border-0 text-center pb-4">
+                    <p class="text-muted small mb-0">Not staff? <a href="/auth/student-login" class="text-success fw-bold text-decoration-none">Student Portal</a></p>
                 </div>
             </div>
         </div>
     </div>
-</section>
+</div>
 
 <%- include('../layout/footer') %>

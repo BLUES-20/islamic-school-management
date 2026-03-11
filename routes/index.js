@@ -42,14 +42,5 @@ router.get('/contact', (req, res) => {
     });
 });
 
-// Handle Contact Form Submission
-router.post('/contact', (req, res) => {
-    const { name, email, subject, message } = req.body;
-    
-    // For now, just flash a success message
-    // Later, you can send email or save to database
-    req.flash('success', 'Thank you for contacting us! We will get back to you soon.');
-    res.redirect('/contact');
-});
 
 module.exports = router;

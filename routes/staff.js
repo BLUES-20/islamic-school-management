@@ -2,6 +2,67 @@
 const express = require('express');
 const router = express.Router();
 const db = require('../config/db');
+const path = require('path');
+const multer = require('multer');
+const fs = require('fs');
+
+// Configure Multer for Student Picture Uploads
+const pictureStorage = multer.diskStorage({
+    destination: (req, file, cb) => {
+        const uploadDir = 'public/uploads/students';
+        if (!fs.existsSync(uploadDir)) {
+            fs.mkdirSync(uploadDir, { recursive: true });
+        }
+        cb(null, uploadDir);
+    },
+    filename: (req, file, cb) => {
+        const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+        cb(null, 'student-' + uniqueSuffix + path.extname(file.originalname));
+    }
+});
+
+const uploadStudentPicture = multer({
+    storage: pictureStorage,
+    limits: { fileSize: 2 * 1024 * 1024 }, // 2MB
+    fileFilter: (req, file, cb) => {
+        const allowedTypes = /jpg|jpeg|png/;
+        const extname = allowedTypes.test(path.extname(file.originalname).toLowerCase());
+        const mimetype = allowedTypes.test(file.mimetype);
+        if (extname && mimetype) {
+            return cb(null, true);
+        }
+        cb(new Error('Only JPG, JPEG and PNG images are allowed!'));
+    }
+});
+
+// Configure Multer for Document Uploads
+const documentStorage = multer.diskStorage({
+    destination: (req, file, cb) => {
+        const uploadDir = 'public/uploads/documents';
+        if (!fs.existsSync(uploadDir)) {
+            fs.mkdirSync(uploadDir, { recursive: true });
+        }
+        cb(null, uploadDir);
+    },
+    filename: (req, file, cb) => {
+        const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+        cb(null, 'document-' + uniqueSuffix + path.extname(file.originalname));
+    }
+});
+
+const uploadDocument = multer({
+    storage: documentStorage,
+    limits: { fileSize: 10 * 1024 * 1024 }, // 10MB for documents
+    fileFilter: (req, file, cb) => {
+        const allowedTypes = /pdf|doc|docx|txt|jpg|jpeg|png/;
+        const extname = allowedTypes.test(path.extname(file.originalname).toLowerCase());
+        const mimetype = file.mimetype;
+        if (extname) {
+            return cb(null, true);
+        }
+        cb(new Error('Only PDF, DOC, DOCX, TXT, JPG, JPEG and PNG files are allowed!'));
+    }
+});
 
 // Middleware to check if staff is authenticated
 const isAuthenticated = (req, res, next) => {
@@ -27,11 +88,16 @@ router.get('/dashboard', async (req, res) => {
         const countResult = await db.query('SELECT COUNT(*) FROM students');
         const studentCount = countResult.rows[0].count;
 
+        // Fetch unread messages count
+        const unreadMsgRes = await db.query("SELECT COUNT(*) FROM contact_messages WHERE status = 'unread'");
+        const unreadMessagesCount = unreadMsgRes.rows[0].count;
+
         res.render('staff/dashboard', {
             title: 'Staff Dashboard - Islamic School',
             page: 'staff-dashboard',
             staff: req.session.staff,
-            studentCount
+            studentCount,
+            unreadMessagesCount
         });
     } catch (err) {
         console.error('Dashboard error:', err);
@@ -41,12 +107,81 @@ router.get('/dashboard', async (req, res) => {
 });
 
 // Upload Document Page
-router.get('/upload-document', (req, res) => {
-    res.render('staff/upload-document', {
-        title: 'Upload Document - Islamic School',
-        page: 'upload-document',
-        staff: req.session.staff
-    });
+// Upload Document Page
+router.get('/upload-document', async (req, res) => {
+    try {
+        const docsRes = await db.query(
+            `SELECT d.*, u.username as author_name 
+             FROM documents d 
+             LEFT JOIN users u ON d.author_id = u.id 
+             ORDER BY d.uploaded_at DESC 
+             LIMIT 10`
+        );
+        
+        res.render('staff/upload-document', {
+            title: 'Upload Document - Islamic School',
+            page: 'upload-document',
+            staff: req.session.staff,
+            documents: docsRes.rows
+        });
+    } catch (err) {
+        console.error('Error loading documents:', err);
+        req.flash('error', 'Error loading documents list');
+        res.redirect('/staff/dashboard');
+    }
+});
+
+// Process Document Upload
+router.post('/upload-document', uploadDocument.single('file'), async (req, res) => {
+    try {
+        if (!req.file) {
+            req.flash('error', 'Please select a file to upload');
+            return res.redirect('/staff/upload-document');
+        }
+
+        const { title, description, document_type, target_audience } = req.body;
+        const author_id = req.session.staff.user_id;
+        const file_path = `/uploads/${req.file.filename}`;
+        const file_name = req.file.originalname;
+        const file_size = req.file.size;
+
+        await db.query(
+            `INSERT INTO documents (title, description, document_type, file_path, file_name, file_size, target_audience, author_id)
+             VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
+            [title, description || null, document_type, file_path, file_name, file_size, target_audience || 'all', author_id]
+        );
+
+        req.flash('success', 'Document uploaded successfully');
+        res.redirect('/staff/upload-document');
+    } catch (err) {
+        console.error('Document upload error:', err);
+        req.flash('error', 'Error uploading document: ' + err.message);
+        res.redirect('/staff/upload-document');
+    }
+});
+
+// Delete Document
+router.post('/delete-document/:id', async (req, res) => {
+    try {
+        const { id } = req.params;
+        
+        // Get file path first to delete the physical file
+        const docRes = await db.query('SELECT file_path FROM documents WHERE id = $1', [id]);
+        if (docRes.rows.length > 0) {
+            const filePath = path.join(__dirname, '../public', docRes.rows[0].file_path);
+            if (fs.existsSync(filePath)) {
+                fs.unlinkSync(filePath);
+            }
+        }
+        
+        await db.query('DELETE FROM documents WHERE id = $1', [id]);
+        req.flash('success', 'Document deleted successfully');
+        res.redirect('/staff/upload-document');
+    } catch (err) {
+        console.error('Delete document error:', err);
+        req.flash('error', 'Error deleting document');
+        res.redirect('/staff/upload-document');
+    }
 });
 
 // Upload Result Page
@@ -81,42 +216,76 @@ router.get('/upload-result', async (req, res) => {
 router.post('/upload-result', async (req, res) => {
     const { admission_number, class_name, subjects, scores, delete_subjects, term, academic_year } = req.body;
 
-    // Ensure we don't pass "undefined" strings in the URL
-    const safeClassName = class_name || '';
-    const safeTerm = term || '';
-    const safeYear = academic_year || '';
+    // Normalize inputs (avoid whitespace/case mismatches across insert/delete paths)
+    const cleanAdmissionNumber = (admission_number || '').trim();
+    const cleanClassName = (class_name || '').trim();
+    const cleanTerm = (term || '').trim();
+    const cleanYear = (academic_year || '').trim();
 
-    const redirectUrl = `/staff/upload-result?admission_number=${encodeURIComponent(admission_number)}&class_name=${encodeURIComponent(safeClassName)}&term=${encodeURIComponent(safeTerm)}&academic_year=${encodeURIComponent(safeYear)}`;
+    const redirectUrl = `/staff/upload-result?admission_number=${encodeURIComponent(cleanAdmissionNumber)}&class_name=${encodeURIComponent(cleanClassName)}&term=${encodeURIComponent(cleanTerm)}&academic_year=${encodeURIComponent(cleanYear)}`;
 
     try {
         // 1. Basic Validation
-        if (!admission_number || !term || !academic_year) {
+        if (!cleanAdmissionNumber || !cleanTerm || !cleanYear) {
             req.flash('error', 'Student admission number, term, and academic year are required.');
             return res.redirect(redirectUrl);
         }
 
         // 2. Find Student
-        const studentResult = await db.query('SELECT id FROM students WHERE admission_number = $1', [admission_number]);
+        const studentResult = await db.query('SELECT id, class FROM students WHERE admission_number = $1', [cleanAdmissionNumber]);
 
         if (studentResult.rows.length === 0) {
             req.flash('error', 'Student with that admission number not found.');
             return res.redirect(redirectUrl);
         }
 
-        const student_id = studentResult.rows[0].id;
+        const student = studentResult.rows[0];
+        const student_id = student.id;
+
+        // 2b. Validate Class matches Admission Number
+        if (student.class && cleanClassName && student.class.toUpperCase() !== cleanClassName.toUpperCase()) {
+            req.flash('error', `Class mismatch! Student ${cleanAdmissionNumber} belongs to ${student.class}, but you selected ${cleanClassName}.`);
+            return res.redirect(redirectUrl);
+        }
 
         // 3. Handle Deletions First
         let deletedCount = 0;
+        console.log('Delete subjects received:', delete_subjects);
+        
         if (delete_subjects && (Array.isArray(delete_subjects) ? delete_subjects.length > 0 : delete_subjects)) {
             const subjectsToDelete = Array.isArray(delete_subjects) ? delete_subjects : [delete_subjects];
+            console.log('Subjects to delete:', subjectsToDelete);
 
             for (const subjectToDelete of subjectsToDelete) {
                 try {
-                    await db.query(
-                        'DELETE FROM results WHERE student_id = $1 AND subject = $2 AND term = $3 AND academic_year = $4',
-                        [student_id, subjectToDelete.trim().toUpperCase(), term, academic_year]
+                    const cleanSubject = (subjectToDelete || '').trim();
+                    if (!cleanSubject) continue;
+                    
+                    console.log(`Attempting to delete subject: "${cleanSubject}"`);
+
+                    // First check what exists in DB
+                    const checkResult = await db.query(
+                        `SELECT id, subject, term, academic_year FROM results 
+                         WHERE student_id = $1 
+                         AND TRIM(LEAST(subject, '$2')) = TRIM(GREATEST(subject, '$2'))
+                         AND TRIM(term) = $3
+                         AND TRIM(academic_year) = $4`,
+                        [student_id, cleanSubject, cleanTerm, cleanYear]
                     );
-                    deletedCount++;
+                    console.log('Found matching records:', checkResult.rows.length);
+
+                    // Use a more flexible delete that handles case-insensitive matching
+                    const deleteResult = await db.query(
+                        `DELETE FROM results
+                         WHERE student_id = $1
+                         AND LOWER(TRIM(subject)) = LOWER($2)
+                         AND TRIM(term) = $3
+                         AND TRIM(academic_year) = $4`,
+                        [student_id, cleanSubject, cleanTerm, cleanYear]
+                    );
+
+                    deletedCount += deleteResult.rowCount || 0;
+                    console.log(`Deleted ${deleteResult.rowCount} records for subject: ${cleanSubject}`);
                 } catch (deleteErr) {
                     console.error(`Error deleting ${subjectToDelete}:`, deleteErr);
                 }
@@ -166,7 +335,7 @@ router.post('/upload-result', async (req, res) => {
                 // Check if this subject already exists
                 const existingResult = await db.query(
                     'SELECT id FROM results WHERE student_id = $1 AND subject = $2 AND term = $3 AND academic_year = $4',
-                    [student_id, entry.subject.toUpperCase(), term, academic_year]
+                    [student_id, entry.subject.toUpperCase(), cleanTerm, cleanYear]
                 );
 
                 const exists = existingResult.rows.length > 0;
@@ -174,10 +343,10 @@ router.post('/upload-result', async (req, res) => {
                 // Insert or update
                 await db.query(
                     `INSERT INTO results (student_id, subject, score, grade, term, academic_year)
-                     VALUES ($1, $2, $3, $4, $5, $6)
-                     ON CONFLICT (student_id, subject, term, academic_year)
-                     DO UPDATE SET score = EXCLUDED.score, grade = EXCLUDED.grade`,
-                    [student_id, entry.subject.toUpperCase(), numScore, grade, term, academic_year]
+                      VALUES ($1, $2, $3, $4, $5, $6)
+                      ON CONFLICT (student_id, subject, term, academic_year)
+                      DO UPDATE SET score = EXCLUDED.score, grade = EXCLUDED.grade`,
+                    [student_id, entry.subject.toUpperCase(), numScore, grade, cleanTerm, cleanYear]
                 );
 
                 if (exists) {
@@ -416,76 +585,56 @@ router.post('/edit-result/:admission_number/:term/*', async (req, res) => {
     try {
         const { admission_number, term } = req.params;
         const academic_year = req.params[0];
-        const { subject, score, grade } = req.body;
+        const { subject, old_subject, score, grade } = req.body;
 
         console.log('=== EDIT REQUEST START ===');
-        console.log('Raw params from URL:', { admission_number, term, academic_year });
-        console.log('Edit data:', { subject, score, grade });
+        console.log('Edit data:', { subject, old_subject, score, grade });
 
         // Clean up parameters
         const cleanAdmissionNumber = admission_number.trim();
         const cleanTerm = term.trim();
         const cleanAcademicYear = academic_year.trim();
         const cleanSubject = subject.trim().toUpperCase();
+        const cleanOldSubject = (old_subject || subject).trim().toUpperCase();
         const cleanScore = parseFloat(score);
         const cleanGrade = grade.trim();
 
-        console.log('Cleaned parameters:', { 
-            cleanAdmissionNumber, 
-            cleanTerm, 
-            cleanAcademicYear, 
-            cleanSubject,
-            cleanScore,
-            cleanGrade
-        });
-
         // Validate input parameters
         if (!cleanAdmissionNumber || !cleanTerm || !cleanAcademicYear || !cleanSubject || isNaN(cleanScore)) {
-            console.log('❌ Validation failed - missing or invalid parameters');
             req.flash('error', 'Missing required parameters for editing.');
             return res.redirect(`/staff/view-results?admission_number=${encodeURIComponent(cleanAdmissionNumber)}&term=${encodeURIComponent(cleanTerm)}&academic_year=${encodeURIComponent(cleanAcademicYear)}`);
         }
 
         // Validate score range
         if (cleanScore < 0 || cleanScore > 100) {
-            console.log('❌ Invalid score range:', cleanScore);
             req.flash('error', 'Score must be between 0 and 100.');
             return res.redirect(`/staff/view-results?admission_number=${encodeURIComponent(cleanAdmissionNumber)}&term=${encodeURIComponent(cleanTerm)}&academic_year=${encodeURIComponent(cleanAcademicYear)}`);
         }
 
-        // Find student by admission number
+        // Find student
         const studentRes = await db.query('SELECT id FROM students WHERE admission_number = $1', [cleanAdmissionNumber]);
-        
         if (studentRes.rows.length === 0) {
-            console.log('❌ Student not found:', cleanAdmissionNumber);
             req.flash('error', 'Student not found.');
             return res.redirect(`/staff/view-results?admission_number=${encodeURIComponent(cleanAdmissionNumber)}&term=${encodeURIComponent(cleanTerm)}&academic_year=${encodeURIComponent(cleanAcademicYear)}`);
         }
-        
         const student_id = studentRes.rows[0].id;
-        console.log('✅ Student found, ID:', student_id);
 
         // Update the specific result
         const updateResult = await db.query(
             `UPDATE results 
-             SET score = $1, grade = $2, updated_at = CURRENT_TIMESTAMP
-             WHERE student_id = $3 
-             AND UPPER(TRIM(subject)) = $4 
-             AND TRIM(term) = $5 
-             AND TRIM(academic_year) = $6 
+             SET subject = $1, score = $2, grade = $3, updated_at = CURRENT_TIMESTAMP
+             WHERE student_id = $4 
+             AND UPPER(TRIM(subject)) = $5 
+             AND TRIM(term) = $6 
+             AND TRIM(academic_year) = $7 
              RETURNING *`,
-            [cleanScore, cleanGrade, student_id, cleanSubject, cleanTerm, cleanAcademicYear]
+            [cleanSubject, cleanScore, cleanGrade, student_id, cleanOldSubject, cleanTerm, cleanAcademicYear]
         );
         
-        console.log('Update query result:', updateResult.rows);
-        console.log('Number of rows updated:', updateResult.rows.length);
-        
         if (updateResult.rows.length > 0) {
-            console.log('✅ Successfully updated:', updateResult.rows[0]);
             req.flash('success', `Successfully updated ${subject} result.`);
         } else {
-            console.log('❌ No result found to update');
-            req.flash('warning', `No ${subject} result found to update. Please check the subject name and try again.`);
+            req.flash('warning', `No ${old_subject || subject} result found to update.`);
         }
         
     } catch (err) {
@@ -493,63 +642,40 @@ router.post('/edit-result/:admission_number/:term/*', async (req, res) => {
         req.flash('error', `Error editing result: ${err.message}`);
     }
 
-    // Redirect back to view results with query params so the table reloads
-    const redirectUrl = `/staff/view-results?admission_number=${encodeURIComponent(req.params.admission_number)}&term=${encodeURIComponent(req.params.term)}&academic_year=${encodeURIComponent(req.params[0])}`;
-    console.log('=== EDIT REQUEST END ===');
-    res.redirect(redirectUrl);
+    res.redirect(`/staff/view-results?admission_number=${encodeURIComponent(req.params.admission_number)}&term=${encodeURIComponent(req.params.term)}&academic_year=${encodeURIComponent(req.params[0])}`);
 });
 
 // Delete Single Result
-router.post('/delete-result/:admission_number/:term/*', async (req, res) => {
+router.post('/delete-result', async (req, res) => {
     try {
-        const { admission_number, term } = req.params;
-        const academic_year = req.params[0];
-        const { subject } = req.body;
+        const { admission_number, term, academic_year, subject } = req.body;
 
         console.log('=== DELETE REQUEST START ===');
-        console.log('Raw params from URL:', { admission_number, term, academic_year });
-        console.log('Subject from form:', subject);
+        console.log('Data from body:', { admission_number, term, academic_year, subject });
 
-        // Clean up parameters - be more conservative
-        const cleanAdmissionNumber = admission_number.trim();
-        const cleanTerm = term.trim();
-        const cleanAcademicYear = academic_year.trim();
-        const cleanSubject = subject.trim().toUpperCase();
+        // Clean up parameters
+        const cleanAdmissionNumber = (admission_number || '').trim();
+        const cleanTerm = (term || '').trim();
+        const cleanAcademicYear = (academic_year || '').trim();
+        const cleanSubject = (subject || '').trim().toUpperCase();
 
-        console.log('Cleaned parameters:', { 
-            cleanAdmissionNumber, 
-            cleanTerm, 
-            cleanAcademicYear, 
-            cleanSubject 
-        });
+        const redirectUrl = `/staff/view-results?admission_number=${encodeURIComponent(cleanAdmissionNumber)}&term=${encodeURIComponent(cleanTerm)}&academic_year=${encodeURIComponent(cleanAcademicYear)}`;
 
         // Validate input parameters
         if (!cleanAdmissionNumber || !cleanTerm || !cleanAcademicYear || !cleanSubject) {
-            console.log('❌ Validation failed - missing parameters');
             req.flash('error', 'Missing required parameters for deletion.');
-            return res.redirect(`/staff/view-results?admission_number=${encodeURIComponent(cleanAdmissionNumber)}&term=${encodeURIComponent(cleanTerm)}&academic_year=${encodeURIComponent(cleanAcademicYear)}`);
+            return res.redirect(redirectUrl);
         }
 
-        // Find student by admission number
+        // Find student
         const studentRes = await db.query('SELECT id FROM students WHERE admission_number = $1', [cleanAdmissionNumber]);
-        
         if (studentRes.rows.length === 0) {
-            console.log('❌ Student not found:', cleanAdmissionNumber);
             req.flash('error', 'Student not found.');
-            return res.redirect(`/staff/view-results?admission_number=${encodeURIComponent(cleanAdmissionNumber)}&term=${encodeURIComponent(cleanTerm)}&academic_year=${encodeURIComponent(cleanAcademicYear)}`);
+            return res.redirect(redirectUrl);
         }
-        
         const student_id = studentRes.rows[0].id;
-        console.log('✅ Student found, ID:', student_id);
 
-        // First, let's see what results exist for this student
-        const existingResults = await db.query(
-            'SELECT subject, term, academic_year FROM results WHERE student_id = $1',
-            [student_id]
-        );
-        console.log('Existing results for student:', existingResults.rows);
-
-        // Delete the specific result with more detailed logging
+        // Delete the specific result
         const deleteResult = await db.query(
             `DELETE FROM results 
              WHERE student_id = $1 
@@ -560,36 +686,18 @@ router.post('/delete-result/:admission_number/:term/*', async (req, res) => {
             [student_id, cleanSubject, cleanTerm, cleanAcademicYear]
         );
         
-        console.log('Delete query result:', deleteResult.rows);
-        console.log('Number of rows deleted:', deleteResult.rows.length);
-        
         if (deleteResult.rows.length > 0) {
-            console.log('✅ Successfully deleted:', deleteResult.rows[0]);
-            req.flash('success', `Successfully deleted ${subject} result.`);
+            req.flash('success', `Successfully deleted ${subject} record.`);
         } else {
-            console.log('❌ No result found to delete');
-            // Let's try to find what exists
-            const similarResults = await db.query(
-                `SELECT subject, term, academic_year 
-                 FROM results 
-                 WHERE student_id = $1 
-                 AND (UPPER(TRIM(subject)) LIKE $2 OR UPPER(TRIM(subject)) LIKE $3)`,
-                [student_id, `%${cleanSubject}%`, cleanSubject]
-            );
-            console.log('Similar subjects found:', similarResults.rows);
-            
-            req.flash('warning', `No ${subject} result found to delete. Please check the subject name and try again.`);
+            req.flash('warning', `Record not found or already deleted.`);
         }
         
+        res.redirect(redirectUrl);
     } catch (err) {
         console.error('❌ Delete error:', err);
-        req.flash('error', `Error deleting result: ${err.message}`);
+        req.flash('error', `Error deleting record: ${err.message}`);
+        res.redirect('/staff/view-results');
     }
-
-    // Redirect back to view results with query params so the table reloads
-    const redirectUrl = `/staff/view-results?admission_number=${encodeURIComponent(req.params.admission_number)}&term=${encodeURIComponent(req.params.term)}&academic_year=${encodeURIComponent(req.params[0])}`;
-    console.log('=== DELETE REQUEST END ===');
-    res.redirect(redirectUrl);
 });
 
 // Manage Students Page
@@ -609,13 +717,207 @@ router.get('/manage-students', async (req, res) => {
     }
 });
 
+// Delete Student Route
+router.post('/delete-student/:id', async (req, res) => {
+    try {
+        console.log('Delete student route called with ID:', req.params.id);
+        const studentId = req.params.id;
+
+        // First, check if student exists
+        const studentCheck = await db.query('SELECT first_name, last_name, admission_number FROM students WHERE id = $1', [studentId]);
+        console.log('Student check result:', studentCheck.rows.length);
+        if (studentCheck.rows.length === 0) {
+            req.flash('error', 'Student not found');
+            return res.redirect('/staff/manage-students');
+        }
+
+        const student = studentCheck.rows[0];
+        console.log('Deleting student:', student.first_name, student.last_name);
+
+        // Get user_id before deleting
+        const userId = studentCheck.rows[0].user_id;
+        console.log('Associated user_id:', userId);
+
+        // Delete results first (though CASCADE should handle this)
+        const resultsDelete = await db.query('DELETE FROM results WHERE student_id = $1', [studentId]);
+        console.log('Deleted results:', resultsDelete.rowCount);
+
+        // Delete the student
+        const studentDelete = await db.query('DELETE FROM students WHERE id = $1', [studentId]);
+        console.log('Deleted student:', studentDelete.rowCount);
+
+        // Delete the user (this will CASCADE delete the student if not already deleted)
+        const userDelete = await db.query('DELETE FROM users WHERE id = $1', [userId]);
+        console.log('Deleted user:', userDelete.rowCount);
+
+        req.flash('success', `Student ${student.first_name} ${student.last_name} (ID: ${student.admission_number}) has been permanently deleted`);
+        res.redirect('/staff/manage-students');
+
+    } catch (err) {
+        console.error('Error deleting student:', err);
+        req.flash('error', `Could not delete student: ${err.message}`);
+        res.redirect('/staff/manage-students');
+    }
+});
+
+// Export Students PDF by Class
+router.get('/export-students-pdf', async (req, res) => {
+    try {
+        const PDFDocument = require('pdfkit');
+
+        // Query students grouped by class
+        const studentsRes = await db.query(`
+            SELECT class, first_name, last_name, admission_number, gender, parent_name, parent_phone
+            FROM students
+            WHERE class IS NOT NULL AND class != ''
+            ORDER BY class, last_name, first_name
+        `);
+
+        const students = studentsRes.rows;
+
+        // Group students by class
+        const studentsByClass = {};
+        students.forEach(student => {
+            const className = student.class;
+            if (!studentsByClass[className]) {
+                studentsByClass[className] = [];
+            }
+            studentsByClass[className].push(student);
+        });
+
+        // Create PDF document
+        const doc = new PDFDocument({
+            size: 'A4',
+            margin: 50
+        });
+
+        // Set response headers
+        res.setHeader('Content-Type', 'application/pdf');
+        res.setHeader('Content-Disposition', 'attachment; filename="students-by-class.pdf"');
+
+        // Pipe PDF to response
+        doc.pipe(res);
+
+        // Title
+        doc.fontSize(20).font('Helvetica-Bold').text('Islamic School Management System', { align: 'center' });
+        doc.moveDown();
+        doc.fontSize(16).text('Student Registry by Class', { align: 'center' });
+        doc.moveDown();
+        doc.fontSize(10).font('Helvetica').text(`Generated on: ${new Date().toLocaleDateString()} ${new Date().toLocaleTimeString()}`, { align: 'center' });
+        doc.moveDown(2);
+
+        // Process each class
+        const classNames = Object.keys(studentsByClass).sort();
+
+        classNames.forEach((className, classIndex) => {
+            const classStudents = studentsByClass[className];
+
+            // Class header
+            doc.fontSize(14).font('Helvetica-Bold').text(`${className} (${classStudents.length} students)`, { underline: true });
+            doc.moveDown();
+
+            // Student list
+            doc.font('Helvetica').fontSize(10);
+            classStudents.forEach((student, index) => {
+                const fullName = `${student.first_name} ${student.last_name}`;
+                const admission = student.admission_number || 'N/A';
+                const gender = (student.gender || 'N/A').toUpperCase();
+                const parent = student.parent_name || 'N/A';
+                const phone = student.parent_phone || 'N/A';
+
+                doc.text(`${index + 1}. ${fullName} (${admission})`);
+                doc.fontSize(9).text(`   Gender: ${gender} | Parent: ${parent} | Phone: ${phone}`);
+                doc.moveDown(0.5);
+            });
+
+            doc.moveDown();
+
+            // Add page break between classes (except for the last one)
+            if (classIndex < classNames.length - 1) {
+                doc.addPage();
+            }
+        });
+
+        // Footer
+        doc.fontSize(8).font('Helvetica-Oblique').text('Islamic School Management System - Confidential Document', 50, doc.page.height - 50, {
+            align: 'center',
+            width: doc.page.width - 100
+        });
+
+        // Finalize PDF
+        doc.end();
+
+    } catch (err) {
+        console.error('Error generating PDF:', err);
+        req.flash('error', 'Could not generate PDF report');
+        res.redirect('/staff/manage-students');
+    }
+});
+
 // Announcements Page
-router.get('/announcements', (req, res) => {
-    res.render('staff/announcements', {
-        title: 'Announcements - Islamic School',
-        page: 'announcements',
-        staff: req.session.staff
-    });
+router.get('/announcements', async (req, res) => {
+    try {
+        const announcementsRes = await db.query(
+            'SELECT * FROM announcements ORDER BY created_at DESC'
+        );
+        
+        // Calculate counts for stats
+        const announcements = announcementsRes.rows;
+        const stats = {
+            total: announcements.length,
+            active: announcements.filter(a => a.status === 'published').length,
+            draft: announcements.filter(a => a.status === 'draft').length,
+            expired: announcements.filter(a => a.status === 'expired' || (a.expiry_date && new Date(a.expiry_date) < new Date())).length
+        };
+
+        res.render('staff/announcements', {
+            title: 'Announcements - Islamic School',
+            page: 'announcements',
+            staff: req.session.staff,
+            announcements,
+            stats
+        });
+    } catch (err) {
+        console.error('Error fetching announcements:', err);
+        req.flash('error', 'Error loading announcements');
+        res.redirect('/staff/dashboard');
+    }
+});
+
+// Create Announcement
+router.post('/announcements/create', async (req, res) => {
+    try {
+        const { title, content, priority, status, expiry_date, target_audience } = req.body;
+        // staff user_id is in session
+        const author_id = req.session.staff.user_id;
+
+        await db.query(
+            `INSERT INTO announcements (title, content, author_id, priority, status, expiry_date, target_audience)
+             VALUES ($1, $2, $3, $4, $5, $6, $7)`,
+            [title, content, author_id, priority, status, expiry_date || null, target_audience || 'all']
+        );
+
+        req.flash('success', 'Announcement created successfully');
+        res.redirect('/staff/announcements');
+    } catch (err) {
+        console.error('Create announcement error:', err);
+        req.flash('error', 'Error creating announcement');
+        res.redirect('/staff/announcements');
+    }
+});
+
+// Delete Announcement
+router.post('/announcements/delete/:id', async (req, res) => {
+    try {
+        const { id } = req.params;
+        await db.query('DELETE FROM announcements WHERE id = $1', [id]);
+        req.flash('success', 'Announcement deleted successfully');
+        res.redirect('/staff/announcements');
+    } catch (err) {
+        console.error('Delete announcement error:', err);
+        req.flash('error', 'Error deleting announcement');
+        res.redirect('/staff/announcements');
+    }
 });
 
 // Generate PDF Result for Staff View
@@ -782,14 +1084,28 @@ router.get('/download-result/:admission_number/:term/:academic_year', async (req
         // 5. Footer / Signatures
         const footerY = doc.page.height - 120;
         
+        // Add Signature Image (if exists) - Centered and "signed" on the line
+        try {
+            const path = require('path');
+            const sigPath = path.join(__dirname, '../public/images/principal-signature.png');
+            // Positioned to slightly overlap the line for a real signed look
+            doc.image(sigPath, 60, footerY - 50, { width: 130 }); 
+        } catch (e) {
+            console.log('Signature image not found, skipping...');
+        }
+        
         doc.moveTo(50, footerY).lineTo(200, footerY).strokeColor('#000000').lineWidth(1).stroke();
-        doc.fontSize(10).font('Helvetica').text('Principal\'s Signature', 50, footerY + 10, { width: 150, align: 'center' });
+        doc.fontSize(10).font('Helvetica-Bold').fillColor('#000000').text('Principal\'s Signature', 50, footerY + 10, { width: 150, align: 'center' });
         
-        doc.moveTo(350, footerY).lineTo(500, footerY).stroke();
-        doc.text('Date', 350, footerY + 10, { width: 150, align: 'center' });
+        // Automatic Date - Arranged to the right margin with premium styling
+        const currentDate = new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'long', year: 'numeric' });
+        doc.fontSize(11).font('Helvetica-Bold').fillColor('#1a5f3f').text(currentDate, 350, footerY - 18, { width: 150, align: 'center' });
         
-        // Disclaimer
-        doc.fontSize(8).fillColor('#6c757d').text('This result is computer generated.', 50, doc.page.height - 40, { align: 'center', width: 500 });
+        doc.moveTo(350, footerY).lineTo(500, footerY).strokeColor('#000000').stroke();
+        doc.fontSize(10).font('Helvetica').fillColor('#666666').text('Date Issued', 350, footerY + 10, { width: 150, align: 'center' });
+        
+        // Disclaimer - Well arranged at the bottom
+        doc.fontSize(8).fillColor('#999999').text('This academic report is computer generated and officially validated by the school administration.', 50, doc.page.height - 40, { align: 'center', width: 500 });
 
         doc.end();
 
@@ -797,6 +1113,232 @@ router.get('/download-result/:admission_number/:term/:academic_year', async (req
         console.error('PDF generation error:', err);
         req.flash('error', 'Error generating PDF. Please try again.');
         res.redirect('/staff/view-results');
+    }
+});
+// Edit Student Page
+router.get('/edit-student/:id', async (req, res) => {
+    try {
+        const { id } = req.params;
+        const studentRes = await db.query('SELECT * FROM students WHERE id = $1', [id]);
+        
+        if (studentRes.rows.length === 0) {
+            req.flash('error', 'Student not found');
+            return res.redirect('/staff/manage-students');
+        }
+
+        res.render('staff/edit-student', {
+            title: 'Edit Student - Islamic School',
+            page: 'manage-students',
+            staff: req.session.staff,
+            student: studentRes.rows[0],
+            error_msg: req.flash('error'),
+            success_msg: req.flash('success')
+        });
+    } catch (err) {
+        console.error('Edit student page error:', err);
+        res.redirect('/staff/manage-students');
+    }
+});
+
+// Update Student
+router.post('/edit-student/:id', uploadStudentPicture.single('profile_picture'), async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { 
+            first_name, last_name, class_name, 
+            gender, date_of_birth, passport, parent_name, 
+            parent_phone, parent_email, address
+        } = req.body;
+
+        // Handle profile picture
+        let picturePath = null;
+        if (req.file) {
+            picturePath = '/uploads/students/' + req.file.filename;
+        }
+
+        // Build dynamic update query
+        let updateFields = [];
+        let values = [];
+        let paramIndex = 1;
+
+        const fields = {
+            first_name, last_name, class: class_name, gender, 
+            date_of_birth: date_of_birth || null, 
+            passport: passport || null,
+            parent_name, parent_phone, parent_email, address
+        };
+
+        if (picturePath) {
+            fields.picture = picturePath;
+        }
+
+        Object.keys(fields).forEach(key => {
+            if (fields[key] !== undefined) {
+                updateFields.push(`${key} = $${paramIndex}`);
+                values.push(fields[key]);
+                paramIndex++;
+            }
+        });
+
+        updateFields.push('updated_at = CURRENT_TIMESTAMP');
+        values.push(id);
+
+        const updateQuery = `
+            UPDATE students 
+            SET ${updateFields.join(', ')}
+            WHERE id = $${paramIndex}
+        `;
+
+        await db.query(updateQuery, values);
+
+        req.flash('success', 'Student details updated successfully');
+        res.redirect('/staff/manage-students');
+    } catch (err) {
+        console.error('Update student error:', err);
+        req.flash('error', 'Error updating student record');
+        res.redirect(`/staff/edit-student/${req.params.id}`);
+    }
+});
+
+// =================== CONTACT MESSAGES ===================
+
+// List all contact messages
+router.get('/contact-messages', async (req, res) => {
+    try {
+        const messagesRes = await db.query(
+            'SELECT * FROM contact_messages ORDER BY created_at DESC'
+        );
+        const unreadCount = messagesRes.rows.filter(m => m.status === 'unread').length;
+        res.render('staff/contact-messages', {
+            title: 'Contact Messages - Islamic School',
+            page: 'contact-messages',
+            staff: req.session.staff,
+            messages: messagesRes.rows,
+            unreadCount
+        });
+    } catch (err) {
+        console.error('Error fetching contact messages:', err);
+        req.flash('error', 'Error loading messages');
+        res.redirect('/staff/dashboard');
+    }
+});
+
+// View a single contact message (marks as read)
+router.get('/contact-messages/:id', async (req, res) => {
+    try {
+        const { id } = req.params;
+        // Mark as read
+        await db.query(
+            `UPDATE contact_messages SET status = 'read', updated_at = CURRENT_TIMESTAMP WHERE id = $1 AND status = 'unread'`,
+            [id]
+        );
+        const msgRes = await db.query('SELECT * FROM contact_messages WHERE id = $1', [id]);
+        if (msgRes.rows.length === 0) {
+            req.flash('error', 'Message not found');
+            return res.redirect('/staff/contact-messages');
+        }
+        res.render('staff/contact-message-view', {
+            title: 'View Message - Islamic School',
+            page: 'contact-messages',
+            staff: req.session.staff,
+            message: msgRes.rows[0]
+        });
+    } catch (err) {
+        console.error('Error viewing message:', err);
+        req.flash('error', 'Error loading message');
+        res.redirect('/staff/contact-messages');
+    }
+});
+
+// Reply to a contact message
+router.post('/contact-messages/:id/reply', async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { reply_message } = req.body;
+
+        const msgRes = await db.query('SELECT * FROM contact_messages WHERE id = $1', [id]);
+        if (msgRes.rows.length === 0) {
+            req.flash('error', 'Message not found');
+            return res.redirect('/staff/contact-messages');
+        }
+        const original = msgRes.rows[0];
+
+        // Send reply email
+        const nodemailer = require('nodemailer');
+        const transporter = nodemailer.createTransport({
+            service: 'gmail',
+            auth: { user: process.env.EMAIL_USER, pass: process.env.EMAIL_PASS }
+        });
+
+        await transporter.sendMail({
+            from: `Islamic School <${process.env.EMAIL_USER}>`,
+            to: original.email,
+            replyTo: process.env.EMAIL_USER,
+            subject: `Re: ${original.subject}`,
+            html: `
+                <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+                    <div style="background-color: #1a5f3f; color: white; padding: 20px; text-align: center; border-radius: 5px 5px 0 0;">
+                        <h2 style="margin: 0;">Islamic School Management System</h2>
+                        <p style="margin: 5px 0 0 0;">Reply to your message</p>
+                    </div>
+                    <div style="background-color: #f9f9f9; padding: 30px; border: 1px solid #ddd; border-radius: 0 0 5px 5px;">
+                        <p>Dear <strong>${original.name}</strong>,</p>
+                        <div style="background-color: #fff; padding: 15px; border-left: 4px solid #1a5f3f; border-radius: 3px; margin: 15px 0;">
+                            <p style="margin: 0; white-space: pre-wrap;">${reply_message}</p>
+                        </div>
+                        <hr style="border: none; border-top: 1px solid #ddd; margin: 20px 0;">
+                        <p style="color: #666; font-size: 0.85em;"><strong>Your original message:</strong><br>${original.message}</p>
+                        <p>JazakAllah Khair,<br><strong>Islamic School Management</strong></p>
+                    </div>
+                </div>
+            `
+        });
+
+        // Update message status in DB
+        await db.query(
+            `UPDATE contact_messages SET status = 'replied', reply_message = $1, replied_at = CURRENT_TIMESTAMP, updated_at = CURRENT_TIMESTAMP WHERE id = $2`,
+            [reply_message, id]
+        );
+
+        req.flash('success', `Reply sent successfully to ${original.email}`);
+        res.redirect(`/staff/contact-messages/${id}`);
+    } catch (err) {
+        console.error('Reply error:', err);
+        req.flash('error', 'Error sending reply. Please try again.');
+        res.redirect(`/staff/contact-messages/${req.params.id}`);
+    }
+});
+
+// Delete a contact message
+router.post('/contact-messages/:id/delete', async (req, res) => {
+    try {
+        await db.query('DELETE FROM contact_messages WHERE id = $1', [req.params.id]);
+        req.flash('success', 'Message deleted successfully');
+        res.redirect('/staff/contact-messages');
+    } catch (err) {
+        console.error('Delete message error:', err);
+        req.flash('error', 'Error deleting message');
+        res.redirect('/staff/contact-messages');
+    }
+});
+
+// GET Student Info API (for frontend validation)
+router.get('/api/student/:admission_number', async (req, res) => {
+    try {
+        const { admission_number } = req.params;
+        const result = await db.query(
+            'SELECT first_name, last_name, class FROM students WHERE admission_number = $1',
+            [admission_number]
+        );
+        
+        if (result.rows.length > 0) {
+            res.json({ success: true, student: result.rows[0] });
+        } else {
+            res.json({ success: false, message: 'Student not found' });
+        }
+    } catch (err) {
+        console.error('API Error:', err);
+        res.status(500).json({ success: false, message: 'Server error' });
     }
 });
 

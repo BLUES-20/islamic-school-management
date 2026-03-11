@@ -126,7 +126,10 @@ const initDatabase = async () => {
                 title VARCHAR(255) NOT NULL,
                 content TEXT NOT NULL,
                 author_id INT REFERENCES users(id),
+                priority VARCHAR(20) DEFAULT 'normal' CHECK (priority IN ('low', 'normal', 'high')),
+                status VARCHAR(20) DEFAULT 'published' CHECK (status IN ('draft', 'published', 'scheduled', 'expired')),
                 target_audience VARCHAR(50) DEFAULT 'all',
+                expiry_date DATE,
                 is_active BOOLEAN DEFAULT true,
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                 updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
@@ -142,6 +145,22 @@ const initDatabase = async () => {
                 RETURN NEW;
             END;
             $$ LANGUAGE plpgsql;
+        `);
+
+        // Create Documents table
+        await db.query(`
+            CREATE TABLE IF NOT EXISTS documents (
+                id SERIAL PRIMARY KEY,
+                title VARCHAR(255) NOT NULL,
+                description TEXT,
+                document_type VARCHAR(50) NOT NULL,
+                file_path TEXT NOT NULL,
+                file_name TEXT NOT NULL,
+                file_size INT,
+                target_audience VARCHAR(50) DEFAULT 'all',
+                author_id INT REFERENCES users(id),
+                uploaded_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            );
         `);
 
         // Insert default admin user if not exists

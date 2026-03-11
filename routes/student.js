@@ -40,7 +40,7 @@ router.get('/check-result', async (req, res) => {
             results = rows;
             
             if (results.length === 0) {
-                req.flash('error', `No results found for ${term} ${academic_year}. Please check the term/year selected.`);
+                 req.flash('error', `No results found for ${term} ${academic_year}. Please check the term/year selected.`);
             }
         } catch (err) {
             console.error('Error fetching results:', err);
@@ -72,13 +72,37 @@ router.get('/announcements', (req, res) => {
     });
 });
 
-// Profile Page
-router.get('/profile', (req, res) => {
-    res.render('student/profile', {
-        title: 'My Profile - Islamic School',
-        page: 'profile',
-        student: req.session.student
-    });
+// Profile Page - Fetch student data including picture
+router.get('/profile', async (req, res) => {
+    try {
+        // Fetch student details including picture from database
+        const query = `
+            SELECT s.id, s.admission_number, s.first_name, s.last_name, s.email,
+                   s.class, s.date_of_birth, s.gender, s.picture, s.parent_name,
+                   s.parent_phone, s.parent_email, s.address
+            FROM students s
+            WHERE s.id = $1
+        `;
+        const { rows } = await db.query(query, [req.session.student.id]);
+        
+        if (rows.length === 0) {
+            req.flash('error', 'Student record not found');
+            return res.redirect('/student/dashboard');
+        }
+        
+        const studentData = rows[0];
+        
+        res.render('student/profile', {
+            title: 'My Profile - Islamic School',
+            page: 'profile',
+            student: req.session.student,
+            studentData: studentData
+        });
+    } catch (err) {
+        console.error('Error fetching profile:', err);
+        req.flash('error', 'Error loading profile');
+        res.redirect('/student/dashboard');
+    }
 });
 
 // Generate PDF Result
@@ -115,7 +139,7 @@ router.get('/download-result/:term/:academic_year', async (req, res) => {
         doc.on('data', buffers.push.bind(buffers));
         doc.on('end', () => {
             let pdfBuffer = Buffer.concat(buffers);
-            const filename = `Academic_Result_${req.session.student.first_name}_${req.session.student.last_name}_${term.replace(' ', '_')}_${academic_year.replace('/', '_')}.pdf`;
+            const filename = `Academic_Result_${req.session.student.name.split(' ').join('_')}_${term.replace(' ', '_')}_${academic_year.replace('/', '_')}.pdf`;
             res.setHeader('Content-Type', 'application/pdf');
             res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
             res.send(pdfBuffer);
@@ -142,7 +166,7 @@ router.get('/download-result/:term/:academic_year', async (req, res) => {
         
         // Left Column
         doc.fillColor('#000000').fontSize(11).font('Helvetica-Bold').text('Name:', 50, startY);
-        doc.font('Helvetica').text(`${req.session.student.first_name} ${req.session.student.last_name}`, 130, startY);
+        doc.font('Helvetica').text(req.session.student.name, 130, startY);
         
         doc.font('Helvetica-Bold').text('Admission No:', 50, startY + 20);
         doc.font('Helvetica').text(req.session.student.admission_number, 130, startY + 20);
@@ -232,14 +256,28 @@ router.get('/download-result/:term/:academic_year', async (req, res) => {
         // 5. Footer / Signatures
         const footerY = doc.page.height - 120;
         
+        // Add Signature Image (if exists) - Centered and "signed" on the line
+        try {
+            const path = require('path');
+            const sigPath = path.join(__dirname, '../public/images/principal-signature.png');
+            // Positioned to slightly overlap the line for a real signed look
+            doc.image(sigPath, 60, footerY - 50, { width: 130 }); 
+        } catch (e) {
+            console.log('Signature image not found, skipping...');
+        }
+        
         doc.moveTo(50, footerY).lineTo(200, footerY).strokeColor('#000000').lineWidth(1).stroke();
-        doc.fontSize(10).font('Helvetica').text('Principal\'s Signature', 50, footerY + 10, { width: 150, align: 'center' });
+        doc.fontSize(10).font('Helvetica-Bold').fillColor('#000000').text('Principal\'s Signature', 50, footerY + 10, { width: 150, align: 'center' });
         
-        doc.moveTo(350, footerY).lineTo(500, footerY).stroke();
-        doc.text('Date', 350, footerY + 10, { width: 150, align: 'center' });
+        // Automatic Date - Arranged to the right margin with premium styling
+        const currentDate = new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'long', year: 'numeric' });
+        doc.fontSize(11).font('Helvetica-Bold').fillColor('#1a5f3f').text(currentDate, 350, footerY - 18, { width: 150, align: 'center' });
         
-        // Disclaimer
-        doc.fontSize(8).fillColor('#6c757d').text('This result is computer generated.', 50, doc.page.height - 40, { align: 'center', width: 500 });
+        doc.moveTo(350, footerY).lineTo(500, footerY).strokeColor('#000000').stroke();
+        doc.fontSize(10).font('Helvetica').fillColor('#666666').text('Date Issued', 350, footerY + 10, { width: 150, align: 'center' });
+        
+        // Disclaimer - Well arranged at the bottom
+        doc.fontSize(8).fillColor('#999999').text('This academic report is computer generated and officially validated by the school administration.', 50, doc.page.height - 40, { align: 'center', width: 500 });
 
         doc.end();
 
@@ -251,3 +289,4 @@ router.get('/download-result/:term/:academic_year', async (req, res) => {
 });
 
 module.exports = router;
+

@@ -1,0 +1,55 @@
+# Supabase project configuration
+# Project Ref: wkezgixefbywotgutoao
+
+[project]
+project_id = "wkezgixefbywotgutoao"
+
+[api]
+enabled = true
+port = 54321
+schemas = ["public", "storage", "graphql_public"]
+extra_search_path = ["public", "extensions"]
+max_rows = 1000
+
+[db]
+port = 5432
+major_version = 15
+
+[db.pooler]
+enabled = false
+
+[studio]
+enabled = true
+port = 54323
+api_url = "https://wkezgixefbywotgutoao.supabase.co"
+
+[inbucket]
+enabled = true
+port = 54324
+smtp_port = 54325
+pop3_port = 54326
+
+[storage]
+enabled = true
+file_size_limit = "50MiB"
+
+[auth]
+enabled = true
+site_url = "http://localhost:3000"
+additional_redirect_urls = ["https://islamic-school-management.onrender.com"]
+jwt_expiry = 3600
+enable_signup = true
+
+[auth.email]
+enable_signup = true
+double_confirm_changes = true
+enable_confirmations = false
+
+# Connection string info (to be used with DATABASE_URL)
+# Host: db.wkezgixefbywotgutoao.supabase.co
+# Port: 5432
+# Database: postgres
+# User: postgres
+# 
+# Full connection string format:
+# postgres://postgres:[YOUR_PASSWORD]@db.wkezgixefbywotgutoao.supabase.co:5432/postgres

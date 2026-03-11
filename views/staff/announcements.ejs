@@ -70,8 +70,8 @@
                     <div class="card-body">
                         <div class="d-flex justify-content-between">
                             <div>
-                                <h5 class="card-title">Total Announcements</h5>
-                                <h2 class="mb-0">12</h2>
+                                <h5 class="card-title">Total</h5>
+                                <h2 class="mb-0"><%= stats.total %></h2>
                             </div>
                             <div class="align-self-center">
                                 <i class="fas fa-bullhorn fa-2x"></i>
@@ -86,7 +86,7 @@
                         <div class="d-flex justify-content-between">
                             <div>
                                 <h5 class="card-title">Active</h5>
-                                <h2 class="mb-0">8</h2>
+                                <h2 class="mb-0"><%= stats.active %></h2>
                             </div>
                             <div class="align-self-center">
                                 <i class="fas fa-check-circle fa-2x"></i>
@@ -101,7 +101,7 @@
                         <div class="d-flex justify-content-between">
                             <div>
                                 <h5 class="card-title">Draft</h5>
-                                <h2 class="mb-0">3</h2>
+                                <h2 class="mb-0"><%= stats.draft %></h2>
                             </div>
                             <div class="align-self-center">
                                 <i class="fas fa-edit fa-2x"></i>
@@ -115,8 +115,8 @@
                     <div class="card-body">
                         <div class="d-flex justify-content-between">
                             <div>
-                                <h5 class="card-title">Expired</h5>
-                                <h2 class="mb-0">1</h2>
+                                <h5 class="card-title">Expired/Past</h5>
+                                <h2 class="mb-0"><%= stats.expired %></h2>
                             </div>
                             <div class="align-self-center">
                                 <i class="fas fa-clock fa-2x"></i>
@@ -138,159 +138,61 @@
                         </h5>
                     </div>
                     <div class="card-body">
-                        <!-- Sample Announcements -->
                         <div class="row">
-                            <div class="col-md-6 mb-4">
-                                <div class="card announcement-card priority-high">
-                                    <div class="card-header d-flex justify-content-between align-items-center">
-                                        <h6 class="mb-0">
-                                            <i class="fas fa-exclamation-triangle text-danger me-2"></i>
-                                            New Academic Session Begins
-                                        </h6>
-                                        <span class="badge bg-danger">High Priority</span>
-                                    </div>
-                                    <div class="card-body">
-                                        <p class="card-text">
-                                            We are pleased to announce that the new academic session will begin on January 15, 2024. 
-                                            All students are expected to resume on the specified date with their necessary materials.
-                                        </p>
-                                        <div class="announcement-meta">
-                                            <i class="fas fa-calendar me-1"></i>
-                                            Created: Dec 20, 2023
-                                            <span class="mx-2">|</span>
-                                            <i class="fas fa-eye me-1"></i>
-                                            Views: 245
-                                        </div>
-                                        <div class="mt-3">
-                                            <div class="btn-group btn-group-sm">
-                                                <button class="btn btn-outline-primary" onclick="editAnnouncement('1')">
-                                                    <i class="fas fa-edit"></i> Edit
-                                                </button>
-                                                <button class="btn btn-outline-success" onclick="toggleStatus('1')">
-                                                    <i class="fas fa-check"></i> Publish
-                                                </button>
-                                                <button class="btn btn-outline-danger" onclick="deleteAnnouncement('1')">
-                                                    <i class="fas fa-trash"></i> Delete
-                                                </button>
+                            <% if (announcements && announcements.length > 0) { %>
+                                <% announcements.forEach(announcement => { %>
+                                    <div class="col-md-6 mb-4">
+                                        <div class="card announcement-card priority-<%= announcement.priority %> shadow-sm">
+                                            <div class="card-header d-flex justify-content-between align-items-center">
+                                                <h6 class="mb-0 fw-bold">
+                                                    <% if (announcement.priority === 'high') { %>
+                                                        <i class="fas fa-exclamation-triangle text-danger me-2"></i>
+                                                    <% } else if (announcement.priority === 'normal') { %>
+                                                        <i class="fas fa-info-circle text-primary me-2"></i>
+                                                    <% } else { %>
+                                                        <i class="fas fa-bookmark text-success me-2"></i>
+                                                    <% } %>
+                                                    <%= announcement.title %>
+                                                </h6>
+                                                <span class="badge bg-<%= announcement.priority === 'high' ? 'danger' : (announcement.priority === 'normal' ? 'primary' : 'success') %>">
+                                                    <%= announcement.priority.toUpperCase() %>
+                                                </span>
+                                            </div>
+                                            <div class="card-body">
+                                                <p class="card-text text-muted" style="min-height: 60px;">
+                                                    <%= announcement.content %>
+                                                </p>
+                                                <div class="announcement-meta small text-muted border-top pt-2">
+                                                    <i class="fas fa-calendar-alt me-1"></i>
+                                                    <%= new Date(announcement.created_at).toLocaleDateString() %>
+                                                    <span class="mx-2">|</span>
+                                                    <i class="fas fa-users me-1"></i>
+                                                    Audience: <%= announcement.target_audience.charAt(0).toUpperCase() + announcement.target_audience.slice(1) %>
+                                                    <% if (announcement.status === 'draft') { %>
+                                                        <span class="badge bg-secondary ms-2">DRAFT</span>
+                                                    <% } %>
+                                                </div>
+                                                <div class="mt-3 d-flex justify-content-end">
+                                                    <div class="btn-group btn-group-sm">
+                                                        <button class="btn btn-outline-danger" 
+                                                                data-id="<%= announcement.id %>" 
+                                                                data-title="<%= announcement.title %>"
+                                                                onclick="deleteAnnouncement(this.getAttribute('data-id'), this.getAttribute('data-title'))">
+                                                            <i class="fas fa-trash-alt me-1"></i> Delete
+                                                        </button>
+                                                    </div>
+                                                </div>
                                             </div>
                                         </div>
                                     </div>
+                                <% }); %>
+                            <% } else { %>
+                                <div class="col-12 text-center py-5">
+                                    <i class="fas fa-bullhorn fa-3x text-muted mb-3"></i>
+                                    <h5 class="text-muted">No announcements found</h5>
+                                    <p class="text-muted">Create your first update to share with the school.</p>
                                 </div>
-                            </div>
-
-                            <div class="col-md-6 mb-4">
-                                <div class="card announcement-card priority-normal">
-                                    <div class="card-header d-flex justify-content-between align-items-center">
-                                        <h6 class="mb-0">
-                                            <i class="fas fa-info-circle text-warning me-2"></i>
-                                            Parent-Teacher Meeting
-                                        </h6>
-                                        <span class="badge bg-warning">Normal</span>
-                                    </div>
-                                    <div class="card-body">
-                                        <p class="card-text">
-                                            A parent-teacher meeting has been scheduled for January 10, 2024, at 2:00 PM. 
-                                            All parents are invited to attend and discuss their child's progress.
-                                        </p>
-                                        <div class="announcement-meta">
-                                            <i class="fas fa-calendar me-1"></i>
-                                            Created: Dec 18, 2023
-                                            <span class="mx-2">|</span>
-                                            <i class="fas fa-eye me-1"></i>
-                                            Views: 189
-                                        </div>
-                                        <div class="mt-3">
-                                            <div class="btn-group btn-group-sm">
-                                                <button class="btn btn-outline-primary" onclick="editAnnouncement('2')">
-                                                    <i class="fas fa-edit"></i> Edit
-                                                </button>
-                                                <button class="btn btn-outline-warning" onclick="toggleStatus('2')">
-                                                    <i class="fas fa-pause"></i> Draft
-                                                </button>
-                                                <button class="btn btn-outline-danger" onclick="deleteAnnouncement('2')">
-                                                    <i class="fas fa-trash"></i> Delete
-                                                </button>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div class="col-md-6 mb-4">
-                                <div class="card announcement-card priority-low">
-                                    <div class="card-header d-flex justify-content-between align-items-center">
-                                        <h6 class="mb-0">
-                                            <i class="fas fa-book text-success me-2"></i>
-                                            Library Hours Update
-                                        </h6>
-                                        <span class="badge bg-success">Low Priority</span>
-                                    </div>
-                                    <div class="card-body">
-                                        <p class="card-text">
-                                            The school library will be open from 8:00 AM to 5:00 PM on weekdays. 
-                                            Students can access textbooks, reference materials, and digital resources.
-                                        </p>
-                                        <div class="announcement-meta">
-                                            <i class="fas fa-calendar me-1"></i>
-                                            Created: Dec 15, 2023
-                                            <span class="mx-2">|</span>
-                                            <i class="fas fa-eye me-1"></i>
-                                            Views: 156
-                                        </div>
-                                        <div class="mt-3">
-                                            <div class="btn-group btn-group-sm">
-                                                <button class="btn btn-outline-primary" onclick="editAnnouncement('3')">
-                                                    <i class="fas fa-edit"></i> Edit
-                                                </button>
-                                                <button class="btn btn-outline-success" onclick="toggleStatus('3')">
-                                                    <i class="fas fa-check"></i> Publish
-                                                </button>
-                                                <button class="btn btn-outline-danger" onclick="deleteAnnouncement('3')">
-                                                    <i class="fas fa-trash"></i> Delete
-                                                </button>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div class="col-md-6 mb-4">
-                                <div class="card announcement-card priority-normal">
-                                    <div class="card-header d-flex justify-content-between align-items-center">
-                                        <h6 class="mb-0">
-                                            <i class="fas fa-graduation-cap text-info me-2"></i>
-                                            Scholarship Applications
-                                        </h6>
-                                        <span class="badge bg-warning">Normal</span>
-                                    </div>
-                                    <div class="card-body">
-                                        <p class="card-text">
-                                            Applications for merit-based scholarships are now open. 
-                                            Interested students should submit their applications by January 5, 2024.
-                                        </p>
-                                        <div class="announcement-meta">
-                                            <i class="fas fa-calendar me-1"></i>
-                                            Created: Dec 12, 2023
-                                            <span class="mx-2">|</span>
-                                            <i class="fas fa-eye me-1"></i>
-                                            Views: 203
-                                        </div>
-                                        <div class="mt-3">
-                                            <div class="btn-group btn-group-sm">
-                                                <button class="btn btn-outline-primary" onclick="editAnnouncement('4')">
-                                                    <i class="fas fa-edit"></i> Edit
-                                                </button>
-                                                <button class="btn btn-outline-success" onclick="toggleStatus('4')">
-                                                    <i class="fas fa-check"></i> Publish
-                                                </button>
-                                                <button class="btn btn-outline-danger" onclick="deleteAnnouncement('4')">
-                                                    <i class="fas fa-trash"></i> Delete
-                                                </button>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
+                            <% } %>
                         </div>
 
                         <!-- Empty State (if no announcements) -->
@@ -321,7 +223,8 @@
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body">
-                    <form id="announcementForm">
+                    <form id="announcementForm" action="/staff/announcements/create" method="POST">
+                        <input type="hidden" name="status" id="statusInput" value="published">
                         <div class="mb-3">
                             <label for="announcementTitle" class="form-label">
                                 <i class="fas fa-heading me-1"></i>
@@ -361,9 +264,9 @@
                                         <i class="fas fa-toggle-on me-1"></i>
                                         Status
                                     </label>
-                                    <select class="form-select" id="announcementStatus" name="status" required>
-                                        <option value="draft">Draft</option>
+                                    <select class="form-select" id="announcementStatus" required onchange="document.getElementById('statusInput').value = this.value">
                                         <option value="published">Publish Now</option>
+                                        <option value="draft">Draft</option>
                                         <option value="scheduled">Schedule for Later</option>
                                     </select>
                                 </div>
@@ -423,10 +326,8 @@
         document.getElementById('publishBtn').addEventListener('click', function() {
             const form = document.getElementById('announcementForm');
             if (form.checkValidity()) {
-                // Simulate publishing announcement
-                alert('Announcement published successfully!');
-                $('#createAnnouncementModal').modal('hide');
-                form.reset();
+                document.getElementById('statusInput').value = 'published';
+                form.submit();
             } else {
                 form.reportValidity();
             }
@@ -435,13 +336,23 @@
         document.getElementById('saveDraftBtn').addEventListener('click', function() {
             const form = document.getElementById('announcementForm');
             if (form.checkValidity()) {
-                // Simulate saving as draft
-                alert('Announcement saved as draft!');
-                $('#createAnnouncementModal').modal('hide');
-                form.reset();
+                document.getElementById('statusInput').value = 'draft';
+                form.submit();
             } else {
                 form.reportValidity();
             }
         });
 
-        // Action functions
+        function deleteAnnouncement(id, title) {
+            if (confirm(`⚠️ DELETE ANNOUNCEMENT: Are you sure you want to delete "${title}"?\n\nThis action is permanent and cannot be undone.`)) {
+                const form = document.createElement('form');
+                form.method = 'POST';
+                form.action = `/staff/announcements/delete/${id}`;
+                document.body.appendChild(form);
+                form.submit();
+            }
+        }
+    </script>
+</div>
+
+<%- include('../layout/footer') %>

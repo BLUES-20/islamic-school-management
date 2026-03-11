@@ -1,5 +1,52 @@
 <%- include('../layout/header') %>
 
+<%
+    // Safely handle potentially undefined variables - use typeof checks
+    var sessionStudent = (typeof student !== 'undefined' && student) ? student : {};
+    var dbStudent = (typeof studentData !== 'undefined' && studentData) ? studentData : {};
+
+    var fullName =
+        ([dbStudent.first_name, dbStudent.last_name].filter(Boolean).join(' ').trim()) ||
+        sessionStudent.name ||
+        ([sessionStudent.first_name, sessionStudent.last_name].filter(Boolean).join(' ').trim()) ||
+        'Student';
+
+    var admissionNumber = dbStudent.admission_number || sessionStudent.admission_number || 'N/A';
+    var studentClass = dbStudent.class || sessionStudent.class || 'N/A';
+    var email = dbStudent.email || sessionStudent.email || 'N/A';
+
+    // Handle picture - prioritize database picture, fallback to session
+    var picture = null;
+    if (dbStudent.picture) {
+        // Database stores: /uploads/students/filename.jpg
+        picture = String(dbStudent.picture).replace(/\\/g, '/');
+        // Ensure it starts with / but not //
+        if (!picture.startsWith('/')) {
+            picture = '/' + picture;
+        }
+    } else if (sessionStudent.picture) {
+        picture = String(sessionStudent.picture).replace(/\\/g, '/');
+        if (!picture.startsWith('/')) {
+            picture = '/' + picture;
+        }
+    }
+    
+    // Debug log (remove in production)
+    console.log('Profile picture:', picture, 'dbStudent.picture:', dbStudent.picture);
+
+    var dobText = 'N/A';
+    if (dbStudent.date_of_birth) {
+        var dob = new Date(dbStudent.date_of_birth);
+        if (!isNaN(dob.getTime())) dobText = dob.toLocaleDateString();
+    }
+
+    var gender = dbStudent.gender || 'N/A';
+    var parentName = dbStudent.parent_name || 'N/A';
+    var parentPhone = dbStudent.parent_phone || 'N/A';
+    var parentEmail = dbStudent.parent_email || 'N/A';
+    var address = dbStudent.address || 'N/A';
+%>
+
 <section class="py-5">
     <div class="container">
         <div class="row mb-4">
@@ -16,6 +63,42 @@
         </div>
 
         <div class="row">
+            <!-- Profile Picture Card -->
+            <div class="col-lg-4 mb-4">
+                <div class="card card-islamic shadow-lg">
+                    <div class="card-body text-center p-4">
+                        <% if (picture) { %>
+                            <img src="<%= picture %>" alt="Profile Picture" class="rounded-circle img-fluid mb-3" style="width: 150px; height: 150px; object-fit: cover; border: 4px solid var(--primary-green);">
+                        <% } else { %>
+                            <div class="avatar-placeholder mx-auto mb-3" style="width: 150px; height: 150px; border-radius: 50%; background: linear-gradient(135deg, var(--primary-green), var(--dark-green)); display: flex; align-items: center; justify-content: center;">
+                                <i class="fas fa-user fa-4x text-white"></i>
+                            </div>
+                        <% } %>
+                        <h4 class="fw-bold"><%= fullName %></h4>
+                        <p class="text-muted mb-1"><%= admissionNumber %></p>
+                        <span class="badge bg-success"><%= studentClass %></span>
+                    </div>
+                </div>
+                
+                <!-- Account Actions -->
+                <div class="card card-islamic shadow-lg mt-4">
+                    <div class="card-header py-4">
+                        <h5 class="mb-0 fw-bold">
+                            <i class="fas fa-lock me-2"></i>Account
+                        </h5>
+                    </div>
+                    <div class="card-body p-4">
+                        <a href="/auth/forgot-password" class="btn btn-islamic w-100 mb-3">
+                            <i class="fas fa-key me-2"></i>Change Password
+                        </a>
+                        <a href="/auth/logout" class="btn btn-danger w-100">
+                            <i class="fas fa-sign-out-alt me-2"></i>Logout
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Profile Information Card -->
             <div class="col-lg-8">
                 <div class="card card-islamic shadow-lg">
                     <div class="card-header py-4">
@@ -27,22 +110,58 @@
                         <div class="row mb-4">
                             <div class="col-md-6 mb-3">
                                 <p class="mb-1"><strong>Full Name:</strong></p>
-                                <p class="text-muted"><%= student.name %></p>
+                                <p class="text-muted"><%= fullName %></p>
                             </div>
                             <div class="col-md-6 mb-3">
                                 <p class="mb-1"><strong>Admission Number:</strong></p>
-                                <p class="text-muted"><%= student.admission_number %></p>
+                                <p class="text-muted"><%= admissionNumber %></p>
                             </div>
                         </div>
 
                         <div class="row mb-4">
                             <div class="col-md-6 mb-3">
                                 <p class="mb-1"><strong>Email:</strong></p>
-                                <p class="text-muted"><%= student.email %></p>
+                                <p class="text-muted"><%= email %></p>
                             </div>
                             <div class="col-md-6 mb-3">
                                 <p class="mb-1"><strong>Class:</strong></p>
-                                <p class="text-muted"><%= student.class || 'N/A' %></p>
+                                <p class="text-muted"><%= studentClass %></p>
+                            </div>
+                        </div>
+
+                        <div class="row mb-4">
+                            <div class="col-md-6 mb-3">
+                                <p class="mb-1"><strong>Date of Birth:</strong></p>
+                                <p class="text-muted"><%= dobText %></p>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <p class="mb-1"><strong>Gender:</strong></p>
+                                <p class="text-muted text-capitalize"><%= gender %></p>
+                            </div>
+                        </div>
+
+                        <hr>
+
+                        <h6 class="fw-bold mb-3"><i class="fas fa-users me-2"></i>Parent/Guardian Information</h6>
+                        <div class="row mb-4">
+                            <div class="col-md-6 mb-3">
+                                <p class="mb-1"><strong>Parent Name:</strong></p>
+                                <p class="text-muted"><%= parentName %></p>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <p class="mb-1"><strong>Parent Phone:</strong></p>
+                                <p class="text-muted"><%= parentPhone %></p>
+                            </div>
+                        </div>
+
+                        <div class="row mb-4">
+                            <div class="col-md-6 mb-3">
+                                <p class="mb-1"><strong>Parent Email:</strong></p>
+                                <p class="text-muted"><%= parentEmail %></p>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <p class="mb-1"><strong>Address:</strong></p>
+                                <p class="text-muted"><%= address %></p>
                             </div>
                         </div>
 
@@ -59,26 +178,9 @@
                     </div>
                 </div>
             </div>
-
-            <div class="col-lg-4">
-                <div class="card card-islamic shadow-lg">
-                    <div class="card-header py-4">
-                        <h5 class="mb-0 fw-bold">
-                            <i class="fas fa-lock me-2"></i>Account
-                        </h5>
-                    </div>
-                    <div class="card-body p-4">
-                        <a href="/auth/forgot-password" class="btn btn-islamic w-100 mb-3">
-                            <i class="fas fa-key me-2"></i>Change Password
-                        </a>
-                        <a href="/auth/logout" class="btn btn-danger w-100">
-                            <i class="fas fa-sign-out-alt me-2"></i>Logout
-                        </a>
-                    </div>
-                </div>
-            </div>
         </div>
     </div>
 </section>
 
 <%- include('../layout/footer') %>
+

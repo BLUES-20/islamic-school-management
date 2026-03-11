@@ -4,30 +4,29 @@ const bcrypt = require('bcrypt');
 const crypto = require('crypto');
 const router = express.Router();
 const db = require('../config/db');
+const nodemailer = require('nodemailer');
+const multer = require('multer');
+const path = require('path');
+const fs = require('fs');
 
-// =================== Resend Email Setup ===================
-let resend = null;
-let emailEnabled = false;
+// =================== Gmail Email Setup ===================
+const emailTransporter = nodemailer.createTransport({
+    service: 'gmail',
+    auth: {
+        user: process.env.EMAIL_USER,
+        pass: process.env.EMAIL_PASS
+    }
+});
 
-// Only set up email if RESEND_API_KEY is provided
-if (process.env.RESEND_API_KEY) {
-    const { Resend } = require('resend');
-    resend = new Resend(process.env.RESEND_API_KEY);
-    emailEnabled = true;
-    console.log('✅ Resend email service ready');
-} else {
-    console.log('⚠️  RESEND_API_KEY not configured. Email features disabled.');
-}
-
-// Helper function to send email using Resend
+// Helper function to send email using Gmail
 async function sendEmail(to, subject, html) {
-    if (!emailEnabled || !resend) {
-        console.log('📧 Email skipped (not configured):', subject);
+    if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
+        console.log('📧 Email skipped (EMAIL_USER or EMAIL_PASS not configured):', subject);
         return false;
     }
     try {
-        await resend.emails.send({
-            from: 'Islamic School <onboarding@resend.dev>',
+        await emailTransporter.sendMail({
+            from: `Islamic School <${process.env.EMAIL_USER}>`,
             to: to,
             subject: subject,
             html: html
@@ -39,6 +38,35 @@ async function sendEmail(to, subject, html) {
         return false;
     }
 }
+
+// Configure Multer for Student Picture Uploads
+const pictureStorage = multer.diskStorage({
+    destination: (req, file, cb) => {
+        const uploadDir = 'public/uploads/students';
+        if (!fs.existsSync(uploadDir)) {
+            fs.mkdirSync(uploadDir, { recursive: true });
+        }
+        cb(null, uploadDir);
+    },
+    filename: (req, file, cb) => {
+        const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+        cb(null, 'student-' + uniqueSuffix + path.extname(file.originalname));
+    }
+});
+
+const uploadPicture = multer({
+    storage: pictureStorage,
+    limits: { fileSize: 2 * 1024 * 1024 }, // 2MB
+    fileFilter: (req, file, cb) => {
+        const allowedTypes = /jpg|jpeg|png/;
+        const extname = allowedTypes.test(path.extname(file.originalname).toLowerCase());
+        const mimetype = allowedTypes.test(file.mimetype);
+        if (extname && mimetype) {
+            return cb(null, true);
+        }
+        cb(new Error('Only JPG, JPEG and PNG images are allowed!'));
+    }
+});
 
 // =================== STUDENT LOGIN ===================
 router.get('/student-login', (req, res) => {
@@ -58,7 +86,7 @@ router.post('/student-login', async (req, res) => {
 
     try {
         const query = `
-            SELECT u.password, s.id, s.user_id, s.admission_number, s.first_name, s.last_name, s.email, s.class
+            SELECT u.password, s.id, s.user_id, s.admission_number, s.first_name, s.last_name, s.email, s.class, s.picture
             FROM users u
             JOIN students s ON u.id = s.user_id
             WHERE s.admission_number = $1 AND u.role = 'student'
@@ -91,7 +119,8 @@ router.post('/student-login', async (req, res) => {
             name: student.first_name + ' ' + student.last_name,
             admission_number: student.admission_number,
             email: student.email,
-            class: student.class
+            class: student.class,
+            picture: student.picture
         };
 
         req.flash('success', `Welcome back, ${student.first_name}!`);
@@ -154,7 +183,8 @@ router.post('/staff-login', async (req, res) => {
             user_id: user.user_id,
             name: user.first_name ? (user.first_name + ' ' + user.last_name) : 'Administrator',
             email: user.email,
-            position: user.position || 'Admin'
+            position: user.position || 'Admin',
+            role: user.role
         };
 
         req.flash('success', `Welcome back, ${req.session.staff.name}!`);
@@ -175,9 +205,10 @@ router.get('/student-register', (req, res) => {
     });
 });
 
-router.post('/student-register', async (req, res) => {
+router.post('/student-register', uploadPicture.single('profile_picture'), async (req, res) => {
     const { 
-        full_name, 
+        first_name,
+        last_name, 
         email, 
         date_of_birth, 
         gender, 
@@ -189,8 +220,10 @@ router.post('/student-register', async (req, res) => {
         confirm_password 
     } = req.body;
 
+    const full_name = `${first_name} ${last_name}`;
+
     // Validation
-    if (!full_name || !email || !password || !confirm_password) {
+    if (!first_name || !last_name || !email || !password || !confirm_password) {
         req.flash('error', 'Please fill in all required fields');
         return res.redirect('/auth/student-register');
     }
@@ -222,11 +255,6 @@ router.post('/student-register', async (req, res) => {
         const count = parseInt(countResult.rows[0].count) + 1;
         const admission_number = `STU${year}${count.toString().padStart(3, '0')}`;
 
-        // Split full name into first and last name
-        const nameParts = full_name.trim().split(' ');
-        const first_name = nameParts[0];
-        const last_name = nameParts.slice(1).join(' ') || nameParts[0];
-
         // Create user first
         const userResult = await db.query(
             'INSERT INTO users (username, email, password, role) VALUES ($1, $2, $3, $4) RETURNING id',
@@ -234,12 +262,64 @@ router.post('/student-register', async (req, res) => {
         );
         const user_id = userResult.rows[0].id;
 
+        // Handle profile picture
+        let picturePath = null;
+        if (req.file) {
+            picturePath = '/uploads/students/' + req.file.filename;
+        }
+
         // Create student record
         await db.query(
-            `INSERT INTO students (user_id, admission_number, first_name, last_name, email, date_of_birth, gender, class, parent_name, parent_phone, address) 
-             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)`,
-            [user_id, admission_number, first_name, last_name, email, date_of_birth || null, gender || null, class_name || null, parent_name || null, parent_phone || null, address || null]
+            `INSERT INTO students (user_id, admission_number, first_name, last_name, email, date_of_birth, gender, picture, class, parent_name, parent_phone, address) 
+             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)`,
+            [user_id, admission_number, first_name, last_name, email, date_of_birth || null, gender || null, picturePath, class_name || null, parent_name || null, parent_phone || null, address || null]
         );
+
+        // Send admission number to admin email
+        const adminEmail = process.env.EMAIL_USER;
+        const adminHtml = `
+            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+                <div style="background-color: #1a5f3f; color: white; padding: 20px; text-align: center; border-radius: 5px 5px 0 0;">
+                    <h2 style="margin: 0;">📋 New Student Registration</h2>
+                    <p style="margin: 5px 0 0 0;">Islamic School Management System</p>
+                </div>
+                <div style="background-color: #f9f9f9; padding: 30px; border: 1px solid #ddd; border-radius: 0 0 5px 5px;">
+                    <h3>Student Details:</h3>
+                    <p><strong>Full Name:</strong> ${full_name}</p>
+                    <p><strong>Email:</strong> ${email}</p>
+                    <p><strong>Admission Number:</strong> <span style="font-size: 1.2em; color: #1a5f3f; font-weight: bold;">${admission_number}</span></p>
+                    <p><strong>Class:</strong> ${class_name || 'Not specified'}</p>
+                    <p><strong>Date of Birth:</strong> ${date_of_birth || 'Not specified'}</p>
+                    <p><strong>Gender:</strong> ${gender || 'Not specified'}</p>
+                    <p><strong>Parent Name:</strong> ${parent_name || 'Not specified'}</p>
+                    <p><strong>Parent Phone:</strong> ${parent_phone || 'Not specified'}</p>
+                    <p><strong>Address:</strong> ${address || 'Not specified'}</p>
+                    <p style="margin-top: 20px; color: #666; font-size: 0.9em;">Registered on: ${new Date().toLocaleString()}</p>
+                </div>
+            </div>
+        `;
+        await sendEmail(adminEmail, `New Student Registration - ${admission_number}`, adminHtml);
+
+        // Send welcome email to the student
+        const studentHtml = `
+            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+                <div style="background-color: #1a5f3f; color: white; padding: 20px; text-align: center; border-radius: 5px 5px 0 0;">
+                    <h2 style="margin: 0;">🎉 Welcome to Islamic School!</h2>
+                    <p style="margin: 5px 0 0 0;">Registration Successful</p>
+                </div>
+                <div style="background-color: #f9f9f9; padding: 30px; border: 1px solid #ddd; border-radius: 0 0 5px 5px;">
+                    <p>Dear <strong>${full_name}</strong>,</p>
+                    <p>Your registration has been completed successfully. Please save your admission number below — you will need it to log in.</p>
+                    <div style="background-color: #1a5f3f; color: white; text-align: center; padding: 20px; border-radius: 5px; margin: 20px 0;">
+                        <p style="margin: 0; font-size: 0.9em;">Your Admission Number</p>
+                        <h1 style="margin: 10px 0; letter-spacing: 3px;">${admission_number}</h1>
+                    </div>
+                    <p>To login, visit your school portal and use your admission number and the password you created during registration.</p>
+                    <p>JazakAllah Khair,<br><strong>Islamic School Management</strong></p>
+                </div>
+            </div>
+        `;
+        await sendEmail(email, `Your Admission Number - ${admission_number}`, studentHtml);
 
         req.flash('success', `Registration successful! Your admission number is: ${admission_number}. Please save it for login.`);
         res.redirect('/auth/student-login');
@@ -277,8 +357,25 @@ router.post('/forgot-password', async (req, res) => {
             [token, expires, email]
         );
 
-        // Use APP_URL from .env for mobile compatibility
-        const appUrl = process.env.APP_URL || `http://${req.headers.host}`;
+        // ALWAYS use OS module to get the fresh local network IP address
+        // Discard any stale IP from .env
+        const os = require('os');
+        const networkInterfaces = os.networkInterfaces();
+        let localIp = null;
+        
+        for (const name of Object.keys(networkInterfaces)) {
+            for (const net of networkInterfaces[name]) {
+                // Skip over non-IPv4 and internal (i.e. 127.0.0.1) addresses
+                if (net.family === 'IPv4' && !net.internal) {
+                    localIp = `http://${net.address}:${process.env.PORT || 3000}`;
+                    break;
+                }
+            }
+            if (localIp) break;
+        }
+        
+        // Fallback just in case
+        const appUrl = localIp || `http://${req.headers.host}`;
         const resetLink = `${appUrl}/auth/reset-password/${token}`;
 
         const emailHtml = `
