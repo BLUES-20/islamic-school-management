@@ -9,7 +9,7 @@
                     <span class="badge bg-primary">Total: <%= messages.length %></span>
                     <% const unreadCount = messages.filter(m => m.status === 'unread').length; %>
                     <% if (unreadCount > 0) { %>
-                        <span class="badge bg-danger ms-2">Unread: <%= unreadCount %></span>
+                    <span class="badge bg-danger ms-2">Unread: <%= unreadCount %></span>
                     <% } %>
                 </div>
             </div>
@@ -18,71 +18,71 @@
             <div class="card shadow">
                 <div class="card-body">
                     <% if (messages.length === 0) { %>
-                        <div class="text-center py-5">
-                            <i class="fas fa-inbox fa-3x text-muted mb-3"></i>
-                            <h5 class="text-muted">No contact messages yet</h5>
-                            <p class="text-muted">When visitors submit the contact form, their messages will appear here.</p>
-                        </div>
+                    <div class="text-center py-5">
+                        <i class="fas fa-inbox fa-3x text-muted mb-3"></i>
+                        <h5 class="text-muted">No contact messages yet</h5>
+                        <p class="text-muted">When visitors submit the contact form, their messages will appear here.</p>
+                    </div>
                     <% } else { %>
-                        <div class="table-responsive">
-                            <table class="table table-hover">
-                                <thead>
-                                    <tr>
-                                        <th>Status</th>
-                                        <th>From</th>
-                                        <th>Email</th>
-                                        <th>Subject</th>
-                                        <th>Date</th>
-                                        <th>Actions</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <% messages.forEach(message => { %>
-                                        <tr class="<%= message.status === 'unread' ? 'table-info' : '' %>">
-                                            <td>
-                                                <% if (message.status === 'unread') { %>
-                                                    <span class="badge bg-danger">Unread</span>
-                                                <% } else if (message.status === 'read') { %>
-                                                    <span class="badge bg-info">Read</span>
-                                                <% } else if (message.status === 'replied') { %>
-                                                    <span class="badge bg-success">Replied</span>
-                                                    <% if (message.staff_first_name) { %>
-                                                        <br><small class="text-muted">by <%= message.staff_first_name %> <%= message.staff_last_name %></small>
-                                                    <% } %>
-                                                <% } else if (message.status === 'archived') { %>
-                                                    <span class="badge bg-secondary">Archived</span>
-                                                <% } %>
-                                            </td>
-                                            <td>
-                                                <strong><%= message.name %></strong>
-                                            </td>
-                                            <td>
-                                                <a href="mailto:<%= message.email %>"><%= message.email %></a>
-                                            </td>
-                                            <td>
-                                                <%= message.subject %>
-                                            </td>
-                                            <td>
-                                                <small><%= new Date(message.created_at).toLocaleDateString() %></small><br>
-                                                <small class="text-muted"><%= new Date(message.created_at).toLocaleTimeString() %></small>
-                                            </td>
-                                            <td>
-                                                <div class="d-flex gap-2">
-                                                    <a href="/staff/contact-messages/<%= message.id %>" class="btn btn-sm btn-primary" title="View & Reply">
-                                                        <i class="fas fa-eye"></i> View
-                                                    </a>
-                                                    <form action="/staff/contact-messages/<%= message.id %>/delete" method="POST" onsubmit="return confirm('⚠️ DELETE MESSAGE: Are you sure you want to permanently delete this message from <%= message.name %>?');">
-                                                        <button type="submit" class="btn btn-sm btn-outline-danger" title="Delete">
-                                                            <i class="fas fa-trash-alt"></i>
-                                                        </button>
-                                                    </form>
-                                                </div>
-                                            </td>
-                                        </tr>
-                                    <% }); %>
-                                </tbody>
-                            </table>
-                        </div>
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Status</th>
+                                    <th>From</th>
+                                    <th>Email</th>
+                                    <th>Subject</th>
+                                    <th>Date</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <% messages.forEach(message => { %>
+                                <tr class="<%= message.status === 'unread' ? 'table-info' : '' %>">
+                                    <td>
+                                        <% if (message.status === 'unread') { %>
+                                        <span class="badge bg-danger">Unread</span>
+                                        <% } else if (message.status === 'read') { %>
+                                        <span class="badge bg-info">Read</span>
+                                        <% } else if (message.status === 'replied') { %>
+                                        <span class="badge bg-success">Replied</span>
+                                        <% if (message.staff_first_name) { %>
+                                        <br><small class="text-muted">by <%= message.staff_first_name %> <%= message.staff_last_name %></small>
+                                        <% } %>
+                                        <% } else if (message.status === 'archived') { %>
+                                        <span class="badge bg-secondary">Archived</span>
+                                        <% } %>
+                                    </td>
+                                    <td>
+                                        <strong><%= message.name %></strong>
+                                    </td>
+                                    <td>
+                                        <a href="mailto:<%= message.email %>"><%= message.email %></a>
+                                    </td>
+                                    <td>
+                                        <%= message.subject %>
+                                    </td>
+                                    <td>
+                                        <small><%= new Date(message.created_at).toLocaleDateString() %></small><br>
+                                        <small class="text-muted"><%= new Date(message.created_at).toLocaleTimeString() %></small>
+                                    </td>
+                                    <td>
+                                        <div class="d-flex gap-2">
+                                            <a href="/staff/contact-messages/<%= message.id %>" class="btn btn-sm btn-primary" title="View & Reply">
+                                                <i class="fas fa-eye"></i> View
+                                            </a>
+                                            <form action="/staff/contact-messages/<%= message.id %>/delete" method="POST" onsubmit="return confirm('⚠️ DELETE MESSAGE: Are you sure you want to permanently delete this message from <%= message.name %>?');">
+                                                <button type="submit" class="btn btn-sm btn-outline-danger" title="Delete">
+                                                    <i class="fas fa-trash-alt"></i>
+                                                </button>
+                                            </form>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <% }); %>
+                            </tbody>
+                        </table>
+                    </div>
                     <% } %>
                 </div>
             </div>
@@ -98,10 +98,11 @@
 </div>
 
 <script>
-// Auto-refresh every 30 seconds to check for new messages
-setTimeout(function() {
-    location.reload();
-}, 30000);
+    // Auto-refresh every 30 seconds to check for new messages
+    setTimeout(function() {
+        location.reload();
+    }, 30000);
+
 </script>
 
 <%- include('../layout/footer') %>

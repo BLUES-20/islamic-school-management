@@ -43,80 +43,80 @@
 
                         <!-- Results Display -->
                         <% if (results && results.length > 0) { %>
-                            <div class="text-center mb-4">
-                                <h4 class="fw-bold text-success">
-                                    <i class="fas fa-user-graduate me-2"></i>Academic Report for <%= student.name %>
-                                </h4>
-                                <p class="text-muted mb-0">
-                                    <%= term %> - <%= academic_year %>
-                                </p>
-                            </div>
+                        <div class="text-center mb-4">
+                            <h4 class="fw-bold text-success">
+                                <i class="fas fa-user-graduate me-2"></i>Academic Report for <%= student.name %>
+                            </h4>
+                            <p class="text-muted mb-0">
+                                <%= term %> - <%= academic_year %>
+                            </p>
+                        </div>
 
-                            <div class="table-responsive">
-                                <table class="table table-bordered table-hover">
-                                    <thead class="table-light">
-                                        <tr>
-                                            <th>Subject</th>
-                                            <th class="text-center">Score</th>
-                                            <th class="text-center">Grade</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        <% results.forEach(result => { %>
-                                            <tr>
-                                                <td class="fw-bold"><%= result.subject %></td>
-                                                <td class="text-center">
-                                                    <span class="badge bg-info fs-6"><%= result.score %></span>
-                                                </td>
-                                                <td class="text-center">
-                                                    <span class="badge bg-<%= result.grade === 'A' ? 'success' : (result.grade === 'F' ? 'danger' : 'secondary') %> fs-5">
-                                                        <%= result.grade %>
-                                                    </span>
-                                                </td>
-                                            </tr>
-                                        <% }); %>
+                        <div class="table-responsive">
+                            <table class="table table-bordered table-hover">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>Subject</th>
+                                        <th class="text-center">Score</th>
+                                        <th class="text-center">Grade</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <% results.forEach(result => { %>
+                                    <tr>
+                                        <td class="fw-bold"><%= result.subject %></td>
+                                        <td class="text-center">
+                                            <span class="badge bg-info fs-6"><%= result.score %></span>
+                                        </td>
+                                        <td class="text-center">
+                                            <span class="badge bg-<%= result.grade === 'A' ? 'success' : (result.grade === 'F' ? 'danger' : 'secondary') %> fs-5">
+                                                <%= result.grade %>
+                                            </span>
+                                        </td>
+                                    </tr>
+                                    <% }); %>
 
-                                        <!-- TOTAL ROW -->
-                                        <tr class="table-success border-top border-dark">
-                                            <td class="fw-bold text-end">AVERAGE SCORE (%)</td>
-                                            <td class="text-center fw-bold fs-5">
-                                                <%= results.length > 0 ? (results.reduce((sum, result) => sum + parseFloat(result.score), 0) / results.length).toFixed(2) : '0.00' %>%
-                                            </td>
-                                            <td></td>
-                                        </tr>
-                                    </tbody>
-                                </table>
-                            </div>
+                                    <!-- TOTAL ROW -->
+                                    <tr class="table-success border-top border-dark">
+                                        <td class="fw-bold text-end">AVERAGE SCORE (%)</td>
+                                        <td class="text-center fw-bold fs-5">
+                                            <%= results.length > 0 ? (results.reduce((sum, result) => sum + parseFloat(result.score), 0) / results.length).toFixed(2) : '0.00' %>%
+                                        </td>
+                                        <td></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
 
-                            <div class="text-center mt-4">
-                                <div class="alert alert-success" role="alert">
-                                    <i class="fas fa-check-circle me-2"></i>
-                                    <strong>Great job!</strong> Keep up the excellent work.
-                                </div>
-                                <a href="/student/download-result/<%= encodeURIComponent(term) %>/<%= encodeURIComponent(academic_year) %>" class="btn btn-primary btn-lg mt-3">
-                                    <i class="fas fa-download me-2"></i>Download PDF Result
-                                </a>
+                        <div class="text-center mt-4">
+                            <div class="alert alert-success" role="alert">
+                                <i class="fas fa-check-circle me-2"></i>
+                                <strong>Great job!</strong> Keep up the excellent work.
                             </div>
+                            <a href="/student/download-result/<%= encodeURIComponent(term) %>/<%= encodeURIComponent(academic_year) %>" class="btn btn-primary btn-lg mt-3">
+                                <i class="fas fa-download me-2"></i>Download PDF Result
+                            </a>
+                        </div>
                         <% } else if (typeof term !== 'undefined' && typeof academic_year !== 'undefined') { %>
-                            <div class="alert alert-warning text-center" role="alert">
-                                <i class="fas fa-exclamation-triangle me-2"></i>
-                                <strong>No Results Found</strong>
-                                <p class="mb-0 mt-2">
-                                    No results are available for <%= term %> - <%= academic_year %>.
-                                    Please check with your teacher or try a different term/year.
-                                </p>
-                            </div>
+                        <div class="alert alert-warning text-center" role="alert">
+                            <i class="fas fa-exclamation-triangle me-2"></i>
+                            <strong>No Results Found</strong>
+                            <p class="mb-0 mt-2">
+                                No results are available for <%= term %> - <%= academic_year %>.
+                                Please check with your teacher or try a different term/year.
+                            </p>
+                        </div>
 
-                            <div class="text-center py-4">
-                                <i class="fas fa-chart-line fa-4x text-muted mb-3"></i>
-                                <p class="text-muted">No results to display</p>
-                            </div>
+                        <div class="text-center py-4">
+                            <i class="fas fa-chart-line fa-4x text-muted mb-3"></i>
+                            <p class="text-muted">No results to display</p>
+                        </div>
                         <% } else { %>
-                            <div class="text-center py-5">
-                                <i class="fas fa-search fa-4x text-muted mb-3"></i>
-                                <h5 class="text-muted">Select Term and Year to View Results</h5>
-                                <p class="text-muted">Choose your academic term and year above to check your results.</p>
-                            </div>
+                        <div class="text-center py-5">
+                            <i class="fas fa-search fa-4x text-muted mb-3"></i>
+                            <h5 class="text-muted">Select Term and Year to View Results</h5>
+                            <p class="text-muted">Choose your academic term and year above to check your results.</p>
+                        </div>
                         <% } %>
                     </div>
                 </div>

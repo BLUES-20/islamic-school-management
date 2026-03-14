@@ -1,6 +1,8 @@
 const express = require('express');
 const router = express.Router();
-const nodemailer = require('nodemailer');
+const {
+    sendEmail
+} = require('../services/email');
 
 // GET Contact Page
 router.get('/contact', (req, res) => {
@@ -12,7 +14,12 @@ router.get('/contact', (req, res) => {
 
 // POST Contact Form - Save to DB and Send Email
 router.post('/contact', async (req, res) => {
-    const { name, email, subject, message } = req.body;
+    const {
+        name,
+        email,
+        subject,
+        message
+    } = req.body;
 
     if (!name || !email || !subject || !message) {
         req.flash('error', 'All fields are required');
@@ -29,17 +36,14 @@ router.post('/contact', async (req, res) => {
 
         // Also send email notification
         try {
-            const transporter = nodemailer.createTransport({
-                service: 'gmail',
-                auth: {
-                    user: process.env.EMAIL_USER,
-                    pass: process.env.EMAIL_PASS
-                }
-            });
+            const inbox = process.env.ADMIN_EMAIL || process.env.EMAIL_INBOX || process.env.EMAIL_USER;
+            if (!inbox) {
+                throw new Error('No admin inbox configured (set ADMIN_EMAIL, EMAIL_INBOX, or EMAIL_USER)');
+            }
 
             const mailOptions = {
-                from: process.env.EMAIL_USER,
-                to: process.env.EMAIL_USER,
+                from: process.env.EMAIL_FROM || process.env.EMAIL_USER,
+                to: inbox,
                 replyTo: email,
                 subject: `New Contact Message: ${subject}`,
                 html: `
@@ -66,7 +70,10 @@ router.post('/contact', async (req, res) => {
                 `
             };
 
-            await transporter.sendMail(mailOptions);
+            await sendEmail(mailOptions.to, mailOptions.subject, mailOptions.html, {
+                replyTo: mailOptions.replyTo,
+                from: mailOptions.from
+            });
         } catch (emailErr) {
             // Email failed, but message was saved to DB - that's ok
             console.error('Email notification failed:', emailErr.message);
@@ -81,6 +88,5 @@ router.post('/contact', async (req, res) => {
         res.redirect('/contact');
     }
 });
-
 
 module.exports = router;

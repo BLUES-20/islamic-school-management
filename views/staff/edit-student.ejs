@@ -10,18 +10,18 @@
                 </div>
                 <div class="card-body p-5">
                     <form action="/staff/edit-student/<%= student.id %>" method="POST" enctype="multipart/form-data">
-                        
+
                         <div class="row g-4">
                             <!-- Personal Info -->
                             <div class="col-12">
                                 <h5 class="text-success fw-bold border-bottom pb-2 mb-4">Personal Information</h5>
                             </div>
-                            
+
                             <div class="col-md-6">
                                 <label class="form-label small fw-bold text-muted text-uppercase">First Name</label>
                                 <input type="text" name="first_name" class="form-control" value="<%= student.first_name %>" required>
                             </div>
-                            
+
                             <div class="col-md-6">
                                 <label class="form-label small fw-bold text-muted text-uppercase">Last Name</label>
                                 <input type="text" name="last_name" class="form-control" value="<%= student.last_name %>" required>
@@ -50,10 +50,10 @@
                                 <input type="file" name="profile_picture" class="form-control" accept="image/*">
                                 <div class="form-text">Upload a new profile picture (JPG, PNG, max 2MB)</div>
                                 <% if (student.picture) { %>
-                                    <div class="mt-2">
-                                        <small class="text-muted">Current picture:</small><br>
-                                        <img src="<%= student.picture %>" alt="Current picture" style="max-width: 100px; max-height: 100px; border-radius: 8px; border: 1px solid #ddd;">
-                                    </div>
+                                <div class="mt-2">
+                                    <small class="text-muted">Current picture:</small><br>
+                                    <img src="<%= student.picture %>" alt="Current picture" style="max-width: 100px; max-height: 100px; border-radius: 8px; border: 1px solid #ddd;">
+                                </div>
                                 <% } %>
                             </div>
 
@@ -61,7 +61,7 @@
                                 <label class="form-label small fw-bold text-muted text-uppercase">Current Class</label>
                                 <select name="class_name" class="form-select" required>
                                     <% ['PRELIMINARY 2', 'PRELIMINARY 3', 'ALIF CLASS', 'BA CLASS', 'TA CLASS'].forEach(cls => { %>
-                                        <option value="<%= cls %>" <%= student.class === cls ? 'selected' : '' %>><%= cls %></option>
+                                    <option value="<%= cls %>" <%= student.class === cls ? 'selected' : '' %>><%= cls %></option>
                                     <% }); %>
                                 </select>
                             </div>
@@ -97,10 +97,7 @@
                                         <a href="/staff/manage-students" class="btn btn-light px-4 py-2 fw-bold">
                                             <i class="fas fa-times me-2"></i>Cancel
                                         </a>
-                                        <button type="button" class="btn btn-outline-danger px-4 py-2 fw-bold" 
-                                                id="deleteBtn"
-                                                data-id="<%= student.id %>"
-                                                data-name="<%= student.first_name %> <%= student.last_name %>">
+                                        <button type="button" class="btn btn-outline-danger px-4 py-2 fw-bold" id="deleteBtn" data-id="<%= student.id %>" data-name="<%= student.first_name %> <%= student.last_name %>">
                                             <i class="fas fa-trash-alt me-2"></i>Delete Student
                                         </button>
                                     </div>
@@ -121,7 +118,7 @@
     document.getElementById('deleteBtn').addEventListener('click', function() {
         const id = this.getAttribute('data-id');
         const name = this.getAttribute('data-name');
-        
+
         if (confirm(`⚠️ PERMANENT ACTION: Are you sure you want to delete ${name}?\n\nThis will permanently delete their account, results, and all history. This cannot be undone.`)) {
             const form = document.createElement('form');
             form.method = 'POST';
@@ -130,6 +127,7 @@
             form.submit();
         }
     });
+
 </script>
 
 <%- include('../layout/footer') %>

@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -12,29 +13,37 @@
             color: white;
             padding: 2rem 0;
         }
+
         .announcement-card {
             border: none;
             box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
             transition: transform 0.3s ease;
         }
+
         .announcement-card:hover {
             transform: translateY(-2px);
         }
+
         .priority-high {
             border-left: 5px solid #dc3545;
         }
+
         .priority-normal {
             border-left: 5px solid #ffc107;
         }
+
         .priority-low {
             border-left: 5px solid #28a745;
         }
+
         .announcement-meta {
             font-size: 0.875rem;
             color: #6c757d;
         }
+
     </style>
 </head>
+
 <body>
     <%- include('../layout/header') %>
 
@@ -140,58 +149,55 @@
                     <div class="card-body">
                         <div class="row">
                             <% if (announcements && announcements.length > 0) { %>
-                                <% announcements.forEach(announcement => { %>
-                                    <div class="col-md-6 mb-4">
-                                        <div class="card announcement-card priority-<%= announcement.priority %> shadow-sm">
-                                            <div class="card-header d-flex justify-content-between align-items-center">
-                                                <h6 class="mb-0 fw-bold">
-                                                    <% if (announcement.priority === 'high') { %>
-                                                        <i class="fas fa-exclamation-triangle text-danger me-2"></i>
-                                                    <% } else if (announcement.priority === 'normal') { %>
-                                                        <i class="fas fa-info-circle text-primary me-2"></i>
-                                                    <% } else { %>
-                                                        <i class="fas fa-bookmark text-success me-2"></i>
-                                                    <% } %>
-                                                    <%= announcement.title %>
-                                                </h6>
-                                                <span class="badge bg-<%= announcement.priority === 'high' ? 'danger' : (announcement.priority === 'normal' ? 'primary' : 'success') %>">
-                                                    <%= announcement.priority.toUpperCase() %>
-                                                </span>
-                                            </div>
-                                            <div class="card-body">
-                                                <p class="card-text text-muted" style="min-height: 60px;">
-                                                    <%= announcement.content %>
-                                                </p>
-                                                <div class="announcement-meta small text-muted border-top pt-2">
-                                                    <i class="fas fa-calendar-alt me-1"></i>
-                                                    <%= new Date(announcement.created_at).toLocaleDateString() %>
-                                                    <span class="mx-2">|</span>
-                                                    <i class="fas fa-users me-1"></i>
-                                                    Audience: <%= announcement.target_audience.charAt(0).toUpperCase() + announcement.target_audience.slice(1) %>
-                                                    <% if (announcement.status === 'draft') { %>
-                                                        <span class="badge bg-secondary ms-2">DRAFT</span>
-                                                    <% } %>
-                                                </div>
-                                                <div class="mt-3 d-flex justify-content-end">
-                                                    <div class="btn-group btn-group-sm">
-                                                        <button class="btn btn-outline-danger" 
-                                                                data-id="<%= announcement.id %>" 
-                                                                data-title="<%= announcement.title %>"
-                                                                onclick="deleteAnnouncement(this.getAttribute('data-id'), this.getAttribute('data-title'))">
-                                                            <i class="fas fa-trash-alt me-1"></i> Delete
-                                                        </button>
-                                                    </div>
-                                                </div>
+                            <% announcements.forEach(announcement => { %>
+                            <div class="col-md-6 mb-4">
+                                <div class="card announcement-card priority-<%= announcement.priority %> shadow-sm">
+                                    <div class="card-header d-flex justify-content-between align-items-center">
+                                        <h6 class="mb-0 fw-bold">
+                                            <% if (announcement.priority === 'high') { %>
+                                            <i class="fas fa-exclamation-triangle text-danger me-2"></i>
+                                            <% } else if (announcement.priority === 'normal') { %>
+                                            <i class="fas fa-info-circle text-primary me-2"></i>
+                                            <% } else { %>
+                                            <i class="fas fa-bookmark text-success me-2"></i>
+                                            <% } %>
+                                            <%= announcement.title %>
+                                        </h6>
+                                        <span class="badge bg-<%= announcement.priority === 'high' ? 'danger' : (announcement.priority === 'normal' ? 'primary' : 'success') %>">
+                                            <%= announcement.priority.toUpperCase() %>
+                                        </span>
+                                    </div>
+                                    <div class="card-body">
+                                        <p class="card-text text-muted" style="min-height: 60px;">
+                                            <%= announcement.content %>
+                                        </p>
+                                        <div class="announcement-meta small text-muted border-top pt-2">
+                                            <i class="fas fa-calendar-alt me-1"></i>
+                                            <%= new Date(announcement.created_at).toLocaleDateString() %>
+                                            <span class="mx-2">|</span>
+                                            <i class="fas fa-users me-1"></i>
+                                            Audience: <%= announcement.target_audience.charAt(0).toUpperCase() + announcement.target_audience.slice(1) %>
+                                            <% if (announcement.status === 'draft') { %>
+                                            <span class="badge bg-secondary ms-2">DRAFT</span>
+                                            <% } %>
+                                        </div>
+                                        <div class="mt-3 d-flex justify-content-end">
+                                            <div class="btn-group btn-group-sm">
+                                                <button class="btn btn-outline-danger" data-id="<%= announcement.id %>" data-title="<%= announcement.title %>" onclick="deleteAnnouncement(this.getAttribute('data-id'), this.getAttribute('data-title'))">
+                                                    <i class="fas fa-trash-alt me-1"></i> Delete
+                                                </button>
                                             </div>
                                         </div>
                                     </div>
-                                <% }); %>
-                            <% } else { %>
-                                <div class="col-12 text-center py-5">
-                                    <i class="fas fa-bullhorn fa-3x text-muted mb-3"></i>
-                                    <h5 class="text-muted">No announcements found</h5>
-                                    <p class="text-muted">Create your first update to share with the school.</p>
                                 </div>
+                            </div>
+                            <% }); %>
+                            <% } else { %>
+                            <div class="col-12 text-center py-5">
+                                <i class="fas fa-bullhorn fa-3x text-muted mb-3"></i>
+                                <h5 class="text-muted">No announcements found</h5>
+                                <p class="text-muted">Create your first update to share with the school.</p>
+                            </div>
                             <% } %>
                         </div>
 
@@ -230,8 +236,7 @@
                                 <i class="fas fa-heading me-1"></i>
                                 Title
                             </label>
-                            <input type="text" class="form-control" id="announcementTitle" name="title" 
-                                   placeholder="Enter announcement title" required>
+                            <input type="text" class="form-control" id="announcementTitle" name="title" placeholder="Enter announcement title" required>
                         </div>
 
                         <div class="mb-3">
@@ -239,8 +244,7 @@
                                 <i class="fas fa-align-left me-1"></i>
                                 Content
                             </label>
-                            <textarea class="form-control" id="announcementContent" name="content" 
-                                     rows="5" placeholder="Enter announcement content" required></textarea>
+                            <textarea class="form-control" id="announcementContent" name="content" rows="5" placeholder="Enter announcement content" required></textarea>
                         </div>
 
                         <div class="row">
@@ -352,7 +356,8 @@
                 form.submit();
             }
         }
-    </script>
-</div>
 
-<%- include('../layout/footer') %>
+    </script>
+    </div>
+
+    <%- include('../layout/footer') %>

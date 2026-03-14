@@ -68,18 +68,18 @@
                 <div class="card card-islamic shadow-lg">
                     <div class="card-body text-center p-4">
                         <% if (picture) { %>
-                            <img src="<%= picture %>" alt="Profile Picture" class="rounded-circle img-fluid mb-3" style="width: 150px; height: 150px; object-fit: cover; border: 4px solid var(--primary-green);">
+                        <img src="<%= picture %>" alt="Profile Picture" class="rounded-circle img-fluid mb-3" style="width: 150px; height: 150px; object-fit: cover; border: 4px solid var(--primary-green);">
                         <% } else { %>
-                            <div class="avatar-placeholder mx-auto mb-3" style="width: 150px; height: 150px; border-radius: 50%; background: linear-gradient(135deg, var(--primary-green), var(--dark-green)); display: flex; align-items: center; justify-content: center;">
-                                <i class="fas fa-user fa-4x text-white"></i>
-                            </div>
+                        <div class="avatar-placeholder mx-auto mb-3" style="width: 150px; height: 150px; border-radius: 50%; background: linear-gradient(135deg, var(--primary-green), var(--dark-green)); display: flex; align-items: center; justify-content: center;">
+                            <i class="fas fa-user fa-4x text-white"></i>
+                        </div>
                         <% } %>
                         <h4 class="fw-bold"><%= fullName %></h4>
                         <p class="text-muted mb-1"><%= admissionNumber %></p>
                         <span class="badge bg-success"><%= studentClass %></span>
                     </div>
                 </div>
-                
+
                 <!-- Account Actions -->
                 <div class="card card-islamic shadow-lg mt-4">
                     <div class="card-header py-4">
@@ -171,7 +171,7 @@
                             <i class="fas fa-info-circle me-2"></i>
                             <strong>Profile Update Feature Coming Soon!</strong>
                             <p class="mb-0 mt-2">
-                                The ability to update your profile information will be available soon. 
+                                The ability to update your profile information will be available soon.
                                 For now, please contact your school administration for any changes.
                             </p>
                         </div>
@@ -183,4 +183,3 @@
 </section>
 
 <%- include('../layout/footer') %>
-

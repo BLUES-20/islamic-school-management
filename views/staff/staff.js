@@ -23,7 +23,7 @@ router.get('/dashboard', ensureStaff, (req, res) => {
 // GET: Show Upload Result Form
 router.get('/upload-result', ensureStaff, async (req, res) => {
     let uploadedSubjects = [];
-    
+
     // If we have student details in query, fetch their existing results for this term
     if (req.query.admission_number && req.query.term && req.query.academic_year) {
         try {
@@ -36,7 +36,9 @@ router.get('/upload-result', ensureStaff, async (req, res) => {
                 );
                 uploadedSubjects = subRes.rows;
             }
-        } catch (err) { console.error(err); }
+        } catch (err) {
+            console.error(err);
+        }
     }
 
     res.render('staff/upload-result', {
@@ -50,25 +52,32 @@ router.get('/upload-result', ensureStaff, async (req, res) => {
 
 // POST: Process Upload Result
 router.post('/upload-result', ensureStaff, async (req, res) => {
-    const { admission_number, class_name, subject, score, term, academic_year } = req.body;
-    
+    const {
+        admission_number,
+        class_name,
+        subject,
+        score,
+        term,
+        academic_year
+    } = req.body;
+
     // Construct redirect URL to keep form filled
     const redirectUrl = `/staff/upload-result?admission_number=${encodeURIComponent(admission_number)}&class_name=${encodeURIComponent(class_name)}&term=${encodeURIComponent(term)}&academic_year=${encodeURIComponent(academic_year)}`;
 
     try {
         // 1. Find student by admission number
         const studentResult = await db.query('SELECT id FROM students WHERE admission_number = $1', [admission_number]);
-        
+
         if (studentResult.rows.length === 0) {
             req.flash('error', 'Student with that admission number not found.');
             return res.redirect(redirectUrl);
         }
 
         const student_id = studentResult.rows[0].id;
-        
+
         // 2. Calculate grade automatically
         const numScore = parseFloat(score);
-        
+
         // Server-side Validation
         if (isNaN(numScore) || numScore < 0 || numScore > 100) {
             req.flash('error', 'Score must be between 0 and 100');

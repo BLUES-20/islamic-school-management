@@ -4,7 +4,7 @@ const router = express.Router();
 
 // Home Page
 router.get('/', (req, res) => {
-    res.render('public/index', { 
+    res.render('public/index', {
         title: 'Home - Islamic School',
         page: 'home'
     });
@@ -12,7 +12,7 @@ router.get('/', (req, res) => {
 
 // About Page
 router.get('/about', (req, res) => {
-    res.render('public/about', { 
+    res.render('public/about', {
         title: 'About Us - Islamic School',
         page: 'about'
     });
@@ -20,7 +20,7 @@ router.get('/about', (req, res) => {
 
 // Academics Page
 router.get('/academics', (req, res) => {
-    res.render('public/academics', { 
+    res.render('public/academics', {
         title: 'Academics - Islamic School',
         page: 'academics'
     });
@@ -28,7 +28,7 @@ router.get('/academics', (req, res) => {
 
 // Admission Page
 router.get('/admission', (req, res) => {
-    res.render('public/admission', { 
+    res.render('public/admission', {
         title: 'Admission - Islamic School',
         page: 'admission'
     });
@@ -36,11 +36,10 @@ router.get('/admission', (req, res) => {
 
 // Contact Page
 router.get('/contact', (req, res) => {
-    res.render('public/contact', { 
+    res.render('public/contact', {
         title: 'Contact Us - Islamic School',
         page: 'contact'
     });
 });
-
 
 module.exports = router;

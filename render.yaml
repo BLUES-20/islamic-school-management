@@ -26,3 +26,9 @@ services:
         sync: false
       - key: APP_URL
         sync: false
+      - key: CLOUDINARY_CLOUD_NAME
+        value: dhqih0txj
+      - key: CLOUDINARY_API_KEY
+        value: "768711335699391"
+      - key: CLOUDINARY_API_SECRET
+        value: Trvy26meoa_1XQ70qTsCrFWGq2w

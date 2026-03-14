@@ -66,13 +66,20 @@
         left: -50%;
         width: 200%;
         height: 200%;
-        background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+        background: radial-gradient(circle, rgba(255, 255, 255, 0.1) 0%, transparent 70%);
         animation: float 6s ease-in-out infinite;
     }
 
     @keyframes float {
-        0%, 100% { transform: translate(-50%, -50%) scale(1); }
-        50% { transform: translate(-50%, -50%) scale(1.1); }
+
+        0%,
+        100% {
+            transform: translate(-50%, -50%) scale(1);
+        }
+
+        50% {
+            transform: translate(-50%, -50%) scale(1.1);
+        }
     }
 
     .sidebar-content {
@@ -191,7 +198,8 @@
         display: block;
     }
 
-    .form-control, .form-select {
+    .form-control,
+    .form-select {
         border: 2px solid #e5e7eb;
         border-radius: 12px;
         padding: 1rem 1.25rem;
@@ -201,7 +209,8 @@
         width: 100%;
     }
 
-    .form-control:focus, .form-select:focus {
+    .form-control:focus,
+    .form-select:focus {
         border-color: var(--islamic-primary);
         box-shadow: 0 0 0 4px rgba(26, 95, 63, 0.1);
         background: white;
@@ -298,7 +307,7 @@
         left: -100%;
         width: 100%;
         height: 100%;
-        background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+        background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
         transition: left 0.5s;
     }
 
@@ -383,6 +392,7 @@
             opacity: 0;
             transform: translateY(40px) scale(0.95);
         }
+
         to {
             opacity: 1;
             transform: translateY(0) scale(1);
@@ -407,6 +417,7 @@
     ::-webkit-scrollbar-thumb:hover {
         background: var(--islamic-secondary);
     }
+
 </style>
 
 <div class="registration-container">
@@ -525,82 +536,82 @@
                                 </div>
                             </div>
                         </div>
-                                        <option value="ALIF CLASS">ALIF CLASS</option>
-                                        <option value="BA CLASS">BA CLASS</option>
-                                        <option value="TA CLASS">TA CLASS</option>
-                                    </select>
-                                </div>
-                            </div>
-
-                            <hr class="my-5 opacity-25">
-
-                            <!-- Parent Info -->
-                            <div class="section-title">
-                                <i class="fas fa-users-cog"></i>
-                                <span>Parental Details</span>
-                            </div>
-
-                            <div class="row g-3">
-                                <div class="col-md-6">
-                                    <label class="form-label">Guardian Name</label>
-                                    <input type="text" name="parent_name" class="form-control" placeholder="Full name of guardian" required>
-                                </div>
-                                <div class="col-md-6">
-                                    <label class="form-label">Guardian Phone</label>
-                                    <input type="tel" name="parent_phone" class="form-control" placeholder="+234..." required>
-                                </div>
-                                <div class="col-md-12">
-                                    <label class="form-label">Residential Address</label>
-                                    <textarea name="address" class="form-control" rows="2" placeholder="Full home address"></textarea>
-                                </div>
-                            </div>
-
-                            <hr class="my-5 opacity-25">
-
-                            <!-- Security -->
-                            <div class="section-title">
-                                <i class="fas fa-lock"></i>
-                                <span>Portal Access</span>
-                            </div>
-
-                            <div class="row g-3 mb-4">
-                                <div class="col-md-6">
-                                    <label class="form-label">Set Password</label>
-                                    <input type="password" name="password" id="password" class="form-control" minlength="6" placeholder="At least 6 characters" required>
-                                </div>
-                                <div class="col-md-6">
-                                    <label class="form-label">Confirm Password</label>
-                                    <input type="password" name="confirm_password" id="confirm_password" class="form-control" placeholder="Repeat password" required>
-                                </div>
-                            </div>
-
-                            <div class="form-check mb-4">
-                                <input class="form-check-input" type="checkbox" id="agree" required>
-                                <label class="form-check-label small text-muted" for="agree">
-                                    I hereby certify that the information provided is correct to the best of my knowledge and I agree to the school's code of conduct.
-                                </label>
-                            </div>
-
-                            <button type="submit" class="btn btn-register w-100 btn-lg shadow">
-                                COMPLETE REGISTRATION <i class="fas fa-arrow-right ms-2 font-size-sm"></i>
-                            </button>
-
-                            <div class="text-center mt-4 pt-2">
-                                <p class="small text-muted mb-0">Already registered? <a href="/auth/student-login" class="text-success fw-bold text-decoration-none">Login to Portal</a></p>
-                            </div>
-                        </form>
-                    </div>
+                        <option value="ALIF CLASS">ALIF CLASS</option>
+                        <option value="BA CLASS">BA CLASS</option>
+                        <option value="TA CLASS">TA CLASS</option>
+                        </select>
                 </div>
             </div>
+
+            <hr class="my-5 opacity-25">
+
+            <!-- Parent Info -->
+            <div class="section-title">
+                <i class="fas fa-users-cog"></i>
+                <span>Parental Details</span>
+            </div>
+
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <label class="form-label">Guardian Name</label>
+                    <input type="text" name="parent_name" class="form-control" placeholder="Full name of guardian" required>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">Guardian Phone</label>
+                    <input type="tel" name="parent_phone" class="form-control" placeholder="+234..." required>
+                </div>
+                <div class="col-md-12">
+                    <label class="form-label">Residential Address</label>
+                    <textarea name="address" class="form-control" rows="2" placeholder="Full home address"></textarea>
+                </div>
+            </div>
+
+            <hr class="my-5 opacity-25">
+
+            <!-- Security -->
+            <div class="section-title">
+                <i class="fas fa-lock"></i>
+                <span>Portal Access</span>
+            </div>
+
+            <div class="row g-3 mb-4">
+                <div class="col-md-6">
+                    <label class="form-label">Set Password</label>
+                    <input type="password" name="password" id="password" class="form-control" minlength="6" placeholder="At least 6 characters" required>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">Confirm Password</label>
+                    <input type="password" name="confirm_password" id="confirm_password" class="form-control" placeholder="Repeat password" required>
+                </div>
+            </div>
+
+            <div class="form-check mb-4">
+                <input class="form-check-input" type="checkbox" id="agree" required>
+                <label class="form-check-label small text-muted" for="agree">
+                    I hereby certify that the information provided is correct to the best of my knowledge and I agree to the school's code of conduct.
+                </label>
+            </div>
+
+            <button type="submit" class="btn btn-register w-100 btn-lg shadow">
+                COMPLETE REGISTRATION <i class="fas fa-arrow-right ms-2 font-size-sm"></i>
+            </button>
+
+            <div class="text-center mt-4 pt-2">
+                <p class="small text-muted mb-0">Already registered? <a href="/auth/student-login" class="text-success fw-bold text-decoration-none">Login to Portal</a></p>
+            </div>
+            </form>
         </div>
     </div>
+</div>
+</div>
+</div>
 </div>
 
 <script>
     // Validation for confirm password
     const password = document.getElementById('password');
     const confirm = document.getElementById('confirm_password');
-    
+
     confirm.addEventListener('input', () => {
         if (password.value !== confirm.value) {
             confirm.setCustomValidity('Passwords do not match');
@@ -613,10 +624,10 @@
     function previewImage(input) {
         const preview = document.getElementById('imagePreview');
         const previewImg = document.getElementById('previewImg');
-        
+
         if (input.files && input.files[0]) {
             const file = input.files[0];
-            
+
             // Check file size (2MB)
             if (file.size > 2 * 1024 * 1024) {
                 alert('File size must be less than 2MB');
@@ -624,7 +635,7 @@
                 preview.style.display = 'none';
                 return;
             }
-            
+
             const reader = new FileReader();
             reader.onload = function(e) {
                 previewImg.src = e.target.result;
@@ -637,11 +648,11 @@
     }
 
     // Form validation bootstrap
-    (function () {
+    (function() {
         'use strict'
         var forms = document.querySelectorAll('.needs-validation')
-        Array.prototype.slice.call(forms).forEach(function (form) {
-            form.addEventListener('submit', function (event) {
+        Array.prototype.slice.call(forms).forEach(function(form) {
+            form.addEventListener('submit', function(event) {
                 if (!form.checkValidity()) {
                     event.preventDefault()
                     event.stopPropagation()
@@ -650,6 +661,7 @@
             }, false)
         })
     })()
+
 </script>
 
 <%- include('../layout/footer') %>

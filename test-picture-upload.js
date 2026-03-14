@@ -14,7 +14,9 @@ async function testPictureUpload() {
             console.log('   ✅ Student upload directory exists');
         } else {
             console.log('   ❌ Student upload directory missing - creating...');
-            fs.mkdirSync(studentUploadDir, { recursive: true });
+            fs.mkdirSync(studentUploadDir, {
+                recursive: true
+            });
             console.log('   ✅ Student upload directory created');
         }
 
@@ -22,7 +24,9 @@ async function testPictureUpload() {
             console.log('   ✅ Document upload directory exists');
         } else {
             console.log('   ❌ Document upload directory missing - creating...');
-            fs.mkdirSync(documentUploadDir, { recursive: true });
+            fs.mkdirSync(documentUploadDir, {
+                recursive: true
+            });
             console.log('   ✅ Document upload directory created');
         }
         console.log('');

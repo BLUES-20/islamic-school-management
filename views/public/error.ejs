@@ -8,17 +8,17 @@
                     <i class="fas fa-times-circle text-danger" style="font-size: 100px; opacity: 0.3;"></i>
                     <h1 class="display-4 fw-bold text-danger mt-4">Oops! Something went wrong</h1>
                     <p class="lead text-muted my-4">
-                        We're sorry, but something unexpected happened. 
+                        We're sorry, but something unexpected happened.
                         Our team has been notified and we're working to fix it.
                     </p>
-                    
+
                     <% if (typeof error !== 'undefined' && error) { %>
-                        <div class="alert alert-danger text-start" role="alert">
-                            <strong>Error Details:</strong><br>
-                            <%= error %>
-                        </div>
+                    <div class="alert alert-danger text-start" role="alert">
+                        <strong>Error Details:</strong><br>
+                        <%= error %>
+                    </div>
                     <% } %>
-                    
+
                     <div class="d-flex justify-content-center gap-3 mt-4">
                         <a href="/" class="btn btn-islamic btn-lg">
                             <i class="fas fa-home me-2"></i>Go to Homepage

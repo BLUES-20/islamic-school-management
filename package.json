@@ -1,34 +1,36 @@
 {
-  "name": "loginsql",
-  "version": "1.0.0",
-  "description": "Islamic School Management System",
-  "main": "server.js",
+    "name": "loginsql",
+    "version": "1.0.0",
+    "description": "Islamic School Management System",
+    "main": "server.js",
   "scripts": {
     "start": "node server.js",
     "dev": "nodemon server.js",
     "supabase:link": "supabase link --project-ref wkezgixefbywotgutoao",
     "supabase:migration": "supabase migration new",
-    "supabase:push": "supabase db push"
+    "supabase:push": "supabase db push",
+    "email:test": "node scripts/test-email.js"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "dependencies": {
-    "bcrypt": "^6.0.0",
-    "connect-flash": "^0.1.1",
-    "dotenv": "^16.6.1",
-    "ejs": "^3.1.10",
-    "express": "^4.22.1",
-    "express-session": "^1.18.2",
-    "express-validator": "^7.3.1",
-    "multer": "^2.1.1",
-    "nodemailer": "^7.0.12",
-    "pdfkit": "^0.17.2",
-    "pg": "^8.16.3",
-    "resend": "^2.1.0"
-  },
-  "devDependencies": {
-    "nodemon": "^3.1.11",
-    "supabase": "^2.0.0"
-  }
+    "keywords": [],
+    "author": "",
+    "license": "ISC",
+    "dependencies": {
+        "bcrypt": "^6.0.0",
+        "cloudinary": "^1.21.0",
+        "connect-flash": "^0.1.1",
+        "dotenv": "^16.6.1",
+        "ejs": "^3.1.10",
+        "express": "^4.22.1",
+        "express-session": "^1.18.2",
+        "express-validator": "^7.3.1",
+        "multer": "^2.1.1",
+        "multer-storage-cloudinary": "^4.0.0",
+        "nodemailer": "^7.0.12",
+        "pdfkit": "^0.17.2",
+        "pg": "^8.16.3",
+        "resend": "^2.1.0"
+    },
+    "devDependencies": {
+        "nodemon": "^3.1.11"
+    }
 }

@@ -39,7 +39,7 @@
 
     .hover-up:hover {
         transform: translateY(-5px);
-        box-shadow: 0 12px 40px rgba(0,0,0,0.1);
+        box-shadow: 0 12px 40px rgba(0, 0, 0, 0.1);
     }
 
     .stats-card {
@@ -87,14 +87,14 @@
     .data-table tbody tr {
         background: white;
         border-radius: 1rem;
-        box-shadow: 0 2px 10px rgba(0,0,0,0.02);
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.02);
         transition: all 0.2s ease;
     }
 
     .data-table tbody tr:hover {
         background: #f8fcf9;
         transform: scale(1.005);
-        box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
     }
 
     .data-table td {
@@ -103,8 +103,13 @@
         vertical-align: middle;
     }
 
-    .data-table td:first-child { border-radius: 1rem 0 0 1rem; }
-    .data-table td:last-child { border-radius: 0 1rem 1rem 0; }
+    .data-table td:first-child {
+        border-radius: 1rem 0 0 1rem;
+    }
+
+    .data-table td:last-child {
+        border-radius: 0 1rem 1rem 0;
+    }
 
     .student-avatar {
         width: 45px;
@@ -130,7 +135,7 @@
         background: white;
         border-radius: 1rem;
         padding: 0.5rem 1.5rem;
-        box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
         border: 1px solid #eee;
     }
 
@@ -151,22 +156,49 @@
         transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
         border: none;
         margin: 0 4px;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
     }
 
     .action-btn:hover {
         transform: translateY(-3px) scale(1.1);
-        box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
     }
 
-    .btn-view { background: #f0f7ff; color: #0d6efd; border: 1px solid #e1ecf8; }
-    .btn-view:hover { background: #0d6efd; color: white; border-color: #0d6efd; }
-    
-    .btn-edit { background: #fffaf0; color: #fd7e14; border: 1px solid #f8eee1; }
-    .btn-edit:hover { background: #fd7e14; color: white; border-color: #fd7e14; }
+    .btn-view {
+        background: #f0f7ff;
+        color: #0d6efd;
+        border: 1px solid #e1ecf8;
+    }
 
-    .btn-delete { background: #fff5f5; color: #dc3545; border: 1px solid #f8e1e1; }
-    .btn-delete:hover { background: #dc3545; color: white; border-color: #dc3545; }
+    .btn-view:hover {
+        background: #0d6efd;
+        color: white;
+        border-color: #0d6efd;
+    }
+
+    .btn-edit {
+        background: #fffaf0;
+        color: #fd7e14;
+        border: 1px solid #f8eee1;
+    }
+
+    .btn-edit:hover {
+        background: #fd7e14;
+        color: white;
+        border-color: #fd7e14;
+    }
+
+    .btn-delete {
+        background: #fff5f5;
+        color: #dc3545;
+        border: 1px solid #f8e1e1;
+    }
+
+    .btn-delete:hover {
+        background: #dc3545;
+        color: white;
+        border-color: #dc3545;
+    }
 
     /* Modal Styling */
     .modal-content {
@@ -194,6 +226,7 @@
         color: #333;
         margin-bottom: 1.5rem;
     }
+
 </style>
 
 <div class="page-header">
@@ -206,19 +239,19 @@
 <div class="container dashboard-container">
     <!-- Flash Messages -->
     <% if (typeof success_msg !== 'undefined' && success_msg.length > 0) { %>
-        <div class="alert alert-success alert-dismissible fade show" role="alert">
-            <i class="fas fa-check-circle me-2"></i>
-            <%= success_msg[0] %>
-            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-        </div>
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+        <i class="fas fa-check-circle me-2"></i>
+        <%= success_msg[0] %>
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
     <% } %>
-    
+
     <% if (typeof error_msg !== 'undefined' && error_msg.length > 0) { %>
-        <div class="alert alert-danger alert-dismissible fade show" role="alert">
-            <i class="fas fa-exclamation-triangle me-2"></i>
-            <%= error_msg[0] %>
-            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-        </div>
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+        <i class="fas fa-exclamation-triangle me-2"></i>
+        <%= error_msg[0] %>
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
     <% } %>
 
     <div class="row g-4">
@@ -268,7 +301,7 @@
                         <option value="">All Classes</option>
                         <% const studentClasses = [...new Set(students.map(s => s.class).filter(Boolean))]; %>
                         <% studentClasses.forEach(c => { %>
-                            <option value="<%= c %>"><%= c %></option>
+                        <option value="<%= c %>"><%= c %></option>
                         <% }); %>
                     </select>
                 </div>
@@ -296,78 +329,51 @@
                     </thead>
                     <tbody>
                         <% students.forEach(student => { %>
-                            <tr class="student-row" 
-                                data-class="<%= student.class %>" 
-                                data-search="<%= (student.first_name + ' ' + student.last_name + ' ' + student.admission_number + ' ' + student.parent_name).toLowerCase() %>">
-                                <td>
-                                    <div class="d-flex align-items-center">
-                                        <div class="student-avatar me-3">
-                                            <% if (student.picture) { %>
-                                                <img src="<%= student.picture %>" alt="<%= student.first_name %>" style="width: 100%; height: 100%; object-fit: cover; border-radius: 12px;">
-                                            <% } else { %>
-                                                <%= student.first_name.charAt(0) %><%= student.last_name.charAt(0) %>
-                                            <% } %>
-                                        </div>
-                                        <div>
-                                            <div class="fw-bold text-dark"><%= student.first_name %> <%= student.last_name %></div>
-                                            <small class="text-muted"><%= student.email %></small>
-                                        </div>
+                        <tr class="student-row" data-class="<%= student.class %>" data-search="<%= (student.first_name + ' ' + student.last_name + ' ' + student.admission_number + ' ' + student.parent_name).toLowerCase() %>">
+                            <td>
+                                <div class="d-flex align-items-center">
+                                    <div class="student-avatar me-3">
+                                        <% if (student.picture) { %>
+                                        <img src="<%= student.picture %>" alt="<%= student.first_name %>" style="width: 100%; height: 100%; object-fit: cover; border-radius: 12px;">
+                                        <% } else { %>
+                                        <%= student.first_name.charAt(0) %><%= student.last_name.charAt(0) %>
+                                        <% } %>
                                     </div>
-                                </td>
-                                <td>
-                                    <span class="fw-mono text-success fw-bold">#<%= student.admission_number %></span>
-                                </td>
-                                <td>
-                                    <span class="badge bg-light text-dark border"><%= student.class || 'N/A' %></span>
-                                </td>
-                                <td>
-                                    <div><%= student.parent_name || 'N/A' %></div>
-                                    <small class="text-muted"><i class="fas fa-phone-alt me-1 small"></i><%= student.parent_phone %></small>
-                                </td>
-                                <td>
-                                    <span class="badge-status <%= (student.status || 'active') === 'active' ? 'bg-success text-white' : 'bg-warning text-dark' %>">
-                                        <%= (student.status || 'active').toUpperCase() %>
-                                    </span>
-                                </td>
-                                <td class="text-center">
-                                    <div class="d-flex justify-content-center gap-1">
-                                        <button class="action-btn btn-view" 
-                                                title="View Profile" 
-                                                data-bs-toggle="tooltip"
-                                                data-id="<%= student.id %>"
-                                                data-first_name="<%= student.first_name %>"
-                                                data-last_name="<%= student.last_name %>"
-                                                data-admission_number="<%= student.admission_number %>"
-                                                data-class="<%= student.class %>"
-                                                data-gender="<%= student.gender %>"
-                                                data-passport="<%= student.passport %>"
-                                                data-picture="<%= student.picture %>"
-                                                data-dob="<%= student.date_of_birth %>"
-                                                data-parent_name="<%= student.parent_name %>"
-                                                data-parent_phone="<%= student.parent_phone %>"
-                                                data-parent_email="<%= student.parent_email %>"
-                                                data-address="<%= student.address %>"
-                                                data-created_at="<%= student.created_at %>"
-                                                onclick="handleView(this)">
-                                            <i class="fas fa-eye"></i>
-                                        </button>
-                                        <a href="/staff/edit-student/<%= student.id %>" 
-                                           class="action-btn btn-edit text-decoration-none" 
-                                           title="Edit Student"
-                                           data-bs-toggle="tooltip">
-                                            <i class="fas fa-pen-nib"></i>
-                                        </a>
-                                        <button class="action-btn btn-delete" 
-                                                title="Delete student" 
-                                                data-bs-toggle="tooltip"
-                                                data-id="<%= student.id %>"
-                                                data-name="<%= student.first_name %> <%= student.last_name %>"
-                                                onclick="handleDelete(this)">
-                                            <i class="fas fa-trash-alt"></i>
-                                        </button>
+                                    <div>
+                                        <div class="fw-bold text-dark"><%= student.first_name %> <%= student.last_name %></div>
+                                        <small class="text-muted"><%= student.email %></small>
                                     </div>
-                                </td>
-                            </tr>
+                                </div>
+                            </td>
+                            <td>
+                                <span class="fw-mono text-success fw-bold">#<%= student.admission_number %></span>
+                            </td>
+                            <td>
+                                <span class="badge bg-light text-dark border"><%= student.class || 'N/A' %></span>
+                            </td>
+                            <td>
+                                <div><%= student.parent_name || 'N/A' %></div>
+                                <small class="text-muted"><i class="fas fa-phone-alt me-1 small"></i><%= student.parent_phone %></small>
+                            </td>
+                            <td>
+                                <span class="badge-status <%= (student.status || 'active') === 'active' ? 'bg-success text-white' : 'bg-warning text-dark' %>">
+                                    <%= (student.status || 'active').toUpperCase() %>
+                                </span>
+                            </td>
+                            <td class="text-center">
+                                <div class="d-flex justify-content-center gap-1">
+                                    <button class="action-btn btn-view" title="View Profile" data-bs-toggle="tooltip" data-id="<%= student.id %>" data-first_name="<%= student.first_name %>" data-last_name="<%= student.last_name %>" data-admission_number="<%= student.admission_number %>" data-class="<%= student.class %>" data-gender="<%= student.gender %>" data-passport="<%= student.passport %>" data-picture="<%= student.picture %>" data-dob="<%= student.date_of_birth %>" data-parent_name="<%= student.parent_name %>" data-parent_phone="<%= student.parent_phone %>" data-parent_email="<%= student.parent_email %>" data-address="<%= student.address %>" data-created_at="<%= student.created_at %>" onclick="handleView(this)">
+                                        <i class="fas fa-eye"></i>
+                                    </button>
+                                    <a href="/staff/edit-student/<%= student.id %>" class="action-btn btn-edit text-decoration-none" title="Edit Student" data-bs-toggle="tooltip">
+                                        <i class="fas fa-pen-nib"></i>
+                                    </a>
+                                    <button class="action-btn btn-delete" title="Delete student" data-bs-toggle="tooltip" data-id="<%= student.id %>" data-name="<%= student.first_name %> <%= student.last_name %>" onclick="handleDelete(this)">
+                                        <i class="fas fa-trash-alt"></i>
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
                         <% }); %>
                     </tbody>
                 </table>
@@ -460,7 +466,7 @@
     document.addEventListener('DOMContentLoaded', function() {
         // Initialize tooltips safely after Bootstrap is loaded
         const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
-        tooltipTriggerList.map(function (tooltipTriggerEl) {
+        tooltipTriggerList.map(function(tooltipTriggerEl) {
             return new bootstrap.Tooltip(tooltipTriggerEl);
         });
 
@@ -476,7 +482,7 @@
             rows.forEach(row => {
                 const rowData = row.getAttribute('data-search') || '';
                 const rowClass = row.getAttribute('data-class') || '';
-                
+
                 const matchSearch = rowData.includes(query);
                 const matchClass = !selectedClass || rowClass === selectedClass;
 
@@ -490,20 +496,20 @@
 
     // Modal Display Logic
     let detailModal;
-    
+
     function handleView(btn) {
         // Initialize modal if not already done
         if (!detailModal) {
             detailModal = new bootstrap.Modal(document.getElementById('detailModal'));
         }
-        
+
         const d = btn.dataset;
-        
+
         // Populate modal
         const initials = (d.first_name ? d.first_name.charAt(0) : '') + (d.last_name ? d.last_name.charAt(0) : '');
         const modalPicture = document.getElementById('modalPicture');
         const modalInitials = document.getElementById('modalInitials');
-        
+
         if (d.picture) {
             modalPicture.src = d.picture;
             modalPicture.style.display = 'block';
@@ -513,10 +519,10 @@
             modalInitials.style.display = 'block';
             modalInitials.innerText = initials || '?';
         }
-        
+
         document.getElementById('modalName').innerText = `${d.first_name || ''} ${d.last_name || ''}`;
         document.getElementById('modalIDText').innerText = 'Admission ID: #' + (d.admission_number || 'N/A');
-        
+
         document.getElementById('modalGender').innerText = (d.gender || 'N/A').toUpperCase();
         document.getElementById('modalDOB').innerText = d.dob ? new Date(d.dob).toLocaleDateString() : 'N/A';
         document.getElementById('modalPassport').innerText = d.passport || 'N/A';
@@ -526,15 +532,15 @@
         document.getElementById('modalEmail').innerText = d.parent_email || 'N/A';
         document.getElementById('modalAddress').innerText = d.address || 'No address provided';
         document.getElementById('modalRegDate').innerText = d.created_at ? new Date(d.created_at).toLocaleDateString() : 'N/A';
-        
+
         document.getElementById('modalResultLink').href = '/staff/view-results?admission_number=' + d.admission_number;
-        
+
         // Setup delete trigger in modal
         document.getElementById('modalDeleteTrigger').onclick = () => {
             detailModal.hide();
             confirmDelete(d.id, `${d.first_name} ${d.last_name}`);
         };
-        
+
         detailModal.show();
     }
 
@@ -567,6 +573,7 @@
     window.handleDelete = handleDelete;
     window.confirmDelete = confirmDelete;
     window.exportData = exportData;
+
 </script>
 
 <%- include('../layout/footer') %>

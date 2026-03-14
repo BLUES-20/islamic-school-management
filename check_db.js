@@ -1,11 +1,10 @@
-
 const pool = require('./config/db');
 
 async function checkDatabase() {
     try {
         const res = await pool.query("SELECT * FROM results WHERE subject = 'QVJBQklD' OR subject = 'ARABIC'");
         console.log('Results found:', res.rows);
-        
+
         if (res.rows.length > 0) {
             console.log('Found subjects that might be encoded.');
             for (const row of res.rows) {

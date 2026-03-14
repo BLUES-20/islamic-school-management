@@ -1,7 +1,9 @@
 // config/supabase.js - Supabase Database Configuration
 // Project Ref: wkezgixefbywotgutoao
 
-const { Pool } = require('pg');
+const {
+    Pool
+} = require('pg');
 
 // Supabase connection configuration
 // Database Host: db.wkezgixefbywotgutoao.supabase.co
@@ -20,18 +22,18 @@ const supabaseConfig = {
 };
 
 // Use DATABASE_URL if provided (full connection string), otherwise use individual params
-const pool = process.env.DATABASE_URL
-    ? new Pool({
+const pool = process.env.DATABASE_URL ?
+    new Pool({
         connectionString: process.env.DATABASE_URL,
         ssl: {
             rejectUnauthorized: false
         }
-    })
-    : new Pool(supabaseConfig);
+    }) :
+    new Pool(supabaseConfig);
 
 // Test connection on startup
 pool.connect()
     .then(client => {
-        console.log('✅ Supabase PostgreSQL Connected Successfully');
-        console.log(`   Project Ref: wkezgixefbywotgutoao`);
-        console.log(`   Host: ${supabaseConfig.host}`);
+            console.log('✅ Supabase PostgreSQL Connected Successfully');
+            console.log(`   Project Ref: wkezgixefbywotgutoao`);
+            console.log(`   Host: ${supabaseConfig.host}`);

@@ -5,7 +5,7 @@ const db = require('../config/db');
 
 // Student Registration Page
 router.get('/student-register', (req, res) => {
-    res.render('auth/student-register', { 
+    res.render('auth/student-register', {
         title: 'Student Registration - Islamic School',
         page: 'student-register'
     });
@@ -13,7 +13,19 @@ router.get('/student-register', (req, res) => {
 
 // Handle Student Registration
 router.post('/student-register', (req, res) => {
-    const { admission_number, first_name, last_name, email, password, class: studentClass, date_of_birth, gender, parent_name, parent_phone, parent_email } = req.body;
+    const {
+        admission_number,
+        first_name,
+        last_name,
+        email,
+        password,
+        class: studentClass,
+        date_of_birth,
+        gender,
+        parent_name,
+        parent_phone,
+        parent_email
+    } = req.body;
 
     if (!email || !password || !first_name || !last_name) {
         req.flash('error', 'Please fill in all required fields');
@@ -32,7 +44,7 @@ router.post('/student-register', (req, res) => {
         // Then create student record
         const user_id = result.insertId;
         const query2 = 'INSERT INTO students (user_id, admission_number, first_name, last_name, email, date_of_birth, gender, class, parent_name, parent_phone, parent_email) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)';
-        
+
         db.query(query2, [user_id, admission_number || `STU${Date.now()}`, first_name, last_name, email, date_of_birth, gender, studentClass, parent_name, parent_phone, parent_email], (err) => {
             if (err) {
                 console.error('Student record error:', err);
@@ -48,7 +60,7 @@ router.post('/student-register', (req, res) => {
 
 // Student Login Page
 router.get('/student-login', (req, res) => {
-    res.render('auth/student-login', { 
+    res.render('auth/student-login', {
         title: 'Student Login - Islamic School',
         page: 'student-login'
     });
@@ -56,7 +68,10 @@ router.get('/student-login', (req, res) => {
 
 // Handle Student Login
 router.post('/student-login', (req, res) => {
-    const { email, password } = req.body;
+    const {
+        email,
+        password
+    } = req.body;
 
     if (!email || !password) {
         req.flash('error', 'Please enter email and password');
@@ -64,7 +79,7 @@ router.post('/student-login', (req, res) => {
     }
 
     const query = 'SELECT u.*, s.* FROM users u JOIN students s ON u.id = s.user_id WHERE u.email = ? AND u.password = ? AND u.role = "student"';
-    
+
     db.query(query, [email, password], (err, results) => {
         if (err) {
             console.error('Login error:', err);
@@ -85,7 +100,7 @@ router.post('/student-login', (req, res) => {
 
 // Staff Login Page
 router.get('/staff-login', (req, res) => {
-    res.render('auth/staff-login', { 
+    res.render('auth/staff-login', {
         title: 'Staff Login - Islamic School',
         page: 'staff-login'
     });
@@ -93,7 +108,10 @@ router.get('/staff-login', (req, res) => {
 
 // Handle Staff Login
 router.post('/staff-login', (req, res) => {
-    const { email, password } = req.body;
+    const {
+        email,
+        password
+    } = req.body;
 
     if (!email || !password) {
         req.flash('error', 'Please enter email and password');
@@ -101,7 +119,7 @@ router.post('/staff-login', (req, res) => {
     }
 
     const query = 'SELECT u.*, s.* FROM users u JOIN staff s ON u.id = s.user_id WHERE u.email = ? AND u.password = ? AND u.role = "staff"';
-    
+
     db.query(query, [email, password], (err, results) => {
         if (err) {
             console.error('Login error:', err);
