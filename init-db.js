@@ -1,5 +1,5 @@
 // init-db.js - Automatically initialize database tables
-const db = require('./config/db');
+const db = require('./config/supabase');
 
 const initDatabase = async () => {
     console.log('🔧 Initializing database...');
