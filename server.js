@@ -4,7 +4,7 @@ const express = require('express');
 const session = require('express-session');
 const flash = require('connect-flash');
 const path = require('path');
-const db = require('./config/db');
+const db = require('./config/supabase');
 const initDatabase = require('./init-db');
 const {
     getEmailStatus
