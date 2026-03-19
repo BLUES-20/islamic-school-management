@@ -3,128 +3,152 @@
 <div class="container py-5">
     <div class="row justify-content-center">
         <div class="col-lg-8">
-            <!-- Error Messages -->
-            <% if (error_msg && error_msg.length > 0) { %>
-                <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                    <strong><i class="fas fa-exclamation-circle"></i> Error:</strong>
-                    <% error_msg.forEach(msg => { %>
-                        <p class="mb-0"><%= msg %></p>
-                    <% }); %>
-                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                </div>
-            <% } %>
-
-            <!-- Success Messages -->
+            <!-- Success Alert -->
             <% if (success_msg && success_msg.length > 0) { %>
                 <div class="alert alert-success alert-dismissible fade show" role="alert">
-                    <strong><i class="fas fa-check-circle"></i> Success:</strong>
+                    <i class="fas fa-check-circle me-2"></i>
+                    <strong>Success!</strong>
                     <% success_msg.forEach(msg => { %>
-                        <p class="mb-0"><%= msg %></p>
+                        <div><%= msg %></div>
                     <% }); %>
-                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                 </div>
             <% } %>
 
-            <div class="card shadow-lg border-0" style="border-radius: 2rem; overflow: hidden;">
-                <div class="card-header bg-success text-white p-4 text-center">
-                    <h3 class="mb-1 fw-bold"><i class="fas fa-user-edit me-3"></i>Edit Student Profile</h3>
-                    <p class="mb-0 opacity-75">Updating record for <%= student.first_name %> <%= student.last_name %> (#<%= student.admission_number %>)</p>
+            <!-- Error Alert -->
+            <% if (error_msg && error_msg.length > 0) { %>
+                <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                    <i class="fas fa-exclamation-circle me-2"></i>
+                    <strong>Error!</strong>
+                    <% error_msg.forEach(msg => { %>
+                        <div><%= msg %></div>
+                    <% }); %>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                 </div>
+            <% } %>
+
+            <!-- Main Card -->
+            <div class="card shadow-lg border-0" style="border-radius: 1.5rem; overflow: hidden;">
+                <!-- Header -->
+                <div class="card-header bg-gradient" style="background: linear-gradient(135deg, #1a5f3f 0%, #0d3a24 100%); color: white; padding: 2rem;">
+                    <h3 class="mb-1 fw-bold">
+                        <i class="fas fa-user-edit me-2"></i>Edit Student Profile
+                    </h3>
+                    <p class="mb-0 text-white text-opacity-75">
+                        <i class="fas fa-id-card me-1"></i><%= student.admission_number %> • 
+                        <i class="fas fa-user me-1"></i><%= student.first_name %> <%= student.last_name %>
+                    </p>
+                </div>
+
+                <!-- Body -->
                 <div class="card-body p-5">
-                    <form action="/staff/edit-student/<%= student.id %>" method="POST" enctype="multipart/form-data" id="editStudentForm">
-
+                    <form id="editStudentForm" action="/staff/edit-student/<%= student.id %>" method="POST" enctype="multipart/form-data">
                         <div class="row g-4">
-                            <!-- Personal Info -->
+                            <!-- PERSONAL INFORMATION SECTION -->
                             <div class="col-12">
-                                <h5 class="text-success fw-bold border-bottom pb-2 mb-4">Personal Information</h5>
+                                <h5 class="text-success fw-bold mb-4">
+                                    <i class="fas fa-address-card me-2"></i>Personal Information
+                                </h5>
                             </div>
 
                             <div class="col-md-6">
-                                <label class="form-label small fw-bold text-muted text-uppercase">First Name</label>
-                                <input type="text" name="first_name" class="form-control" value="<%= student.first_name %>" required>
+                                <label class="form-label fw-bold small text-muted">First Name<span class="text-danger">*</span></label>
+                                <input type="text" name="first_name" class="form-control form-control-lg" value="<%= student.first_name %>" required placeholder="First name">
                             </div>
 
                             <div class="col-md-6">
-                                <label class="form-label small fw-bold text-muted text-uppercase">Last Name</label>
-                                <input type="text" name="last_name" class="form-control" value="<%= student.last_name %>" required>
+                                <label class="form-label fw-bold small text-muted">Last Name<span class="text-danger">*</span></label>
+                                <input type="text" name="last_name" class="form-control form-control-lg" value="<%= student.last_name %>" required placeholder="Last name">
                             </div>
 
                             <div class="col-md-6">
-                                <label class="form-label small fw-bold text-muted text-uppercase">Gender</label>
-                                <select name="gender" class="form-select">
+                                <label class="form-label fw-bold small text-muted">Gender</label>
+                                <select name="gender" class="form-select form-select-lg">
+                                    <option value="">Select gender</option>
                                     <option value="male" <%= student.gender === 'male' ? 'selected' : '' %>>Male</option>
                                     <option value="female" <%= student.gender === 'female' ? 'selected' : '' %>>Female</option>
+                                    <option value="other" <%= student.gender === 'other' ? 'selected' : '' %>>Other</option>
                                 </select>
                             </div>
 
                             <div class="col-md-6">
-                                <label class="form-label small fw-bold text-muted text-uppercase">Date of Birth</label>
-                                <input type="date" name="date_of_birth" class="form-control" value="<%= student.date_of_birth ? new Date(student.date_of_birth).toISOString().split('T')[0] : '' %>">
+                                <label class="form-label fw-bold small text-muted">Date of Birth</label>
+                                <input type="date" name="date_of_birth" class="form-control form-control-lg" value="<%= student.date_of_birth ? new Date(student.date_of_birth).toISOString().split('T')[0] : '' %>">
                             </div>
 
-                            <div class="col-md-12">
-                                <label class="form-label small fw-bold text-muted text-uppercase">Passport Number</label>
-                                <input type="text" name="passport" class="form-control" value="<%= student.passport || '' %>" placeholder="Enter passport number">
+                            <div class="col-12">
+                                <label class="form-label fw-bold small text-muted">Passport/ID Number</label>
+                                <input type="text" name="passport" class="form-control form-control-lg" value="<%= student.passport || '' %>" placeholder="Passport or ID number">
                             </div>
 
-                            <div class="col-md-12">
-                                <label class="form-label small fw-bold text-muted text-uppercase">Profile Picture</label>
-                                <input type="file" name="profile_picture" class="form-control" accept="image/*">
-                                <div class="form-text">Upload a new profile picture (JPG, PNG, max 2MB)</div>
-                                <% if (student.picture) { %>
-                                <div class="mt-2">
-                                    <small class="text-muted">Current picture:</small><br>
-                                    <img src="<%= student.picture %>" alt="Current picture" style="max-width: 100px; max-height: 100px; border-radius: 8px; border: 1px solid #ddd;">
-                                </div>
-                                <% } %>
-                            </div>
-
-                            <div class="col-md-12">
-                                <label class="form-label small fw-bold text-muted text-uppercase">Current Class</label>
-                                <select name="class_name" class="form-select" required>
+                            <div class="col-12">
+                                <label class="form-label fw-bold small text-muted">Class<span class="text-danger">*</span></label>
+                                <select name="class_name" class="form-select form-select-lg" required>
+                                    <option value="">Select class</option>
                                     <% ['PRELIMINARY 2', 'PRELIMINARY 3', 'ALIF CLASS', 'BA CLASS', 'TA CLASS'].forEach(cls => { %>
-                                    <option value="<%= cls %>" <%= student.class === cls ? 'selected' : '' %>><%= cls %></option>
+                                        <option value="<%= cls %>" <%= student.class === cls ? 'selected' : '' %>><%= cls %></option>
                                     <% }); %>
                                 </select>
                             </div>
 
-                            <!-- Parental Info -->
-                            <div class="col-12 mt-5">
-                                <h5 class="text-success fw-bold border-bottom pb-2 mb-4">Parent/Guardian Information</h5>
-                            </div>
-
-                            <div class="col-md-6">
-                                <label class="form-label small fw-bold text-muted text-uppercase">Parent Name</label>
-                                <input type="text" name="parent_name" class="form-control" value="<%= student.parent_name %>" required>
-                            </div>
-
-                            <div class="col-md-6">
-                                <label class="form-label small fw-bold text-muted text-uppercase">Parent Phone</label>
-                                <input type="tel" name="parent_phone" class="form-control" value="<%= student.parent_phone %>" required>
-                            </div>
-
-                            <div class="col-12">
-                                <label class="form-label small fw-bold text-muted text-uppercase">Parent Email</label>
-                                <input type="email" name="parent_email" class="form-control" value="<%= student.parent_email %>">
-                            </div>
-
-                            <div class="col-12">
-                                <label class="form-label small fw-bold text-muted text-uppercase">Residential Address</label>
-                                <textarea name="address" class="form-control" rows="3"><%= student.address %></textarea>
-                            </div>
-
+                            <!-- PROFILE PICTURE SECTION -->
                             <div class="col-12 mt-4">
-                                <div class="d-flex justify-content-between align-items-center">
+                                <label class="form-label fw-bold small text-muted">Profile Picture</label>
+                                <div class="input-group">
+                                    <input type="file" name="profile_picture" class="form-control" accept="image/*" id="pictureInput">
+                                    <label class="input-group-text" for="pictureInput">
+                                        <i class="fas fa-image"></i>
+                                    </label>
+                                </div>
+                                <small class="text-muted">JPG, PNG, max 2MB</small>
+                                <% if (student.picture) { %>
+                                    <div class="mt-3">
+                                        <small class="d-block text-muted mb-2">Current picture:</small>
+                                        <img src="<%= student.picture %>" alt="Student picture" style="max-width: 120px; max-height: 120px; border-radius: 8px; border: 2px solid #ddd; object-fit: cover;">
+                                    </div>
+                                <% } %>
+                            </div>
+
+                            <!-- PARENT/GUARDIAN INFORMATION SECTION -->
+                            <div class="col-12 mt-5">
+                                <h5 class="text-success fw-bold mb-4">
+                                    <i class="fas fa-users me-2"></i>Parent/Guardian Information
+                                </h5>
+                            </div>
+
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold small text-muted">Parent Name<span class="text-danger">*</span></label>
+                                <input type="text" name="parent_name" class="form-control form-control-lg" value="<%= student.parent_name %>" required placeholder="Parent or guardian name">
+                            </div>
+
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold small text-muted">Parent Phone<span class="text-danger">*</span></label>
+                                <input type="tel" name="parent_phone" class="form-control form-control-lg" value="<%= student.parent_phone %>" required placeholder="Phone number">
+                            </div>
+
+                            <div class="col-12">
+                                <label class="form-label fw-bold small text-muted">Parent Email</label>
+                                <input type="email" name="parent_email" class="form-control form-control-lg" value="<%= student.parent_email || '' %>" placeholder="Parent email address">
+                            </div>
+
+                            <div class="col-12">
+                                <label class="form-label fw-bold small text-muted">Residential Address</label>
+                                <textarea name="address" class="form-control form-control-lg" rows="3" placeholder="Full residential address"><%= student.address || '' %></textarea>
+                            </div>
+
+                            <!-- ACTION BUTTONS -->
+                            <div class="col-12 mt-5 pt-4 border-top">
+                                <div class="d-flex justify-content-between gap-3">
                                     <div class="d-flex gap-2">
-                                        <a href="/staff/manage-students" class="btn btn-light px-4 py-2 fw-bold">
-                                            <i class="fas fa-times me-2"></i>Cancel
+                                        <a href="/staff/manage-students" class="btn btn-secondary btn-lg" style="width: 150px;">
+                                            <i class="fas fa-arrow-left me-2"></i>Back
                                         </a>
-                                        <button type="button" class="btn btn-outline-danger px-4 py-2 fw-bold" id="deleteBtn" data-id="<%= student.id %>" data-name="<%= student.first_name %> <%= student.last_name %>">
-                                            <i class="fas fa-trash-alt me-2"></i>Delete Student
+                                        <button type="button" class="btn btn-outline-danger btn-lg" id="deleteBtn" data-id="<%= student.id %>">
+                                            <i class="fas fa-trash-alt me-2"></i>Delete
                                         </button>
                                     </div>
-                                    <button type="submit" class="btn btn-success px-5 py-2 fw-bold shadow">
-                                        <i class="fas fa-save me-2"></i>Save Changes
+                                    <button type="submit" class="btn btn-success btn-lg" id="saveBtn" style="width: 180px;">
+                                        <i class="fas fa-check me-2"></i>Save Changes
                                     </button>
                                 </div>
                             </div>
@@ -132,64 +156,119 @@
                     </form>
                 </div>
             </div>
+
+            <!-- Required Fields Note -->
+            <div class="alert alert-info mt-4 small">
+                <i class="fas fa-info-circle me-2"></i>
+                <strong>Required fields:</strong> First Name, Last Name, Class, Parent Name, Parent Phone
+            </div>
         </div>
     </div>
 </div>
 
+<style>
+    .form-control-lg, .form-select-lg {
+        padding: 0.75rem 1rem;
+        border-radius: 0.5rem;
+        border: 1px solid #dee2e6;
+    }
+    
+    .form-control-lg:focus, .form-select-lg:focus {
+        border-color: #1a5f3f;
+        box-shadow: 0 0 0 0.2rem rgba(26, 95, 63, 0.25);
+    }
+
+    .btn-lg {
+        padding: 0.75rem 1.5rem;
+        border-radius: 0.5rem;
+        font-weight: 600;
+    }
+    
+    .bg-gradient {
+        background: linear-gradient(135deg, #1a5f3f 0%, #0d3a24 100%);
+    }
+</style>
+
 <script>
-    console.log('📄 Edit Student page loaded');
+    console.log('✅ Edit Student page loaded');
     
+    // Get form and buttons
     const form = document.getElementById('editStudentForm');
-    console.log('✓ Form element found:', form);
-    
-    const submitBtn = form.querySelector('button[type="submit"]');
-    console.log('✓ Submit button found:', submitBtn);
-    
-    // Add click listener to see if button is being clicked
-    submitBtn.addEventListener('click', function(e) {
-        console.log('🔘 Save Changes button clicked!');
-        console.log('📌 Form action:', form.action);
-        console.log('📌 Form method:', form.method);
-    });
-    
-    // Simple form validation without preventing default submission
-    form.addEventListener('submit', function(e) {
-        console.log('📋 Form submit event triggered');
+    const saveBtn = document.getElementById('saveBtn');
+    const deleteBtn = document.getElementById('deleteBtn');
+
+    // Save button handler
+    saveBtn.addEventListener('click', function(e) {
+        e.preventDefault();
+        console.log('💾 Save button clicked');
         
+        // Get form values
         const firstName = document.querySelector('input[name="first_name"]').value.trim();
         const lastName = document.querySelector('input[name="last_name"]').value.trim();
-        const className = document.querySelector('select[name="class_name"]').value;
+        const className = document.querySelector('select[name="class_name"]').value.trim();
         const parentName = document.querySelector('input[name="parent_name"]').value.trim();
         const parentPhone = document.querySelector('input[name="parent_phone"]').value.trim();
 
-        console.log('📝 Form data:', {firstName, lastName, className, parentName, parentPhone});
-
         // Validate required fields
         if (!firstName || !lastName || !className || !parentName || !parentPhone) {
-            console.warn('⚠️ Validation failed');
+            alert('⚠️ Please fill in all required fields:\n• First Name\n• Last Name\n• Class\n• Parent Name\n• Parent Phone');
+            console.warn('❌ Validation failed - missing required fields');
+            return;
+        }
+
+        console.log('✅ All required fields filled, submitting form...');
+        form.submit();
+    });
+
+    // Delete button handler
+    deleteBtn.addEventListener('click', function() {
+        const studentId = this.getAttribute('data-id');
+        const studentName = '<%= student.first_name %> <%= student.last_name %>';
+        const admissionNo = '<%= student.admission_number %>';
+
+        // Show detailed confirmation
+        const confirmed = confirm(
+            `⚠️ WARNING: Permanent Deletion\n\n` +
+            `Student: ${studentName}\n` +
+            `Admission #: ${admissionNo}\n\n` +
+            `This action will permanently delete:\n` +
+            `• Student record\n` +
+            `• All exam results\n` +
+            `• All history\n\n` +
+            `This CANNOT be undone.\n\n` +
+            `Type "DELETE" to confirm.`
+        );
+
+        if (confirmed) {
+            // Additional confirmation for extra safety
+            const secondConfirm = prompt(
+                'Type DELETE to confirm permanent deletion:',
+                ''
+            );
+
+            if (secondConfirm === 'DELETE') {
+                console.log('🗑️ Deleting student ' + studentId);
+                // Create and submit delete form
+                const deleteForm = document.createElement('form');
+                deleteForm.method = 'POST';
+                deleteForm.action = '/staff/delete-student/' + studentId;
+                document.body.appendChild(deleteForm);
+                deleteForm.submit();
+            } else {
+                alert('❌ Deletion cancelled.');
+            }
+        }
+    });
+
+    // Prevent form submission on Enter key in input fields
+    form.addEventListener('keypress', function(e) {
+        if (e.key === 'Enter' && e.target.tagName !== 'TEXTAREA') {
             e.preventDefault();
-            alert('⚠️ Please fill in all required fields:\n- First Name\n- Last Name\n- Class\n- Parent Name\n- Parent Phone');
-            return false;
-        }
-
-        console.log('✅ Form validation passed, submitting form...');
-        // Form will submit normally - no preventDefault
-    });
-
-    // Handle delete button
-    document.getElementById('deleteBtn').addEventListener('click', function() {
-        const id = this.getAttribute('data-id');
-        const name = this.getAttribute('data-name');
-
-        if (confirm(`⚠️ PERMANENT ACTION: Are you sure you want to delete ${name}?\n\nThis will permanently delete their account, results, and all history. This cannot be undone.`)) {
-            const deleteForm = document.createElement('form');
-            deleteForm.method = 'POST';
-            deleteForm.action = `/staff/delete-student/${id}`;
-            document.body.appendChild(deleteForm);
-            deleteForm.submit();
+            console.log('📝 Enter key pressed - form submission prevented');
         }
     });
 
+    console.log('✅ All event listeners attached');
 </script>
 
 <%- include('../layout/footer') %>
