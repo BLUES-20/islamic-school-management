@@ -308,21 +308,65 @@ router.get('/registration-payment', (req, res) => {
 // Flutterwave payment callback - SEND ADMISSION NUMBER AFTER PAYMENT SUCCESS
 router.get('/payment-callback', async (req, res) => {
     const { status, tx_ref, transaction_id } = req.query;
-    const pending = req.session.pendingRegistration;
+    let pending = req.session.pendingRegistration;
+
+    console.log(`\n💳 ========== PAYMENT CALLBACK ==========`);
+    console.log(`Status: ${status}`);
+    console.log(`TX Ref: ${tx_ref}`);
+    console.log(`Transaction ID: ${transaction_id}`);
+    console.log(`Session pending: ${pending ? '✓' : '✗'}`);
+
+    // If no session, try to find the student from tx_ref
+    if (!pending && tx_ref) {
+        try {
+            // tx_ref format: REG-STU2026###-timestamp
+            const admissionMatch = tx_ref.match(/STU\d+/);
+            if (admissionMatch) {
+                const admission_number = admissionMatch[0];
+                console.log(`🔍 Looking up student by admission number: ${admission_number}`);
+                
+                const studentRes = await db.query(
+                    'SELECT id, first_name, last_name, email, class FROM students WHERE admission_number = $1',
+                    [admission_number]
+                );
+                
+                if (studentRes.rows.length > 0) {
+                    const student = studentRes.rows[0];
+                    pending = {
+                        student_id: student.id,
+                        admission_number: admission_number,
+                        full_name: `${student.first_name} ${student.last_name}`,
+                        email: student.email,
+                        class_name: student.class
+                    };
+                    console.log(`✅ Student found: ${pending.full_name}`);
+                } else {
+                    console.warn(`⚠️ Student not found with admission number: ${admission_number}`);
+                }
+            }
+        } catch (lookupErr) {
+            console.error('Error looking up student:', lookupErr);
+        }
+    }
 
     if (!pending) {
-        req.flash('error', 'Session expired. Contact admin.');
+        console.error('❌ No pending registration or student found in session');
+        req.flash('error', 'Session expired or student not found. Please contact admin.');
         return res.redirect('/auth/student-login');
     }
 
     if (status === 'successful') {
         try {
+            console.log(`✅ Payment successful for student ${pending.student_id}`);
+            
             // Record payment
-            await db.query(
+            const paymentRes = await db.query(
                 `INSERT INTO payments (student_id, tx_ref, flw_transaction_id, amount, currency, payment_type, status)
-                 VALUES ($1, $2, $3, $4, $5, $6, $7) ON CONFLICT (tx_ref) DO UPDATE SET status = $7`,
+                 VALUES ($1, $2, $3, $4, $5, $6, $7) ON CONFLICT (tx_ref) DO UPDATE SET status = $7
+                 RETURNING id`,
                 [pending.student_id, tx_ref, transaction_id, 2000, 'NGN', 'registration', 'successful']
             );
+            console.log(`💾 Payment recorded:`, paymentRes.rows[0]);
 
             // Send admission number via email AFTER payment success
             const admissionHtml = `
@@ -381,15 +425,17 @@ router.get('/payment-callback', async (req, res) => {
 
             delete req.session.pendingRegistration;
             
+            console.log(`🎉 Payment callback completed successfully`);
             // Redirect to success page
             res.redirect('/auth/payment-success');
         } catch (err) {
-            console.error('Payment callback error:', err);
+            console.error('❌ Payment callback error:', err);
             req.flash('error', 'Payment processing failed. Please contact admin.');
             delete req.session.pendingRegistration;
             res.redirect('/auth/student-login');
         }
     } else {
+        console.warn(`⚠️ Payment status: ${status}`);
         req.flash('error', 'Payment was not successful. Please try again.');
         res.redirect('/auth/registration-payment');
     }
