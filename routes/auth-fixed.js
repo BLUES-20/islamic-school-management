@@ -280,7 +280,30 @@ router.post('/student-register', uploadPicture.single('profile_picture'), async 
     }
 });
 
-// ... rest of routes unchanged (payment, forgot-password, etc.) ...
+// =================== REGISTRATION PAYMENT PAGE ===================
+router.get('/registration-payment', (req, res) => {
+    const pending = req.session.pendingRegistration;
+    if (!pending) {
+        req.flash('error', 'No pending registration found. Please register first.');
+        return res.redirect('/auth/student-register');
+    }
+
+    const amount = process.env.PAYMENT_AMOUNT || '2000';
+    const currency = process.env.CURRENCY || 'NGN';
+    const tx_ref = `REG-${pending.admission_number}-${Date.now()}`;
+
+    // Store tx_ref in session so we can verify later
+    req.session.pendingRegistration.tx_ref = tx_ref;
+
+    res.render('auth/registration-payment', {
+        title: 'Registration Payment - Islamic School',
+        page: 'registration-payment',
+        pending,
+        amount,
+        currency,
+        tx_ref
+    });
+});
 
 // Flutterwave payment callback (keep but comment emails for speed)
 router.get('/payment-callback', async (req, res) => {
