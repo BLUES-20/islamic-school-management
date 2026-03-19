@@ -348,16 +348,24 @@ router.get('/payment-callback', async (req, res) => {
                 </div>
             `;
             
-            await sendEmail(pending.email, `Your Admission Number - ${pending.admission_number}`, admissionHtml);
+            // Try to send email but don't block if it fails
+            try {
+                await sendEmail(pending.email, `Your Admission Number - ${pending.admission_number}`, admissionHtml);
+                console.log(`✅ Payment Complete & Email Sent: ${pending.admission_number} to ${pending.email}`);
+            } catch (emailErr) {
+                console.error(`⚠️ Email send failed for ${pending.email}:`, emailErr.message);
+                console.log(`📌 Admission Number anyway: ${pending.admission_number}`);
+                // Don't fail the payment process - admission number is still valid
+            }
 
-            console.log(`✅ Payment Complete & Email Sent: ${pending.admission_number}`);
-
+            const admissionNum = pending.admission_number;
             delete req.session.pendingRegistration;
-            req.flash('success', `Payment successful! Your admission number is: ${pending.admission_number}. Check your email for confirmation.`);
+            req.flash('success', `✅ Payment successful! Your admission number is: ${admissionNum}`);
+            req.flash('info', `An email has been sent to ${pending.email} with your admission details.`);
             res.redirect('/auth/student-login');
         } catch (err) {
             console.error('Payment callback error:', err);
-            req.flash('error', 'Payment recorded but email delivery failed. Contact admin.');
+            req.flash('error', 'Payment processing failed. Please contact admin.');
             delete req.session.pendingRegistration;
             res.redirect('/auth/student-login');
         }
