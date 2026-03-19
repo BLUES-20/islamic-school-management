@@ -211,42 +211,64 @@ router.post('/student-register', async (req, res) => {
     }
 
     try {
-        const { rows: existingUser } = await db.query('SELECT id FROM users WHERE email = $1', [email]);
-        if (existingUser.length) {
+// FAST: Single query for email check + max admission_number
+        const yearStr = new Date().getFullYear().toString();
+        const yearPattern = 'STU' + yearStr + '%';
+        const { rows: checks } = await db.query(`
+            SELECT 
+                EXISTS(SELECT 1 FROM users WHERE email = $1) as email_exists,
+                COALESCE((SELECT (SUBSTRING(MAX(admission_number) from 4)::int + 1 
+                            FROM students 
+                            WHERE admission_number ~ '^STU' || $2::text || '\\d{3}$')::int), 1) as next_count
+            `, [email, yearStr]);
+        
+        if (checks[0].email_exists) {
             req.flash('error', 'Email already registered');
             return res.redirect('/auth/student-register');
         }
 
-        const hashedPassword = await bcrypt.hash(password, 10);
-        const year = new Date().getFullYear();
-        const { rows: countResult } = await db.query('SELECT COUNT(*) FROM students');
-        const count = parseInt(countResult[0].count) + 1;
+        const count = checks[0].next_count || 1;
         const admission_number = `STU${year}${count.toString().padStart(3, '0')}`;
 
-        const { rows: userResult } = await db.query(
-            'INSERT INTO users (username, email, password, role) VALUES ($1, $2, $3, $4) RETURNING id',
-            [email, email, hashedPassword, 'student']
-        );
-        const user_id = userResult[0].id;
+        // FAST: bcrypt first (parallel with other prep)
+        const hashedPassword = await bcrypt.hash(password, 10);
 
-        await db.query(
-            `INSERT INTO students (user_id, admission_number, first_name, last_name, email, date_of_birth, gender, picture, class, parent_name, parent_phone, address)
-             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)`,
-            [user_id, admission_number, first_name, last_name, email, date_of_birth || null, gender || null, null, class_name || null, parent_name || null, parent_phone || null, address || null]
-        );
+        // SINGLE TRANSACTION: All inserts atomic + fast
+        const client = await db.connect();
+        try {
+            await client.query('BEGIN');
+            
+            const userRes = await client.query(
+                'INSERT INTO users (username, email, password, role) VALUES ($1, $2, $3, $4) RETURNING id',
+                [email, email, hashedPassword, 'student']
+            );
+            const user_id = userRes.rows[0].id;
 
-        // NO EMAILS - MAX SPEED
-        console.log(`✅ FAST Registration: ${admission_number} (${full_name} <${email}>)`);
+            await client.query(
+                `INSERT INTO students (user_id, admission_number, first_name, last_name, email, date_of_birth, gender, picture, class, parent_name, parent_phone, address)
+                 VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)`,
+                [user_id, admission_number, first_name, last_name, email, date_of_birth || null, gender || null, null, class_name || null, parent_name || null, parent_phone || null, address || null]
+            );
 
-        // Session for payment
-        const { rows: studentResult } = await db.query('SELECT id FROM students WHERE admission_number = $1', [admission_number]);
-        req.session.pendingRegistration = {
-            student_id: studentResult[0].id,
-            admission_number,
-            full_name,
-            email,
-            class_name: class_name || 'Not specified'
-        };
+            const studentRes = await client.query('SELECT id FROM students WHERE admission_number = $1', [admission_number]);
+            const student_id = studentRes.rows[0].id;
+
+            await client.query('COMMIT');
+            
+            // Session + redirect
+            req.session.pendingRegistration = {
+                student_id,
+                admission_number,
+                full_name,
+                email,
+                class_name: class_name || 'Not specified'
+            };
+
+            console.log(`✅ ULTRA-FAST Registration: ${admission_number} (${full_name})`);
+            
+        } finally {
+            client.release();
+        }
 
         console.timeEnd('register-start');
         res.redirect('/auth/registration-payment');
