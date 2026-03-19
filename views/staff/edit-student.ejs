@@ -137,12 +137,8 @@
 </div>
 
 <script>
-    const form = document.getElementById('editStudentForm');
-    
-    // Handle Save Changes button submission
-    form.addEventListener('submit', function(e) {
-        e.preventDefault();
-        
+    // Simple form validation without preventing default
+    document.getElementById('editStudentForm').addEventListener('submit', function(e) {
         const firstName = document.querySelector('input[name="first_name"]').value.trim();
         const lastName = document.querySelector('input[name="last_name"]').value.trim();
         const className = document.querySelector('select[name="class_name"]').value;
@@ -151,20 +147,13 @@
 
         // Validate required fields
         if (!firstName || !lastName || !className || !parentName || !parentPhone) {
+            e.preventDefault();
             alert('⚠️ Please fill in all required fields:\n- First Name\n- Last Name\n- Class\n- Parent Name\n- Parent Phone');
-            return;
+            return false;
         }
 
-        console.log('📝 Submitting form with data:', {
-            first_name: firstName,
-            last_name: lastName,
-            class_name: className,
-            parent_name: parentName,
-            parent_phone: parentPhone
-        });
-
-        // Submit the form
-        this.submit();
+        console.log('✅ Form validation passed, submitting...');
+        // Form will submit normally
     });
 
     // Handle delete button
