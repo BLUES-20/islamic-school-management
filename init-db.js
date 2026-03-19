@@ -13,10 +13,10 @@ const initDatabase = async () => {
         await db.query(`CREATE TABLE IF NOT EXISTS users (id SERIAL PRIMARY KEY, username VARCHAR(255) UNIQUE NOT NULL, email VARCHAR(255) UNIQUE NOT NULL, password VARCHAR(255) NOT NULL, role user_role DEFAULT 'student', reset_password_token VARCHAR(255), reset_password_expires TIMESTAMP, created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP);`);
 
         // Create Students table with picture column
-        await db.query(`CREATE TABLE IF NOT EXISTS students (id SERIAL PRIMARY KEY, user_id INT NOT NULL REFERENCES users(id) ON DELETE CASCADE, admission_number VARCHAR(50) UNIQUE NOT NULL, first_name VARCHAR(100) NOT NULL, last_name VARCHAR(100) NOT NULL, email VARCHAR(255) UNIQUE NOT NULL, date_of_birth DATE, gender gender_type, class VARCHAR(50), parent_name VARCHAR(100), parent_phone VARCHAR(20), parent_email VARCHAR(255), address TEXT, picture VARCHAR(500), created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP);`);
+        await db.query(`CREATE TABLE IF NOT EXISTS students (id SERIAL PRIMARY KEY, user_id INT NOT NULL REFERENCES users(id) ON DELETE CASCADE, admission_number VARCHAR(50) UNIQUE NOT NULL, first_name VARCHAR(100) NOT NULL, last_name VARCHAR(100) NOT NULL, email VARCHAR(255) UNIQUE NOT NULL, date_of_birth DATE, gender gender_type, class VARCHAR(50), parent_name VARCHAR(100), parent_phone VARCHAR(50), parent_email VARCHAR(255), address TEXT, picture VARCHAR(500), created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP);`);
 
         // Create Staff table
-        await db.query(`CREATE TABLE IF NOT EXISTS staff (id SERIAL PRIMARY KEY, user_id INT NOT NULL REFERENCES users(id) ON DELETE CASCADE, first_name VARCHAR(100) NOT NULL, last_name VARCHAR(100) NOT NULL, email VARCHAR(255) UNIQUE NOT NULL, position VARCHAR(100) NOT NULL, department VARCHAR(100), phone VARCHAR(20), hire_date DATE, created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP);`);
+        await db.query(`CREATE TABLE IF NOT EXISTS staff (id SERIAL PRIMARY KEY, user_id INT NOT NULL REFERENCES users(id) ON DELETE CASCADE, first_name VARCHAR(100) NOT NULL, last_name VARCHAR(100) NOT NULL, email VARCHAR(255) UNIQUE NOT NULL, position VARCHAR(100) NOT NULL, department VARCHAR(100), phone VARCHAR(50), hire_date DATE, created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP);`);
 
         // Create Sessions table
         await db.query(`CREATE TABLE IF NOT EXISTS sessions (id SERIAL PRIMARY KEY, user_id INT NOT NULL REFERENCES users(id) ON DELETE CASCADE, session_token VARCHAR(255) UNIQUE NOT NULL, expires_at TIMESTAMP, created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP);`);
@@ -35,6 +35,14 @@ const initDatabase = async () => {
 
         // Create Payments table
         await db.query(`CREATE TABLE IF NOT EXISTS payments (id SERIAL PRIMARY KEY, student_id INT REFERENCES students(id) ON DELETE CASCADE, tx_ref VARCHAR(255) UNIQUE NOT NULL, flw_transaction_id VARCHAR(255), amount DECIMAL(10,2) NOT NULL, currency VARCHAR(10) DEFAULT 'NGN', payment_type VARCHAR(50) DEFAULT 'registration', status VARCHAR(20) DEFAULT 'pending', created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP);`);
+
+        // Alter existing tables to increase phone field limits
+        try {
+            await db.query(`ALTER TABLE students ALTER COLUMN parent_phone TYPE VARCHAR(50);`);
+            await db.query(`ALTER TABLE staff ALTER COLUMN phone TYPE VARCHAR(50);`);
+        } catch (e) {
+            // Column might already be the correct size or table might not exist yet
+        }
 
         // Insert default admin user if not exists
         const bcrypt = require('bcrypt');
