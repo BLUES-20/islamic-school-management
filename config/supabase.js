@@ -37,3 +37,10 @@ pool.connect()
             console.log('✅ Supabase PostgreSQL Connected Successfully');
             console.log(`   Project Ref: wkezgixefbywotgutoao`);
             console.log(`   Host: ${supabaseConfig.host}`);
+            client.release();
+        })
+        .catch(err => {
+            console.error('❌ Supabase connection failed:', err.message);
+        });
+
+module.exports = pool;
