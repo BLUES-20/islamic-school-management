@@ -1,7 +1,7 @@
 // routes/staff.js
 const express = require('express');
 const router = express.Router();
-const db = require('../config/db');
+const db = require('../config/supabase');
 const path = require('path');
 const multer = require('multer');
 const fs = require('fs');
@@ -730,6 +730,14 @@ router.post('/edit-student/:id', uploadStudentPicture.single('profile_picture'),
 
         console.log(`📝 Updating student ${id}: ${first_name} ${last_name}`);
 
+        // Check if student exists
+        const checkStudent = await db.query('SELECT id FROM students WHERE id = $1', [id]);
+        if (checkStudent.rows.length === 0) {
+            console.error(`❌ Student ID ${id} not found`);
+            req.flash('error', 'Student record not found');
+            return res.redirect('/staff/manage-students');
+        }
+
         // Handle profile picture - Cloudinary returns path as secure_url
         let picturePath = null;
         if (req.file && req.file.path) {
@@ -773,13 +781,19 @@ router.post('/edit-student/:id', uploadStudentPicture.single('profile_picture'),
         const updateQuery = `UPDATE students SET ${updateFields.join(', ')} WHERE id = $${paramIndex}`;
         
         console.log(`📋 Update query: ${updateQuery}`);
-        console.log(`📊 Update values: `, values);
+        console.log(`📊 Updating fields: ${updateFields.length - 1} fields`);
 
         const result = await db.query(updateQuery, values);
         
-        console.log(`✅ Student ${id} updated successfully`);
+        if (result.rowCount === 0) {
+            console.error(`❌ No rows updated for student ${id}`);
+            req.flash('error', 'Failed to update student record');
+            return res.redirect(`/staff/edit-student/${id}`);
+        }
+
+        console.log(`✅ Student ${id} updated successfully (rows affected: ${result.rowCount})`);
         
-        req.flash('success', 'Student details updated successfully');
+        req.flash('success', '✅ Student details updated successfully');
         res.redirect('/staff/manage-students');
     } catch (err) {
         console.error('❌ Update student error:', err);
