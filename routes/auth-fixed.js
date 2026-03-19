@@ -305,7 +305,7 @@ router.get('/registration-payment', (req, res) => {
     });
 });
 
-// Flutterwave payment callback (keep but comment emails for speed)
+// Flutterwave payment callback - SEND ADMISSION NUMBER AFTER PAYMENT SUCCESS
 router.get('/payment-callback', async (req, res) => {
     const { status, tx_ref, transaction_id } = req.query;
     const pending = req.session.pendingRegistration;
@@ -317,25 +317,52 @@ router.get('/payment-callback', async (req, res) => {
 
     if (status === 'successful') {
         try {
-            // Record payment (no email)
+            // Record payment
             await db.query(
                 `INSERT INTO payments (student_id, tx_ref, flw_transaction_id, amount, currency, payment_type, status)
                  VALUES ($1, $2, $3, $4, $5, $6, $7) ON CONFLICT (tx_ref) DO UPDATE SET status = $7`,
                 [pending.student_id, tx_ref, transaction_id, 2000, 'NGN', 'registration', 'successful']
             );
 
-            console.log(`✅ Payment: ${pending.admission_number}`);
+            // Send admission number via email AFTER payment success
+            const admissionHtml = `
+                <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+                    <div style="background-color: #1a5f3f; color: white; padding: 20px; text-align: center; border-radius: 5px 5px 0 0;">
+                        <h2 style="margin: 0;">✅ Registration Complete</h2>
+                        <p style="margin: 5px 0 0 0;">Islamic School Management System</p>
+                    </div>
+                    <div style="background-color: #f9f9f9; padding: 30px; border: 1px solid #ddd; border-radius: 0 0 5px 5px;">
+                        <p>Dear <strong>${pending.full_name}</strong>,</p>
+                        <p>Congratulations! Your registration and payment have been processed successfully.</p>
+                        <div style="background-color: #d4edda; border: 2px solid #28a745; padding: 20px; border-radius: 5px; margin: 20px 0; text-align: center;">
+                            <p style="margin: 0; color: #155724;">Your Admission Number</p>
+                            <h1 style="margin: 10px 0 0 0; color: #155724; font-size: 2.5em; font-family: 'Courier New', monospace;">${pending.admission_number}</h1>
+                        </div>
+                        <p><strong>Important:</strong> Please save your admission number. You will use it to login to your student portal.</p>
+                        <p><strong>Class:</strong> ${pending.class_name}</p>
+                        <p style="margin-top: 20px; border-top: 1px solid #ddd; padding-top: 15px;">
+                            You can now login at: <a href="https://islamic-school-management.onrender.com/auth/student-login" style="color: #1a5f3f; text-decoration: none;"><strong>Student Portal</strong></a>
+                        </p>
+                        <p>JazakAllah Khair,<br><strong>Islamic School Management</strong></p>
+                    </div>
+                </div>
+            `;
+            
+            await sendEmail(pending.email, `Your Admission Number - ${pending.admission_number}`, admissionHtml);
+
+            console.log(`✅ Payment Complete & Email Sent: ${pending.admission_number}`);
 
             delete req.session.pendingRegistration;
-            req.flash('success', `Payment OK! Admission: ${pending.admission_number}`);
+            req.flash('success', `Payment successful! Your admission number is: ${pending.admission_number}. Check your email for confirmation.`);
             res.redirect('/auth/student-login');
         } catch (err) {
-            console.error('Payment error:', err);
+            console.error('Payment callback error:', err);
+            req.flash('error', 'Payment recorded but email delivery failed. Contact admin.');
             delete req.session.pendingRegistration;
             res.redirect('/auth/student-login');
         }
     } else {
-        req.flash('error', 'Payment failed. Try again.');
+        req.flash('error', 'Payment was not successful. Please try again.');
         res.redirect('/auth/registration-payment');
     }
 });
