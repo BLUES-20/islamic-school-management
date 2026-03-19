@@ -256,13 +256,28 @@ router.post('/student-register', async (req, res) => {
         }
         console.log('✅ Email is unique');
 
-        // Generate admission number
+        // Generate admission number - find the max and increment
         console.log('📊 Generating admission number...');
         const year = new Date().getFullYear();
-        let countResult = await db.query('SELECT COUNT(*) as cnt FROM students');
-        const nextNum = parseInt(countResult.rows[0].cnt || '0') + 1;
-        const admission_number = `STU${year}${String(nextNum).padStart(3, '0')}`;
-        console.log(`✅ Admission number: ${admission_number}`);
+        const prefix = `STU${year}`;
+        
+        // Get the highest admission number for this year
+        let maxResult = await db.query(
+            `SELECT admission_number FROM students 
+             WHERE admission_number LIKE $1 
+             ORDER BY admission_number DESC LIMIT 1`,
+            [`${prefix}%`]
+        );
+        
+        let admission_number = prefix + '001';
+        if (maxResult.rows.length > 0) {
+            const lastNum = maxResult.rows[0].admission_number;
+            const numPart = parseInt(lastNum.substring(prefix.length));
+            const nextNum = numPart + 1;
+            admission_number = prefix + String(nextNum).padStart(3, '0');
+        }
+        
+        console.log(`✅ Generated admission number: ${admission_number}`);
 
         // Hash password
         console.log('🔐 Hashing password...');
