@@ -187,7 +187,7 @@ router.get('/student-register', (req, res) => {
     });
 });
 
-router.post('/student-register', async (req, res) => {
+
     console.log('\n📝 ========== STUDENT REGISTRATION START ==========');
     
 
@@ -203,7 +203,11 @@ router.post('/student-register', async (req, res) => {
     const parent_email = (req.body?.parent_email || '').trim();
     const address = (req.body?.address || '').trim();
 
+    const first_name = (req.body?.first_name || '').trim();
+
+    const first_name = (req.body?.first_name || '').trim();
     console.log('📋 Received data:', { first_name, last_name, email, password: '***', class_name });
+
 
     // ===== VALIDATION =====
     if (!first_name) {
