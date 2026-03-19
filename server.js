@@ -72,7 +72,7 @@ app.set('views', path.join(__dirname, 'views'));
 
 // Routes
 const indexRoutes = require('./routes/index');
-const authRoutes = require('./routes/auth-fixed');
+const authRoutes = require('./routes/auth-clean');
 const staffRoutes = require('./routes/staff');
 const studentRoutes = require('./routes/student');
 const contactRoutes = require('./routes/contact');
