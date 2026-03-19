@@ -707,8 +707,15 @@ router.get('/edit-student/:id', async (req, res) => {
 
 // Update Student - Cloudinary version
 router.post('/edit-student/:id', uploadStudentPicture.single('profile_picture'), async (req, res) => {
+    // Handle multer file validation error
+    if (req.fileValidationError) {
+        req.flash('error', req.fileValidationError.message);
+        return res.redirect(`/staff/edit-student/${req.params.id}`);
+    }
+
     try {
         const { id } = req.params;
+        const body = req.body || {};
         const {
             first_name,
             last_name,
@@ -720,7 +727,7 @@ router.post('/edit-student/:id', uploadStudentPicture.single('profile_picture'),
             parent_phone,
             parent_email,
             address
-        } = req.body;
+        } = body;
 
         // Validate required fields
         if (!first_name || !last_name || !class_name || !parent_name || !parent_phone) {
