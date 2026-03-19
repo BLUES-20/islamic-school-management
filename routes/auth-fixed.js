@@ -190,8 +190,7 @@ router.get('/student-register', (req, res) => {
 router.post('/student-register', async (req, res) => {
     console.log('\n📝 ========== STUDENT REGISTRATION START ==========');
     
-    // Extract form data
-    const first_name = (req.body?.first_name || '').trim();
+
     const last_name = (req.body?.last_name || '').trim();
     const email = (req.body?.email || '').trim().toLowerCase();
     const password = req.body?.password || '';
