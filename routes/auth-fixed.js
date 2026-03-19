@@ -368,50 +368,6 @@ router.get('/payment-callback', async (req, res) => {
             );
             console.log(`💾 Payment recorded:`, paymentRes.rows[0]);
 
-            // Send admission number via email AFTER payment success
-            const admissionHtml = `
-                <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-                    <div style="background-color: #1a5f3f; color: white; padding: 20px; text-align: center; border-radius: 5px 5px 0 0;">
-                        <h2 style="margin: 0;">✅ Registration Complete</h2>
-                        <p style="margin: 5px 0 0 0;">Islamic School Management System</p>
-                    </div>
-                    <div style="background-color: #f9f9f9; padding: 30px; border: 1px solid #ddd; border-radius: 0 0 5px 5px;">
-                        <p>Dear <strong>${pending.full_name}</strong>,</p>
-                        <p>Congratulations! Your registration and payment have been processed successfully.</p>
-                        <div style="background-color: #d4edda; border: 2px solid #28a745; padding: 20px; border-radius: 5px; margin: 20px 0; text-align: center;">
-                            <p style="margin: 0; color: #155724;">Your Admission Number</p>
-                            <h1 style="margin: 10px 0 0 0; color: #155724; font-size: 2.5em; font-family: 'Courier New', monospace;">${pending.admission_number}</h1>
-                        </div>
-                        <p><strong>Important:</strong> Please save your admission number. You will use it to login to your student portal.</p>
-                        <p><strong>Class:</strong> ${pending.class_name}</p>
-                        <p style="margin-top: 20px; border-top: 1px solid #ddd; padding-top: 15px;">
-                            You can now login at: <a href="https://islamic-school-management.onrender.com/auth/student-login" style="color: #1a5f3f; text-decoration: none;"><strong>Student Portal</strong></a>
-                        </p>
-                        <p>JazakAllah Khair,<br><strong>Islamic School Management</strong></p>
-                    </div>
-                </div>
-            `;
-            
-            // Try to send email but don't block if it fails
-            try {
-                console.log(`📧 ATTEMPTING TO SEND EMAIL`);
-                console.log(`   To: ${pending.email}`);
-                console.log(`   Subject: Your Admission Number - ${pending.admission_number}`);
-                console.log(`   Student Name: ${pending.full_name}`);
-                
-                const emailResult = await sendEmail(pending.email, `Your Admission Number - ${pending.admission_number}`, admissionHtml);
-                
-                if (emailResult) {
-                    console.log(`✅ EMAIL SENT SUCCESSFULLY to ${pending.email}`);
-                } else {
-                    console.warn(`⚠️ sendEmail returned false (email may not be configured)`);
-                }
-            } catch (emailErr) {
-                console.error(`❌ EMAIL SENDING EXCEPTION:`, emailErr);
-                console.error(`   Message: ${emailErr.message}`);
-                console.error(`   Stack: ${emailErr.stack}`);
-            }
-
             // Store success data in session for the success page
             req.session.paymentSuccess = {
                 student: {
@@ -425,8 +381,48 @@ router.get('/payment-callback', async (req, res) => {
 
             delete req.session.pendingRegistration;
             
-            console.log(`🎉 Payment callback completed successfully`);
-            // Redirect to success page
+            // SEND EMAIL IN BACKGROUND (non-blocking)
+            // Don't await this - send it in the background so user gets fast redirect
+            (async () => {
+                try {
+                    const admissionHtml = `
+                        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+                            <div style="background-color: #1a5f3f; color: white; padding: 20px; text-align: center; border-radius: 5px 5px 0 0;">
+                                <h2 style="margin: 0;">✅ Registration Complete</h2>
+                                <p style="margin: 5px 0 0 0;">Islamic School Management System</p>
+                            </div>
+                            <div style="background-color: #f9f9f9; padding: 30px; border: 1px solid #ddd; border-radius: 0 0 5px 5px;">
+                                <p>Dear <strong>${pending.full_name}</strong>,</p>
+                                <p>Congratulations! Your registration and payment have been processed successfully.</p>
+                                <div style="background-color: #d4edda; border: 2px solid #28a745; padding: 20px; border-radius: 5px; margin: 20px 0; text-align: center;">
+                                    <p style="margin: 0; color: #155724;">Your Admission Number</p>
+                                    <h1 style="margin: 10px 0 0 0; color: #155724; font-size: 2.5em; font-family: 'Courier New', monospace;">${pending.admission_number}</h1>
+                                </div>
+                                <p><strong>Important:</strong> Please save your admission number. You will use it to login to your student portal.</p>
+                                <p><strong>Class:</strong> ${pending.class_name}</p>
+                                <p style="margin-top: 20px; border-top: 1px solid #ddd; padding-top: 15px;">
+                                    You can now login at: <a href="https://islamic-school-management.onrender.com/auth/student-login" style="color: #1a5f3f; text-decoration: none;"><strong>Student Portal</strong></a>
+                                </p>
+                                <p>JazakAllah Khair,<br><strong>Islamic School Management</strong></p>
+                            </div>
+                        </div>
+                    `;
+                    
+                    console.log(`📧 [BACKGROUND] Sending admission email to ${pending.email}`);
+                    const emailResult = await sendEmail(pending.email, `Your Admission Number - ${pending.admission_number}`, admissionHtml);
+                    
+                    if (emailResult) {
+                        console.log(`✅ [BACKGROUND] EMAIL SENT to ${pending.email}`);
+                    } else {
+                        console.warn(`⚠️ [BACKGROUND] Email send returned false`);
+                    }
+                } catch (emailErr) {
+                    console.error(`❌ [BACKGROUND] Email error:`, emailErr.message);
+                }
+            })();
+
+            console.log(`🎉 Payment callback completed - redirecting to success page`);
+            // Redirect IMMEDIATELY (don't wait for email)
             res.redirect('/auth/payment-success');
         } catch (err) {
             console.error('❌ Payment callback error:', err);

@@ -111,10 +111,10 @@ async function sendEmail(to, subject, html, options = {}) {
 
     if (!status.configured) {
         console.error(`❌ EMAIL NOT CONFIGURED - Provider: ${status.provider}`);
-        console.error(`   EMAIL_USER: ${process.env.EMAIL_USER ? '✓ set' : '✗ missing'}`);
-        console.error(`   EMAIL_PASS: ${process.env.EMAIL_PASS ? '✓ set' : '✗ missing'}`);
-        console.error(`   RESEND_API_KEY: ${process.env.RESEND_API_KEY ? '✓ set' : '✗ missing'}`);
-        console.error(`   SMTP_HOST: ${process.env.SMTP_HOST ? '✓ set' : '✗ missing'}`);
+        console.error(`   EMAIL_USER: ${process.env.EMAIL_USER ? '✓ set to: ' + process.env.EMAIL_USER : '✗ missing'}`);
+        console.error(`   EMAIL_PASS: ${process.env.EMAIL_PASS ? '✓ set (hidden)' : '✗ missing'}`);
+        console.error(`   RESEND_API_KEY: ${process.env.RESEND_API_KEY ? '✓ set (hidden)' : '✗ missing'}`);
+        console.error(`   SMTP_HOST: ${process.env.SMTP_HOST ? '✓ set to: ' + process.env.SMTP_HOST : '✗ missing'}`);
         return false;
     }
 
@@ -153,6 +153,11 @@ async function sendEmail(to, subject, html, options = {}) {
         console.log(`   Using ${status.provider === 'gmail' ? 'Gmail/Nodemailer' : 'SMTP'} transport...`);
         const transport = getNodemailerTransport(status.provider);
         
+        console.log(`   Transport config: ${status.provider === 'gmail' ? 'Gmail service' : 'SMTP host: ' + process.env.SMTP_HOST}`);
+        console.log(`   From: ${from}`);
+        console.log(`   To: ${toList.join(', ')}`);
+        console.log(`   Subject: ${subject}`);
+        
         const mailOptions = {
             from,
             to: toList.join(', '),
@@ -161,23 +166,18 @@ async function sendEmail(to, subject, html, options = {}) {
             replyTo: replyToList.length ? replyToList.join(', ') : undefined
         };
 
-        console.log(`   Mail options:`, {
-            from: mailOptions.from,
-            to: mailOptions.to,
-            subject: mailOptions.subject.substring(0, 50) + '...'
-        });
-
+        console.log(`📬 Attempting to send via ${status.provider}...`);
         const info = await transport.sendMail(mailOptions);
         
         console.log(`✅ Email successfully sent via ${status.provider}`);
-        console.log(`   Response: ${info.response}`);
-        console.log(`   Message ID: ${info.messageId}`);
+        console.log(`   Message ID: ${info.messageId || 'N/A'}`);
+        console.log(`   Response: ${info.response || 'OK'}`);
         return true;
     } catch (err) {
-        console.error(`❌ CRITICAL Email sending error:`, err);
-        console.error(`   Error message: ${err.message}`);
-        console.error(`   Error code: ${err.code}`);
-        console.error(`   Error response: ${err.response}`);
+        console.error(`❌ CRITICAL Email sending error:`, err.message);
+        console.error(`   Error code: ${err.code || 'N/A'}`);
+        console.error(`   Error response: ${err.response || 'N/A'}`);
+        console.error(`   Full error:`, err);
         return false;
     }
 }
