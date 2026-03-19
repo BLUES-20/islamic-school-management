@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Secure Registration Payment</title>
+    <%- include('../layout/header') %>
+    <style>
+        :root { --primary: #1a5f3f; --danger: #dc3545; }
+        body { font-family: 'Segoe UI', sans-serif; background: linear-gradient(135deg, #f8fff9 0%, #e9f7e9 100%); min-height: 100vh; }
+        .container { max-width: 550px; margin: 0 auto; padding: 20px; }
+        .card { background: white; border-radius: 20px; box-shadow: 0 25px 50px rgba(26,95,63,0.15); padding: 40px 30px; margin: 20px 0; }
+        .header { text-align: center; margin-bottom: 35px; }
+        .header h1 { color: var(--primary); font-size: 32px; font-weight: 700; margin-bottom: 10px; }
+        .student-summary { background: linear-gradient(135deg, var(--primary) 0%, #2d8a5e 100%); color: white; padding: 25px; border-radius: 15px; margin-bottom: 30px; }
+        .summary-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 15px; }
+        .summary-item strong { font-size: 16px; display: block; }
+        .amount-display { background: rgba(255,255,255,0.2); padding: 20px; border-radius: 12px; text-align: center; margin: 25px 0; }
+        .amount { font-size: 42px; font-weight: 800; color: #ffd700; text-shadow: 0 2px 4px rgba(0,0,0,0.3); }
+        .currency { font-size: 20px; font-weight: 600; }
+        #flutterwave-inline { width: 100%; height: 60px; border-radius: 12px; font-size: 18px; background: linear-gradient(135deg, #ffd700 0%, #ffed4e 100%); border: none; font-weight: 600; cursor: pointer; transition: all 0.3s; }
+        #flutterwave-inline:hover { transform: translateY(-3px); box-shadow: 0 15px 35px rgba(255,215,0,0.4); }
+        .security { display: flex; align-items: center; justify-content: center; gap: 15px; margin: 30px 0; padding: 20px; background: #f8fff9; border-radius: 12px; border-left: 5px solid var(--primary); }
+        .security-icon { font-size: 28px; }
+        .btn-back { display: inline-block; background: #6c757d; color: white; padding: 12px 25px; border-radius: 10px; text-decoration: none; font-weight: 500; transition: all 0.3s; margin-top: 20px; }
+        .btn-back:hover { background: #5a6268; transform: translateY(-1px); }
+        .alert-error { background: #f8d7da; color: #721c24; padding: 15px 20px; border-radius: 10px; border-left: 4px solid var(--danger); margin-bottom: 20px; }
+        @media (max-width: 480px) { .summary-grid { grid-template-columns: 1fr; } .amount { font-size: 36px; } }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <% if (typeof error_msg !== 'undefined' && error_msg) { %>
+            <div class="alert-error"><%= error_msg %></div>
+        <% } %>
+
+        <div class="card">
+            <div class="header">
+                <h1>🛡️ Secure Payment</h1>
+                <p>Review details → Complete payment → Get instant access + receipt</p>
+            </div>
+
+            <div class="student-summary">
+                <h3 style="margin: 0 0 15px 0; font-size: 22px;">Registration for:</h3>
+                <div class="summary-grid">
+                    <div><strong><%= data.first_name %> <%= data.last_name %></strong></div>
+                    <div style="text-align: right;"><strong><%= data.email %></strong></div>
+                    <% if (data.class_name) { %>
+                        <div><strong>Class:</strong> <%= data.class_name %></div>
+                    <% } %>
+                    <div style="text-align: right;"><strong>Tx Ref:</strong> <%= tx_ref %></div>
+                </div>
+            </div>
+
+            <div class="amount-display">
+                <div class="currency"><%= currency %></div>
+                <div class="amount"><%= parseFloat(amount).toLocaleString() %></div>
+                <p style="color: white; font-weight: 500; opacity: 0.95;">Registration Fee</p>
+            </div>
+
+            <!-- Flutterwave Inline -->
+            <form id="payment-form">
+                <input type="hidden" name="tx_ref" value="<%= tx_ref %>">
+                <input type="hidden" name="amount" value="<%= amount %>">
+                <input type="hidden" name="currency" value="<%= currency %>">
+                
+                <div id="flutterwave-inline">
+                    💳 Pay <%= currency %> <%= parseFloat(amount).toLocaleString() %> Now →
+                </div>
+            </form>
+
+            <div class="security">
+                <span class="security-icon">🔒</span>
+                <span><strong>100% Secure</strong> | PCI DSS | Flutterwave protected</span>
+                <span class="security-icon">✅</span>
+            </div>
+
+            <p style="text-align: center; color: #666; margin-top: 25px;">
+                After payment → Instant registration + <strong>official receipt email</strong>
+            </p>
+
+            <div style="text-align: center;">
+                <a href="/auth/pay-first-register" class="btn-back">← Edit Form</a>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://js.flutterwave.com/v3.js"></script>
+    <script>
+        document.getElementById('flutterwave-inline').onclick = () => {
+            FlutterwaveCheckout({
+                public_key: '<%= process.env.FLUTTERWAVE_PUBLIC_KEY || "" %>',
+                tx_ref: '<%= tx_ref %>',
+                amount: <%= amount %>,
+                currency: '<%= currency %>',
+                payment_options: 'card, ussd, mobilemoney',
+                redirect_url: '/auth/pay-first-callback?status=<%= status %>&tx_ref=<%= tx_ref %>&transaction_id=<%= transaction_id || "" %>',
+                customer: {
+                    email: '<%= data.email %>',
+                    phone_number: '<%= data.parent_phone || "" %>',
+                    name: '<%= data.first_name + " " + data.last_name %>'
+                },
+                customizations: {
+                    title: 'Islamic School Registration',
+                    description: 'Secure registration payment',
+                    logo: '/images/principal-signature.png'
+                },
+                meta: { studentData: JSON.stringify(<%= JSON.stringify(data).replace(/"/g, '"') %>) }
+            });
+        };
+    </script>
+
+    <%- include('../layout/footer') %>
+</body>
+</html>

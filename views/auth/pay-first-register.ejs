@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= title %></title>
+    <%- include('../layout/header') %>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        :root { --primary: #1a5f3f; --primary-dark: #134b30; --accent: #28a745; }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Inter', sans-serif; background: linear-gradient(135deg, #f0f7f4 0%, #e8f5e8 100%); min-height: 100vh; }
+        .container { max-width: 500px; margin: 40px auto; padding: 0 20px; }
+        .card { background: white; border-radius: 20px; box-shadow: 0 20px 40px rgba(26,95,63,0.15); padding: 40px 30px; }
+        .header { text-align: center; margin-bottom: 35px; }
+        .header h1 { color: var(--primary); font-size: 28px; font-weight: 700; margin-bottom: 8px; }
+        .header p { color: #666; font-size: 16px; }
+        .payment-flow { background: linear-gradient(135deg, var(--accent) 0%, #20c997 100%); color: white; padding: 20px; border-radius: 15px; text-align: center; margin-bottom: 30px; }
+        .payment-flow h3 { font-size: 20px; margin-bottom: 5px; }
+        .amount { font-size: 32px; font-weight: 700; }
+        .steps { display: flex; justify-content: space-between; margin: 25px 0 35px 0; }
+        .step { text-align: center; flex: 1; position: relative; }
+        .step:not(:last-child)::after { content: ''; position: absolute; top: 25px; left: 50%; right: -25%; height: 2px; background: var(--primary); z-index: -1; }
+        .step-icon { width: 45px; height: 45px; border-radius: 50%; background: var(--accent); color: white; display: flex; align-items: center; justify-content: center; font-weight: 600; font-size: 18px; margin: 0 auto 10px; }
+        .step-text { font-size: 14px; font-weight: 500; color: var(--primary); }
+        .form-group { margin-bottom: 20px; }
+        label { display: block; font-weight: 500; color: #333; margin-bottom: 8px; font-size: 15px; }
+        input, select { width: 100%; padding: 15px 18px; border: 2px solid #e8ecef; border-radius: 12px; font-size: 16px; transition: all 0.3s; }
+        input:focus, select:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px rgba(26,95,63,0.1); }
+        .file-input { padding: 12px; border: 2px dashed #ddd; border-radius: 12px; background: #fafbfc; text-align: center; transition: all 0.3s; }
+        .file-input:hover { border-color: var(--primary); background: #f8fff9; }
+        .btn { width: 100%; padding: 18px; background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%); color: white; border: none; border-radius: 15px; font-size: 18px; font-weight: 600; cursor: pointer; transition: all 0.3s; }
+        .btn:hover { transform: translateY(-2px); box-shadow: 0 10px 25px rgba(26,95,63,0.3); }
+        .alert { padding: 15px 20px; margin-bottom: 20px; border-radius: 12px; font-weight: 500; }
+        .alert-error { background: #fee; color: #c33; border: 1px solid #fcc; }
+        .alert-success { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+        @media (max-width: 480px) { .card { padding: 30px 20px; margin: 20px 10px; } }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="card">
+            <div class="header">
+                <h1>Pay First Registration</h1>
+                <p>Complete form → Secure Payment → Get Admission Number + Receipt</p>
+            </div>
+
+            <div class="payment-flow">
+                <h3>Registration Fee</h3>
+                <div class="amount">₦<%= process.env.PAYMENT_AMOUNT || '2,000' %></div>
+                <p>Pay now, register instantly on success</p>
+            </div>
+
+            <% if (typeof success_msg !== 'undefined' && success_msg) { %>
+                <div class="alert alert-success"><%= success_msg %></div>
+            <% } %>
+            <% if (typeof error_msg !== 'undefined' && error_msg) { %>
+                <div class="alert alert-error"><%= error_msg %></div>
+            <% } %>
+
+            <div class="steps">
+                <div class="step">
+                    <div class="step-icon">1</div>
+                    <div class="step-text">Fill Form</div>
+                </div>
+                <div class="step">
+                    <div class="step-icon">2</div>
+                    <div class="step-text">Pay Securely</div>
+                </div>
+                <div class="step">
+                    <div class="step-icon">✓</div>
+                    <div class="step-text">Get Receipt</div>
+                </div>
+            </div>
+
+            <form method="POST" action="/auth/pay-first-register" enctype="multipart/form-data">
+                <div class="form-group">
+                    <label>Full Name *</label>
+                    <input type="text" name="first_name" placeholder="First Name" required maxlength="50">
+                    <input type="text" name="last_name" placeholder="Last Name" required maxlength="50" style="margin-top: 10px;">
+                </div>
+
+                <div class="form-group">
+                    <label>Email Address *</label>
+                    <input type="email" name="email" placeholder="student@example.com" required>
+                </div>
+
+                <div class="form-group">
+                    <label>Class *</label>
+                    <select name="class_name" required>
+                        <option value="">Select Class</option>
+                        <option value="JSS1">JSS 1</option>
+                        <option value="JSS2">JSS 2</option>
+                        <option value="JSS3">JSS 3</option>
+                        <option value="SSS1">SSS 1</option>
+                        <option value="SSS2">SSS 2</option>
+                        <option value="SSS3">SSS 3</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>Password *</label>
+                    <input type="password" name="password" placeholder="Create password (6+ chars)" required minlength="6">
+                </div>
+
+                <div class="form-group">
+                    <label>Date of Birth</label>
+                    <input type="date" name="date_of_birth">
+                </div>
+
+                <div class="form-group">
+                    <label>Gender</label>
+                    <select name="gender">
+                        <option value="">Select</option>
+                        <option value="Male">Male</option>
+                        <option value="Female">Female">
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>Parent/Guardian Name</label>
+                    <input type="text" name="parent_name" placeholder="Parent full name">
+                </div>
+
+                <div class="form-group">
+                    <label>Parent Phone</label>
+                    <input type="tel" name="parent_phone" placeholder="08012345678">
+                </div>
+
+                <div class="form-group">
+                    <label>Address</label>
+                    <textarea name="address" rows="3" placeholder="Home address"></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label>Profile Picture (optional)</label>
+                    <div class="file-input">
+                        <input type="file" name="profile_picture" accept="image/jpeg,image/jpg,image/png">
+                        <p style="margin: 8px 0 0 0; color: #666; font-size: 14px;">JPG, PNG up to 2MB</p>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn">🚀 Proceed to Secure Payment</button>
+            </form>
+
+            <div style="text-align: center; margin-top: 30px; padding-top: 25px; border-top: 1px solid #e8ecef;">
+                <p style="color: #666; font-size: 14px;">
+                    🔒 Secure payment via Flutterwave | Instant registration on success
+                </p>
+            </div>
+        </div>
+    </div>
+    <%- include('../layout/footer') %>
+</body>
+</html>

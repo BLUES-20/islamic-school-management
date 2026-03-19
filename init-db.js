@@ -33,6 +33,9 @@ const initDatabase = async () => {
         // Create Documents table
         await db.query(`CREATE TABLE IF NOT EXISTS documents (id SERIAL PRIMARY KEY, title VARCHAR(255) NOT NULL, description TEXT, document_type VARCHAR(50) NOT NULL, file_path TEXT NOT NULL, file_name TEXT NOT NULL, file_size INT, target_audience VARCHAR(50) DEFAULT 'all', author_id INT REFERENCES users(id), uploaded_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP);`);
 
+        // Create Payments table
+        await db.query(`CREATE TABLE IF NOT EXISTS payments (id SERIAL PRIMARY KEY, student_id INT REFERENCES students(id) ON DELETE CASCADE, tx_ref VARCHAR(255) UNIQUE NOT NULL, flw_transaction_id VARCHAR(255), amount DECIMAL(10,2) NOT NULL, currency VARCHAR(10) DEFAULT 'NGN', payment_type VARCHAR(50) DEFAULT 'registration', status VARCHAR(20) DEFAULT 'pending', created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP);`);
+
         // Insert default admin user if not exists
         const bcrypt = require('bcrypt');
         const adminExists = await db.query("SELECT id FROM users WHERE username = 'admin'");

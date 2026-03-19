@@ -1,0 +1,385 @@
+<%- include('../layout/header') %>
+
+<style>
+    .payment-section {
+        background: linear-gradient(135deg, #f8fdf9 0%, #e8f5ed 50%, #d4edde 100%);
+        min-height: 80vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 3rem 1rem;
+    }
+
+    .payment-card {
+        background: white;
+        border-radius: 24px;
+        box-shadow: 0 20px 60px rgba(26, 95, 63, 0.15);
+        overflow: hidden;
+        width: 100%;
+        max-width: 600px;
+        animation: slideUp 0.6s ease-out;
+    }
+
+    @keyframes slideUp {
+        from { opacity: 0; transform: translateY(30px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    .payment-header {
+        background: linear-gradient(135deg, #1a5f3f, #2d7a5f);
+        color: white;
+        padding: 40px 35px;
+        text-align: center;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .payment-header::before {
+        content: '';
+        position: absolute;
+        top: -50%;
+        left: -50%;
+        width: 200%;
+        height: 200%;
+        background: radial-gradient(circle, rgba(255,255,255,0.08) 0%, transparent 70%);
+        animation: pulse-bg 4s ease-in-out infinite;
+    }
+
+    @keyframes pulse-bg {
+        0%, 100% { transform: scale(1); }
+        50% { transform: scale(1.1); }
+    }
+
+    .payment-header * {
+        position: relative;
+        z-index: 1;
+    }
+
+    .payment-header .icon-wrapper {
+        width: 80px;
+        height: 80px;
+        background: rgba(255,255,255,0.15);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 20px;
+        backdrop-filter: blur(10px);
+    }
+
+    .payment-header h2 {
+        font-weight: 700;
+        margin-bottom: 5px;
+    }
+
+    .payment-body {
+        padding: 35px;
+    }
+
+    .success-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        background: linear-gradient(135deg, #d4edda, #c3e6cb);
+        color: #155724;
+        padding: 12px 20px;
+        border-radius: 12px;
+        font-weight: 600;
+        margin-bottom: 25px;
+        width: 100%;
+        justify-content: center;
+        font-size: 0.95rem;
+        border: 1px solid #b1dfbb;
+    }
+
+    .student-details {
+        background: #f9fafb;
+        border-radius: 16px;
+        padding: 25px;
+        margin-bottom: 25px;
+        border: 1px solid #e5e7eb;
+    }
+
+    .student-details h6 {
+        color: #1a5f3f;
+        font-weight: 700;
+        margin-bottom: 15px;
+        font-size: 1rem;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .detail-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 10px 0;
+        border-bottom: 1px solid #e5e7eb;
+    }
+
+    .detail-row:last-child {
+        border-bottom: none;
+    }
+
+    .detail-label {
+        color: #6b7280;
+        font-size: 0.9rem;
+        font-weight: 500;
+    }
+
+    .detail-value {
+        font-weight: 600;
+        color: #374151;
+    }
+
+    .amount-display {
+        background: linear-gradient(135deg, #1a5f3f, #2d7a5f);
+        color: white;
+        border-radius: 16px;
+        padding: 25px;
+        text-align: center;
+        margin-bottom: 25px;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .amount-display::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent);
+        animation: shimmer 3s infinite;
+    }
+
+    @keyframes shimmer {
+        0% { left: -100%; }
+        100% { left: 100%; }
+    }
+
+    .amount-display p {
+        position: relative;
+        z-index: 1;
+        margin: 0;
+    }
+
+    .amount-label {
+        opacity: 0.9;
+        font-size: 0.9rem;
+        margin-bottom: 5px !important;
+    }
+
+    .amount-value {
+        font-size: 2.5rem;
+        font-weight: 800;
+        letter-spacing: 1px;
+    }
+
+    .amount-currency {
+        opacity: 0.85;
+        font-size: 0.85rem;
+        margin-top: 5px !important;
+    }
+
+    .btn-pay {
+        background: linear-gradient(135deg, #f5a623, #f7b731);
+        border: none;
+        border-radius: 14px;
+        padding: 16px;
+        font-weight: 700;
+        font-size: 1.1rem;
+        width: 100%;
+        color: #333;
+        transition: all 0.3s ease;
+        position: relative;
+        overflow: hidden;
+        box-shadow: 0 4px 16px rgba(245, 166, 35, 0.4);
+        cursor: pointer;
+    }
+
+    .btn-pay:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 30px rgba(245, 166, 35, 0.5);
+        color: #333;
+    }
+
+    .btn-pay:active {
+        transform: translateY(0);
+    }
+
+    .btn-pay i {
+        margin-right: 8px;
+    }
+
+    .btn-skip {
+        display: block;
+        text-align: center;
+        margin-top: 15px;
+        color: #6b7280;
+        font-size: 0.9rem;
+        text-decoration: none;
+        transition: all 0.3s ease;
+    }
+
+    .btn-skip:hover {
+        color: #1a5f3f;
+    }
+
+    .secure-badge {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        color: #6b7280;
+        font-size: 0.8rem;
+        margin-top: 20px;
+    }
+
+    .secure-badge i {
+        color: #1a5f3f;
+    }
+
+    .payment-methods {
+        display: flex;
+        justify-content: center;
+        gap: 15px;
+        margin-top: 15px;
+        opacity: 0.6;
+    }
+
+    .payment-methods img {
+        height: 28px;
+    }
+
+    /* Flash messages */
+    .payment-flash .alert {
+        border-radius: 12px;
+        margin-bottom: 1.5rem;
+        font-size: 0.95rem;
+    }
+</style>
+
+<section class="payment-section">
+    <div class="payment-card">
+        <div class="payment-header">
+            <div class="icon-wrapper">
+                <i class="fas fa-credit-card fa-2x"></i>
+            </div>
+            <h2>Registration Fee</h2>
+            <p class="mb-0">Complete your enrollment</p>
+        </div>
+        <div class="payment-body">
+            <!-- Flash messages -->
+            <div class="payment-flash">
+                <% if (typeof success_msg !== 'undefined' && success_msg && success_msg.length > 0) { %>
+                <div class="alert alert-success alert-dismissible fade show" role="alert">
+                    <i class="fas fa-check-circle me-2"></i><%= success_msg %>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+                <% } %>
+                <% if (typeof error_msg !== 'undefined' && error_msg && error_msg.length > 0) { %>
+                <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                    <i class="fas fa-exclamation-circle me-2"></i><%= error_msg %>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+                <% } %>
+            </div>
+
+            <!-- Registration Success -->
+            <div class="success-badge">
+                <i class="fas fa-check-circle"></i>
+                Registration Successful! Please complete payment below.
+            </div>
+
+            <!-- Student Details -->
+            <div class="student-details">
+                <h6><i class="fas fa-user-graduate"></i> Student Details</h6>
+                <div class="detail-row">
+                    <span class="detail-label">Full Name</span>
+                    <span class="detail-value"><%= pending.full_name %></span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Admission Number</span>
+                    <span class="detail-value" style="color: #1a5f3f; font-size: 1.05rem;"><%= pending.admission_number %></span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Email</span>
+                    <span class="detail-value"><%= pending.email %></span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Class</span>
+                    <span class="detail-value"><%= pending.class_name %></span>
+                </div>
+            </div>
+
+            <!-- Amount Display -->
+            <div class="amount-display">
+                <p class="amount-label">Registration Fee</p>
+                <p class="amount-value">₦<%= parseFloat(amount).toLocaleString() %></p>
+                <p class="amount-currency">Nigerian Naira (<%= currency %>)</p>
+            </div>
+
+            <!-- Pay Button -->
+            <button type="button" class="btn btn-pay" id="payBtn" onclick="makePayment()">
+                <i class="fas fa-shield-alt"></i> PAY ₦<%= parseFloat(amount).toLocaleString() %> NOW
+            </button>
+
+            <!-- Skip payment link -->
+            <a href="/auth/student-login" class="btn-skip">
+                <i class="fas fa-arrow-right me-1"></i> Skip & Login Later (Payment Required)
+            </a>
+
+            <!-- Security info -->
+            <div class="secure-badge">
+                <i class="fas fa-lock"></i>
+                <span>Secured by Flutterwave • 256-bit SSL Encryption</span>
+            </div>
+
+            <!-- Payment methods -->
+            <div class="payment-methods">
+                <i class="fab fa-cc-visa fa-2x text-muted"></i>
+                <i class="fab fa-cc-mastercard fa-2x text-muted"></i>
+                <i class="fas fa-university fa-2x text-muted"></i>
+                <i class="fas fa-mobile-alt fa-2x text-muted"></i>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Flutterwave Inline Script -->
+<script src="https://checkout.flutterwave.com/v3.js"></script>
+
+<script>
+    function makePayment() {
+        FlutterwaveCheckout({
+            public_key: "<%= flutterwave_public_key %>",
+            tx_ref: "<%= tx_ref %>",
+            amount: <%= amount %>,
+            currency: "<%= currency %>",
+            payment_options: "card, banktransfer, ussd, mobilemoney",
+            customer: {
+                email: "<%= pending.email %>",
+                name: "<%= pending.full_name %>"
+            },
+            customizations: {
+                title: "Islamic School",
+                description: "Registration Fee Payment",
+                logo: ""
+            },
+            callback: function(data) {
+                // Payment successful — redirect to callback route
+                const callbackUrl = `/auth/payment-callback?status=${data.status}&tx_ref=${data.tx_ref}&transaction_id=${data.transaction_id}`;
+                window.location.href = callbackUrl;
+            },
+            onclose: function() {
+                // Customer closed the payment modal
+                console.log("Payment modal closed");
+            }
+        });
+    }
+</script>
+
+<%- include('../layout/footer') %>

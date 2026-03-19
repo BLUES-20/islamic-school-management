@@ -1,7 +1,7 @@
 <%- include('../layout/header') %>
 
 <%
-    // Safely handle potentially undefined variables - use typeof checks
+    // Safely handle potentially undefined variables
     var sessionStudent = (typeof student !== 'undefined' && student) ? student : {};
     var dbStudent = (typeof studentData !== 'undefined' && studentData) ? studentData : {};
 
@@ -18,21 +18,16 @@
     // Handle picture - prioritize database picture, fallback to session
     var picture = null;
     if (dbStudent.picture) {
-        // Database stores: /uploads/students/filename.jpg
         picture = String(dbStudent.picture).replace(/\\/g, '/');
-        // Ensure it starts with / but not //
-        if (!picture.startsWith('/')) {
+        if (!picture.startsWith('/') && !picture.startsWith('http')) {
             picture = '/' + picture;
         }
     } else if (sessionStudent.picture) {
         picture = String(sessionStudent.picture).replace(/\\/g, '/');
-        if (!picture.startsWith('/')) {
+        if (!picture.startsWith('/') && !picture.startsWith('http')) {
             picture = '/' + picture;
         }
     }
-    
-    // Debug log (remove in production)
-    console.log('Profile picture:', picture, 'dbStudent.picture:', dbStudent.picture);
 
     var dobText = 'N/A';
     if (dbStudent.date_of_birth) {
@@ -47,133 +42,362 @@
     var address = dbStudent.address || 'N/A';
 %>
 
-<section class="py-5">
+<style>
+    .profile-header-bar {
+        background: linear-gradient(135deg, #1a5f3f, #2d7a5f);
+        padding: 2rem 0;
+        margin-bottom: 2rem;
+    }
+    .profile-header-bar h2 {
+        color: white;
+        font-weight: 700;
+        margin: 0;
+    }
+
+    .profile-pic-section {
+        position: relative;
+        display: inline-block;
+    }
+
+    .profile-pic-large {
+        width: 160px;
+        height: 160px;
+        object-fit: cover;
+        border-radius: 50%;
+        border: 5px solid #1a5f3f;
+        box-shadow: 0 8px 25px rgba(26, 95, 63, 0.25);
+        transition: all 0.3s ease;
+    }
+
+    .profile-pic-large:hover {
+        transform: scale(1.05);
+        box-shadow: 0 12px 35px rgba(26, 95, 63, 0.35);
+    }
+
+    .avatar-placeholder-lg {
+        width: 160px;
+        height: 160px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #1a5f3f, #2d7a5f);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border: 5px solid #e5e7eb;
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+    }
+
+    .upload-overlay {
+        position: absolute;
+        bottom: 5px;
+        right: 5px;
+        width: 42px;
+        height: 42px;
+        background: linear-gradient(135deg, #f5a623, #f7b731);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        box-shadow: 0 4px 12px rgba(245, 166, 35, 0.4);
+        transition: all 0.3s ease;
+        border: 3px solid white;
+    }
+
+    .upload-overlay:hover {
+        transform: scale(1.1);
+        box-shadow: 0 6px 18px rgba(245, 166, 35, 0.5);
+    }
+
+    .upload-overlay i {
+        color: white;
+        font-size: 1rem;
+    }
+
+    .info-card {
+        border: none;
+        border-radius: 16px;
+        overflow: hidden;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+        transition: all 0.3s ease;
+    }
+
+    .info-card:hover {
+        box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
+        transform: translateY(-2px);
+    }
+
+    .info-card .card-header {
+        background: linear-gradient(135deg, #1a5f3f, #2d7a5f);
+        color: white;
+        border: none;
+        padding: 1.2rem 1.5rem;
+    }
+
+    .info-card .card-header h5 {
+        font-weight: 700;
+        margin: 0;
+        font-size: 1.1rem;
+    }
+
+    .info-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 14px 0;
+        border-bottom: 1px solid #f0f0f0;
+    }
+
+    .info-row:last-child {
+        border-bottom: none;
+    }
+
+    .info-label {
+        font-weight: 600;
+        color: #555;
+        font-size: 0.9rem;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .info-label i {
+        color: #1a5f3f;
+        width: 18px;
+        text-align: center;
+    }
+
+    .info-value {
+        font-weight: 500;
+        color: #333;
+        text-align: right;
+    }
+
+    .btn-download-pdf {
+        background: linear-gradient(135deg, #1a5f3f, #2d7a5f);
+        border: none;
+        border-radius: 12px;
+        padding: 14px;
+        font-weight: 600;
+        color: white;
+        width: 100%;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 16px rgba(26, 95, 63, 0.25);
+    }
+
+    .btn-download-pdf:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(26, 95, 63, 0.35);
+        color: white;
+    }
+
+    .btn-upload-pic {
+        background: linear-gradient(135deg, #f5a623, #f7b731);
+        border: none;
+        border-radius: 10px;
+        padding: 10px 20px;
+        font-weight: 600;
+        color: #333;
+        width: 100%;
+        transition: all 0.3s ease;
+        font-size: 0.9rem;
+    }
+
+    .btn-upload-pic:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(245, 166, 35, 0.4);
+        color: #333;
+    }
+
+    .upload-modal .modal-content {
+        border-radius: 16px;
+        border: none;
+        overflow: hidden;
+    }
+
+    .upload-modal .modal-header {
+        background: linear-gradient(135deg, #1a5f3f, #2d7a5f);
+        color: white;
+        border: none;
+    }
+
+    .upload-modal .btn-close {
+        filter: brightness(0) invert(1);
+    }
+
+    .upload-area {
+        border: 2px dashed #d1d5db;
+        border-radius: 12px;
+        padding: 2rem;
+        text-align: center;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        background: #f9fafb;
+    }
+
+    .upload-area:hover {
+        border-color: #1a5f3f;
+        background: rgba(26, 95, 63, 0.03);
+    }
+
+    .upload-area.has-file {
+        border-color: #1a5f3f;
+        border-style: solid;
+        background: #f0f9f4;
+    }
+
+    .badge-class {
+        background: linear-gradient(135deg, #1a5f3f, #2d7a5f);
+        font-size: 0.85rem;
+        padding: 6px 16px;
+        border-radius: 20px;
+    }
+
+    .action-btn {
+        border-radius: 10px;
+        padding: 10px 18px;
+        font-weight: 600;
+        font-size: 0.9rem;
+        transition: all 0.3s ease;
+        width: 100%;
+        margin-bottom: 10px;
+    }
+
+    .preview-container {
+        display: none;
+        text-align: center;
+        margin-top: 1rem;
+    }
+
+    .preview-container img {
+        max-width: 180px;
+        max-height: 180px;
+        border-radius: 50%;
+        border: 4px solid #1a5f3f;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    }
+</style>
+
+<!-- Profile Header Bar -->
+<div class="profile-header-bar">
     <div class="container">
-        <div class="row mb-4">
-            <div class="col-lg-12">
-                <div class="d-flex justify-content-between align-items-center">
-                    <h2 class="fw-bold">
-                        <i class="fas fa-user-circle me-2"></i>My Profile
-                    </h2>
-                    <a href="/student/dashboard" class="btn btn-secondary btn-sm">
-                        <i class="fas fa-arrow-left me-2"></i>Back to Dashboard
-                    </a>
-                </div>
+        <div class="d-flex justify-content-between align-items-center">
+            <h2><i class="fas fa-user-circle me-2"></i>My Profile</h2>
+            <div class="d-flex gap-2">
+                <a href="/student/profile/download-pdf" class="btn btn-light btn-sm" id="downloadPdfBtn">
+                    <i class="fas fa-file-pdf me-1 text-danger"></i> Download PDF
+                </a>
+                <a href="/student/dashboard" class="btn btn-outline-light btn-sm">
+                    <i class="fas fa-arrow-left me-1"></i> Dashboard
+                </a>
             </div>
         </div>
+    </div>
+</div>
 
+<section class="pb-5">
+    <div class="container">
         <div class="row">
-            <!-- Profile Picture Card -->
+            <!-- LEFT COLUMN: Profile Picture + Actions -->
             <div class="col-lg-4 mb-4">
-                <div class="card card-islamic shadow-lg">
+                <!-- Profile Picture Card -->
+                <div class="info-card mb-4">
                     <div class="card-body text-center p-4">
-                        <% if (picture) { %>
-                        <img src="<%= picture %>" alt="Profile Picture" class="rounded-circle img-fluid mb-3" style="width: 150px; height: 150px; object-fit: cover; border: 4px solid var(--primary-green);">
-                        <% } else { %>
-                        <div class="avatar-placeholder mx-auto mb-3" style="width: 150px; height: 150px; border-radius: 50%; background: linear-gradient(135deg, var(--primary-green), var(--dark-green)); display: flex; align-items: center; justify-content: center;">
-                            <i class="fas fa-user fa-4x text-white"></i>
+                        <div class="profile-pic-section mb-3">
+                            <% if (picture) { %>
+                            <img src="<%= picture %>" alt="Profile Picture" class="profile-pic-large" id="currentProfilePic">
+                            <% } else { %>
+                            <div class="avatar-placeholder-lg" id="currentProfilePic">
+                                <i class="fas fa-user fa-4x text-white"></i>
+                            </div>
+                            <% } %>
+                            <div class="upload-overlay" data-bs-toggle="modal" data-bs-target="#uploadPicModal" title="Change profile picture">
+                                <i class="fas fa-camera"></i>
+                            </div>
                         </div>
-                        <% } %>
-                        <h4 class="fw-bold"><%= fullName %></h4>
-                        <p class="text-muted mb-1"><%= admissionNumber %></p>
-                        <span class="badge bg-success"><%= studentClass %></span>
+                        <h4 class="fw-bold mb-1"><%= fullName %></h4>
+                        <p class="text-muted mb-2"><%= admissionNumber %></p>
+                        <span class="badge badge-class"><%= studentClass %></span>
                     </div>
                 </div>
 
-                <!-- Account Actions -->
-                <div class="card card-islamic shadow-lg mt-4">
-                    <div class="card-header py-4">
-                        <h5 class="mb-0 fw-bold">
-                            <i class="fas fa-lock me-2"></i>Account
-                        </h5>
+                <!-- Quick Actions Card -->
+                <div class="info-card mb-4">
+                    <div class="card-header">
+                        <h5><i class="fas fa-bolt me-2"></i>Quick Actions</h5>
                     </div>
-                    <div class="card-body p-4">
-                        <a href="/auth/forgot-password" class="btn btn-islamic w-100 mb-3">
+                    <div class="card-body p-3">
+                        <button class="btn btn-upload-pic action-btn" data-bs-toggle="modal" data-bs-target="#uploadPicModal">
+                            <i class="fas fa-camera me-2"></i>Change Picture
+                        </button>
+                        <a href="/student/profile/download-pdf" class="btn btn-download-pdf action-btn">
+                            <i class="fas fa-file-pdf me-2"></i>Print Profile (PDF)
+                        </a>
+                        <a href="/auth/forgot-password" class="btn btn-outline-success action-btn">
                             <i class="fas fa-key me-2"></i>Change Password
                         </a>
-                        <a href="/auth/logout" class="btn btn-danger w-100">
+                        <a href="/auth/logout" class="btn btn-outline-danger action-btn mb-0">
                             <i class="fas fa-sign-out-alt me-2"></i>Logout
                         </a>
                     </div>
                 </div>
             </div>
 
-            <!-- Profile Information Card -->
+            <!-- RIGHT COLUMN: Profile Information -->
             <div class="col-lg-8">
-                <div class="card card-islamic shadow-lg">
-                    <div class="card-header py-4">
-                        <h5 class="mb-0 fw-bold">
-                            <i class="fas fa-user me-2"></i>Profile Information
-                        </h5>
+                <!-- Personal Information -->
+                <div class="info-card mb-4">
+                    <div class="card-header">
+                        <h5><i class="fas fa-user me-2"></i>Personal Information</h5>
                     </div>
                     <div class="card-body p-4">
-                        <div class="row mb-4">
-                            <div class="col-md-6 mb-3">
-                                <p class="mb-1"><strong>Full Name:</strong></p>
-                                <p class="text-muted"><%= fullName %></p>
-                            </div>
-                            <div class="col-md-6 mb-3">
-                                <p class="mb-1"><strong>Admission Number:</strong></p>
-                                <p class="text-muted"><%= admissionNumber %></p>
-                            </div>
+                        <div class="info-row">
+                            <span class="info-label"><i class="fas fa-user"></i> Full Name</span>
+                            <span class="info-value"><%= fullName %></span>
                         </div>
-
-                        <div class="row mb-4">
-                            <div class="col-md-6 mb-3">
-                                <p class="mb-1"><strong>Email:</strong></p>
-                                <p class="text-muted"><%= email %></p>
-                            </div>
-                            <div class="col-md-6 mb-3">
-                                <p class="mb-1"><strong>Class:</strong></p>
-                                <p class="text-muted"><%= studentClass %></p>
-                            </div>
+                        <div class="info-row">
+                            <span class="info-label"><i class="fas fa-id-card"></i> Admission No.</span>
+                            <span class="info-value" style="color: #1a5f3f; font-weight: 700;"><%= admissionNumber %></span>
                         </div>
-
-                        <div class="row mb-4">
-                            <div class="col-md-6 mb-3">
-                                <p class="mb-1"><strong>Date of Birth:</strong></p>
-                                <p class="text-muted"><%= dobText %></p>
-                            </div>
-                            <div class="col-md-6 mb-3">
-                                <p class="mb-1"><strong>Gender:</strong></p>
-                                <p class="text-muted text-capitalize"><%= gender %></p>
-                            </div>
+                        <div class="info-row">
+                            <span class="info-label"><i class="fas fa-envelope"></i> Email</span>
+                            <span class="info-value"><%= email %></span>
                         </div>
-
-                        <hr>
-
-                        <h6 class="fw-bold mb-3"><i class="fas fa-users me-2"></i>Parent/Guardian Information</h6>
-                        <div class="row mb-4">
-                            <div class="col-md-6 mb-3">
-                                <p class="mb-1"><strong>Parent Name:</strong></p>
-                                <p class="text-muted"><%= parentName %></p>
-                            </div>
-                            <div class="col-md-6 mb-3">
-                                <p class="mb-1"><strong>Parent Phone:</strong></p>
-                                <p class="text-muted"><%= parentPhone %></p>
-                            </div>
+                        <div class="info-row">
+                            <span class="info-label"><i class="fas fa-graduation-cap"></i> Class</span>
+                            <span class="info-value"><%= studentClass %></span>
                         </div>
-
-                        <div class="row mb-4">
-                            <div class="col-md-6 mb-3">
-                                <p class="mb-1"><strong>Parent Email:</strong></p>
-                                <p class="text-muted"><%= parentEmail %></p>
-                            </div>
-                            <div class="col-md-6 mb-3">
-                                <p class="mb-1"><strong>Address:</strong></p>
-                                <p class="text-muted"><%= address %></p>
-                            </div>
+                        <div class="info-row">
+                            <span class="info-label"><i class="fas fa-calendar"></i> Date of Birth</span>
+                            <span class="info-value"><%= dobText %></span>
                         </div>
+                        <div class="info-row">
+                            <span class="info-label"><i class="fas fa-venus-mars"></i> Gender</span>
+                            <span class="info-value text-capitalize"><%= gender %></span>
+                        </div>
+                    </div>
+                </div>
 
-                        <hr>
-
-                        <div class="alert alert-info" role="alert">
-                            <i class="fas fa-info-circle me-2"></i>
-                            <strong>Profile Update Feature Coming Soon!</strong>
-                            <p class="mb-0 mt-2">
-                                The ability to update your profile information will be available soon.
-                                For now, please contact your school administration for any changes.
-                            </p>
+                <!-- Parent/Guardian Information -->
+                <div class="info-card mb-4">
+                    <div class="card-header">
+                        <h5><i class="fas fa-users me-2"></i>Parent/Guardian Information</h5>
+                    </div>
+                    <div class="card-body p-4">
+                        <div class="info-row">
+                            <span class="info-label"><i class="fas fa-user-tie"></i> Guardian Name</span>
+                            <span class="info-value"><%= parentName %></span>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-label"><i class="fas fa-phone"></i> Guardian Phone</span>
+                            <span class="info-value"><%= parentPhone %></span>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-label"><i class="fas fa-envelope"></i> Guardian Email</span>
+                            <span class="info-value"><%= parentEmail %></span>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-label"><i class="fas fa-map-marker-alt"></i> Address</span>
+                            <span class="info-value"><%= address %></span>
                         </div>
                     </div>
                 </div>
@@ -181,5 +405,80 @@
         </div>
     </div>
 </section>
+
+<!-- Upload Picture Modal -->
+<div class="modal fade upload-modal" id="uploadPicModal" tabindex="-1" aria-labelledby="uploadPicModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="uploadPicModalLabel">
+                    <i class="fas fa-camera me-2"></i>Update Profile Picture
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-4">
+                <form action="/student/profile/upload-picture" method="POST" enctype="multipart/form-data" id="uploadPicForm">
+                    <div class="upload-area" id="uploadArea" onclick="document.getElementById('pictureInput').click()">
+                        <div id="uploadPlaceholder">
+                            <i class="fas fa-cloud-upload-alt fa-3x mb-3" style="color: #1a5f3f;"></i>
+                            <p class="fw-semibold mb-1">Click to select a photo</p>
+                            <p class="text-muted small mb-0">JPG, PNG — Max 2MB</p>
+                        </div>
+                        <input type="file" name="profile_picture" id="pictureInput" accept="image/jpeg,image/png,image/jpg"
+                            style="display: none;" onchange="previewUpload(this)" required>
+                    </div>
+
+                    <div class="preview-container" id="previewContainer">
+                        <img src="" alt="Preview" id="previewImg">
+                        <p class="mt-2 fw-semibold text-success small"><i class="fas fa-check-circle me-1"></i>Looking good!</p>
+                    </div>
+
+                    <button type="submit" class="btn btn-upload-pic w-100 mt-3" id="submitUploadBtn" disabled>
+                        <i class="fas fa-upload me-2"></i>Upload Picture
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function previewUpload(input) {
+        const preview = document.getElementById('previewContainer');
+        const previewImg = document.getElementById('previewImg');
+        const uploadArea = document.getElementById('uploadArea');
+        const submitBtn = document.getElementById('submitUploadBtn');
+        const placeholder = document.getElementById('uploadPlaceholder');
+
+        if (input.files && input.files[0]) {
+            const file = input.files[0];
+
+            // Check file size (2MB)
+            if (file.size > 2 * 1024 * 1024) {
+                alert('File size must be less than 2MB');
+                input.value = '';
+                preview.style.display = 'none';
+                submitBtn.disabled = true;
+                uploadArea.classList.remove('has-file');
+                placeholder.style.display = 'block';
+                return;
+            }
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                previewImg.src = e.target.result;
+                preview.style.display = 'block';
+                submitBtn.disabled = false;
+                uploadArea.classList.add('has-file');
+                placeholder.innerHTML = '<i class="fas fa-check-circle fa-2x mb-2" style="color: #1a5f3f;"></i><p class="fw-semibold mb-0 small">Photo selected! Click below to upload.</p>';
+            };
+            reader.readAsDataURL(file);
+        } else {
+            preview.style.display = 'none';
+            submitBtn.disabled = true;
+            uploadArea.classList.remove('has-file');
+        }
+    }
+</script>
 
 <%- include('../layout/footer') %>

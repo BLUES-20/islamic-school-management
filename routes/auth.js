@@ -2,11 +2,49 @@
 const express = require('express');
 const bcrypt = require('bcrypt');
 const crypto = require('crypto');
+const https = require('https');
 const router = express.Router();
 const db = require('../config/db');
 const emailService = require('../services/email');
 const multer = require('multer');
 const path = require('path');
+
+// Helper function to verify Google reCAPTCHA v2
+function verifyRecaptcha(token) {
+    return new Promise((resolve, reject) => {
+        const secret = process.env.GOOGLE_RECAPTCHA_SECRET;
+        if (!secret) {
+            // If reCAPTCHA is not configured, skip verification
+            return resolve(true);
+        }
+        const postData = `secret=${encodeURIComponent(secret)}&response=${encodeURIComponent(token || '')}`;
+        const options = {
+            hostname: 'www.google.com',
+            port: 443,
+            path: '/recaptcha/api/siteverify',
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'Content-Length': Buffer.byteLength(postData)
+            }
+        };
+        const req = https.request(options, (res) => {
+            let data = '';
+            res.on('data', (chunk) => data += chunk);
+            res.on('end', () => {
+                try {
+                    const result = JSON.parse(data);
+                    resolve(result.success === true);
+                } catch (e) {
+                    resolve(false);
+                }
+            });
+        });
+        req.on('error', () => resolve(false));
+        req.write(postData);
+        req.end();
+    });
+}
 
 // Helper function to send email using email service (Resend, SMTP, or Gmail)
 async function sendEmail(to, subject, html) {
@@ -51,6 +89,16 @@ router.post('/student-login', async (req, res) => {
     if (!admission_number || !password) {
         req.flash('error', 'Please enter admission number and password');
         return res.redirect('/auth/student-login');
+    }
+
+    // Verify reCAPTCHA if configured
+    if (process.env.GOOGLE_RECAPTCHA_SECRET && process.env.GOOGLE_RECAPTCHA_SITE_KEY) {
+        const recaptchaToken = req.body['g-recaptcha-response'];
+        const isHuman = await verifyRecaptcha(recaptchaToken);
+        if (!isHuman) {
+            req.flash('error', 'Please complete the reCAPTCHA verification');
+            return res.redirect('/auth/student-login');
+        }
     }
 
     try {
@@ -121,6 +169,16 @@ router.post('/staff-login', async (req, res) => {
     if (!email || !password) {
         req.flash('error', 'Please enter email and password');
         return res.redirect('/auth/staff-login');
+    }
+
+    // Verify reCAPTCHA if configured
+    if (process.env.GOOGLE_RECAPTCHA_SECRET && process.env.GOOGLE_RECAPTCHA_SITE_KEY) {
+        const recaptchaToken = req.body['g-recaptcha-response'];
+        const isHuman = await verifyRecaptcha(recaptchaToken);
+        if (!isHuman) {
+            req.flash('error', 'Please complete the reCAPTCHA verification');
+            return res.redirect('/auth/staff-login');
+        }
     }
 
     try {
@@ -297,8 +355,17 @@ router.post('/student-register', uploadPicture.single('profile_picture'), async 
         `;
         await sendEmail(email, `Your Admission Number - ${admission_number}`, studentHtml);
 
-        req.flash('success', `Registration successful! Your admission number is: ${admission_number}. Please save it for login.`);
-        res.redirect('/auth/student-login');
+        // Store registration info in session for payment page
+        req.session.pendingRegistration = {
+            student_id: (await db.query('SELECT id FROM students WHERE admission_number = $1', [admission_number])).rows[0].id,
+            admission_number,
+            full_name,
+            email,
+            class_name: class_name || 'Not specified'
+        };
+
+        // Redirect to payment page
+        res.redirect('/auth/registration-payment');
 
     } catch (err) {
         console.error('Registration error:', err);
@@ -306,6 +373,165 @@ router.post('/student-register', uploadPicture.single('profile_picture'), async 
         res.redirect('/auth/student-register');
     }
 });
+
+// =================== REGISTRATION PAYMENT ===================
+router.get('/registration-payment', (req, res) => {
+    const pending = req.session.pendingRegistration;
+    if (!pending) {
+        req.flash('error', 'No pending registration found. Please register first.');
+        return res.redirect('/auth/student-register');
+    }
+
+    const amount = process.env.PAYMENT_AMOUNT || '2000';
+    const currency = process.env.CURRENCY || 'NGN';
+    const tx_ref = `REG-${pending.admission_number}-${Date.now()}`;
+
+    // Store tx_ref in session so we can verify later
+    req.session.pendingRegistration.tx_ref = tx_ref;
+
+    res.render('auth/registration-payment', {
+        title: 'Registration Payment - Islamic School',
+        page: 'registration-payment',
+        pending,
+        amount,
+        currency,
+        tx_ref
+    });
+});
+
+// Flutterwave callback after payment
+router.get('/payment-callback', async (req, res) => {
+    const { status, tx_ref, transaction_id } = req.query;
+    const pending = req.session.pendingRegistration;
+
+    if (!pending) {
+        req.flash('error', 'Session expired. Please contact admin.');
+        return res.redirect('/auth/student-login');
+    }
+
+    if (status === 'successful' || status === 'completed') {
+        try {
+            // Verify the transaction with Flutterwave API
+            const flwSecretKey = process.env.FLUTTERWAVE_SECRET_KEY;
+            let verified = false;
+
+            if (flwSecretKey && transaction_id) {
+                verified = await verifyFlutterwavePayment(transaction_id, flwSecretKey);
+            }
+
+            const paymentStatus = verified ? 'successful' : 'pending_verification';
+
+            // Record payment in database
+            await db.query(
+                `INSERT INTO payments (student_id, tx_ref, flw_transaction_id, amount, currency, payment_type, status)
+                 VALUES ($1, $2, $3, $4, $5, $6, $7)
+                 ON CONFLICT (tx_ref) DO UPDATE SET status = $7, flw_transaction_id = $3, updated_at = CURRENT_TIMESTAMP`,
+                [pending.student_id, tx_ref || pending.tx_ref, transaction_id || null,
+                 process.env.PAYMENT_AMOUNT || 2000, process.env.CURRENCY || 'NGN',
+                 'registration', paymentStatus]
+            );
+
+            // Send payment confirmation email
+            const paymentHtml = `
+                <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+                    <div style="background-color: #1a5f3f; color: white; padding: 20px; text-align: center; border-radius: 5px 5px 0 0;">
+                        <h2 style="margin: 0;">Payment Confirmation</h2>
+                        <p style="margin: 5px 0 0 0;">Islamic School Management System</p>
+                    </div>
+                    <div style="background-color: #f9f9f9; padding: 30px; border: 1px solid #ddd; border-radius: 0 0 5px 5px;">
+                        <p>Dear <strong>${pending.full_name}</strong>,</p>
+                        <p>Your registration payment has been received successfully!</p>
+                        <div style="background-color: #d4edda; border: 1px solid #c3e6cb; padding: 15px; border-radius: 5px; margin: 20px 0;">
+                            <p style="margin: 0;"><strong>Amount Paid:</strong> ₦${process.env.PAYMENT_AMOUNT || 2000}</p>
+                            <p style="margin: 5px 0 0 0;"><strong>Transaction Ref:</strong> ${tx_ref || pending.tx_ref}</p>
+                            <p style="margin: 5px 0 0 0;"><strong>Admission Number:</strong> ${pending.admission_number}</p>
+                        </div>
+                        <p>You can now login to your student portal using your admission number.</p>
+                        <p>JazakAllah Khair,<br><strong>Islamic School Management</strong></p>
+                    </div>
+                </div>
+            `;
+            await sendEmail(pending.email, `Payment Confirmation - ${pending.admission_number}`, paymentHtml);
+
+            // Also notify admin
+            const adminEmail = process.env.ADMIN_EMAIL || process.env.EMAIL_USER;
+            if (adminEmail) {
+                const adminPaymentHtml = `
+                    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+                        <div style="background-color: #1a5f3f; color: white; padding: 20px; text-align: center; border-radius: 5px 5px 0 0;">
+                            <h2 style="margin: 0;">New Registration Payment</h2>
+                        </div>
+                        <div style="background-color: #f9f9f9; padding: 30px; border: 1px solid #ddd; border-radius: 0 0 5px 5px;">
+                            <p><strong>Student:</strong> ${pending.full_name}</p>
+                            <p><strong>Admission No:</strong> ${pending.admission_number}</p>
+                            <p><strong>Email:</strong> ${pending.email}</p>
+                            <p><strong>Amount:</strong> ₦${process.env.PAYMENT_AMOUNT || 2000}</p>
+                            <p><strong>Transaction ID:</strong> ${transaction_id || 'N/A'}</p>
+                            <p><strong>Ref:</strong> ${tx_ref || pending.tx_ref}</p>
+                            <p><strong>Status:</strong> ${paymentStatus}</p>
+                        </div>
+                    </div>
+                `;
+                await sendEmail(adminEmail, `Registration Payment - ${pending.admission_number}`, adminPaymentHtml);
+            }
+
+            // Clear pending registration from session
+            const admissionNum = pending.admission_number;
+            delete req.session.pendingRegistration;
+
+            req.flash('success', `Payment successful! Your admission number is: ${admissionNum}. Please save it for login.`);
+            res.redirect('/auth/student-login');
+
+        } catch (err) {
+            console.error('Payment recording error:', err);
+            req.flash('success', `Registration complete! Your admission number is: ${pending.admission_number}. Payment was received.`);
+            delete req.session.pendingRegistration;
+            res.redirect('/auth/student-login');
+        }
+    } else {
+        // Payment cancelled or failed
+        req.flash('error', 'Payment was not completed. You can try paying again or contact admin.');
+        res.redirect('/auth/registration-payment');
+    }
+});
+
+// Helper function to verify Flutterwave payment
+function verifyFlutterwavePayment(transactionId, secretKey) {
+    return new Promise((resolve) => {
+        const options = {
+            hostname: 'api.flutterwave.com',
+            port: 443,
+            path: `/v3/transactions/${transactionId}/verify`,
+            method: 'GET',
+            headers: {
+                'Authorization': `Bearer ${secretKey}`,
+                'Content-Type': 'application/json'
+            }
+        };
+        const req = https.request(options, (res) => {
+            let data = '';
+            res.on('data', (chunk) => data += chunk);
+            res.on('end', () => {
+                try {
+                    const result = JSON.parse(data);
+                    const expectedAmount = parseFloat(process.env.PAYMENT_AMOUNT || 2000);
+                    const expectedCurrency = process.env.CURRENCY || 'NGN';
+                    resolve(
+                        result.status === 'success' &&
+                        result.data &&
+                        result.data.status === 'successful' &&
+                        result.data.amount >= expectedAmount &&
+                        result.data.currency === expectedCurrency
+                    );
+                } catch (e) {
+                    resolve(false);
+                }
+            });
+        });
+        req.on('error', () => resolve(false));
+        req.end();
+    });
+}
 
 // =================== FORGOT PASSWORD ===================
 router.get('/forgot-password', (req, res) => {
@@ -454,4 +680,3 @@ router.get('/logout', (req, res) => {
 });
 
 module.exports = router;
-

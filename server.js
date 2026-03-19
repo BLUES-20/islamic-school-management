@@ -61,6 +61,8 @@ app.use((req, res, next) => {
     res.locals.staff = req.session.staff || null;
     res.locals.student = req.session.student || null;
     res.locals.page = ""; // ✅ Global page variable
+    res.locals.recaptcha_site_key = process.env.GOOGLE_RECAPTCHA_SITE_KEY || '';
+    res.locals.flutterwave_public_key = process.env.FLUTTERWAVE_PUBLIC_KEY || '';
     next();
 });
 

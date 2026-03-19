@@ -11,12 +11,11 @@ const pool = new Pool({
 
 pool.connect()
   .then(client => {
-    console.log('✅ PostgreSQL Connected (local pgAdmin)');
+    console.log('✅ PostgreSQL Connected with FIXED config!');
     client.release();
   })
   .catch(err => {
-    console.error('❌ PostgreSQL connection failed:', err.message);
-    console.error('Hint: Check pgAdmin password for "postgres" user or DB_NAME=school_db exists.');
+    console.error('❌ FIXED config failed:', err.message);
   });
 
 module.exports = pool;
