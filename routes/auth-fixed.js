@@ -189,9 +189,9 @@ router.get('/student-register', (req, res) => {
 
 router.post('/student-register', uploadPicture.single('profile_picture'), async (req, res) => {
     console.time('register-start');
-        const {
+    const {
         first_name, last_name, email, date_of_birth, gender, class_name, parent_name, parent_phone, address, password, confirm_password
-    } = req.body;
+    } = req.body || {};
 
     // Handle file upload error
     if (req.fileValidationError) {
@@ -199,7 +199,7 @@ router.post('/student-register', uploadPicture.single('profile_picture'), async 
         return res.redirect('/auth/student-register');
     }
 
-    const full_name = `${first_name} ${last_name}`;
+    const full_name = `${first_name || ''} ${last_name || ''}`.trim();
 
     if (!first_name || !last_name || !email || !password || !confirm_password) {
         req.flash('error', 'Please fill in all required fields');
@@ -218,15 +218,8 @@ router.post('/student-register', uploadPicture.single('profile_picture'), async 
 
     try {
 // FAST: Single query for email check + max admission_number
-        const yearStr = new Date().getFullYear().toString();
-        const yearPattern = 'STU' + yearStr + '%';
-        const { rows: checks } = await db.query(`
-            SELECT 
-                EXISTS(SELECT 1 FROM users WHERE email = $1) as email_exists,
-                COALESCE((SELECT (SUBSTRING(MAX(admission_number) from 4)::int + 1 
-                            FROM students 
-                            WHERE admission_number ~ '^STU' || $2::text || '\\d{3}$')::int), 1) as next_count
-            `, [email, yearStr]);
+        // Simple original query
+        const { rows: existing } = await db.query('SELECT id FROM users WHERE email = $1', [email]);
         
         if (checks[0].email_exists) {
             req.flash('error', 'Email already registered');
