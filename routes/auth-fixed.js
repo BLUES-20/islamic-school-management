@@ -187,11 +187,17 @@ router.get('/student-register', (req, res) => {
     });
 });
 
-router.post('/student-register', async (req, res) => {
+router.post('/student-register', uploadPicture.single('profile_picture'), async (req, res) => {
     console.time('register-start');
-    const {
+        const {
         first_name, last_name, email, date_of_birth, gender, class_name, parent_name, parent_phone, address, password, confirm_password
     } = req.body;
+
+    // Handle file upload error
+    if (req.fileValidationError) {
+        req.flash('error', req.fileValidationError.message);
+        return res.redirect('/auth/student-register');
+    }
 
     const full_name = `${first_name} ${last_name}`;
 
@@ -247,7 +253,7 @@ router.post('/student-register', async (req, res) => {
             await client.query(
                 `INSERT INTO students (user_id, admission_number, first_name, last_name, email, date_of_birth, gender, picture, class, parent_name, parent_phone, address)
                  VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)`,
-                [user_id, admission_number, first_name, last_name, email, date_of_birth || null, gender || null, null, class_name || null, parent_name || null, parent_phone || null, address || null]
+            [user_id, admission_number, first_name, last_name, email, date_of_birth || null, gender || null, req.file ? req.file.path : null, class_name || null, parent_name || null, parent_phone || null, address || null]
             );
 
             const studentRes = await client.query('SELECT id FROM students WHERE admission_number = $1', [admission_number]);
