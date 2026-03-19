@@ -219,15 +219,15 @@ router.post('/student-register', uploadPicture.single('profile_picture'), async 
     try {
 // FAST: Single query for email check + max admission_number
         // Simple original query
-        const { rows: existing } = await db.query('SELECT id FROM users WHERE email = $1', [email]);
-        
-        if (checks[0].email_exists) {
-            req.flash('error', 'Email already registered');
+        if (existing.length) {
+            req.flash('error', 'Email registered');
             return res.redirect('/auth/student-register');
         }
 
-        const count = checks[0].next_count || 1;
-        const admission_number = `STU${year}${count.toString().padStart(3, '0')}`;
+        const yearStr = new Date().getFullYear();
+        const { rows: countResult } = await db.query('SELECT COUNT(*) FROM students');
+        const count = parseInt(countResult[0].count) + 1;
+        const admission_number = `STU${yearStr}${count.toString().padStart(3, '0')}`;
 
         // FAST: bcrypt first (parallel with other prep)
         const hashedPassword = await bcrypt.hash(password, 10);
