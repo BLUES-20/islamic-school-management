@@ -107,27 +107,31 @@ function getResendClient() {
 async function sendEmail(to, subject, html, options = {}) {
     const status = getStatus();
 
+    console.log(`📧 Email Request: provider="${status.provider}", configured=${status.configured}, to="${to}", subject="${subject}"`);
+
     if (!status.configured) {
-        console.warn(`⚠️ Email NOT sent - provider '${status.provider}' not configured. To: ${to}, Subject: ${subject}`);
-        if (process.env.EMAIL_DEBUG === '1') {
-            console.log('📧 Email skipped (not configured):', subject);
-        }
+        console.error(`❌ EMAIL NOT CONFIGURED - Provider: ${status.provider}`);
+        console.error(`   EMAIL_USER: ${process.env.EMAIL_USER ? '✓ set' : '✗ missing'}`);
+        console.error(`   EMAIL_PASS: ${process.env.EMAIL_PASS ? '✓ set' : '✗ missing'}`);
+        console.error(`   RESEND_API_KEY: ${process.env.RESEND_API_KEY ? '✓ set' : '✗ missing'}`);
+        console.error(`   SMTP_HOST: ${process.env.SMTP_HOST ? '✓ set' : '✗ missing'}`);
         return false;
     }
 
     const toList = normalizeEmailList(to);
     if (toList.length === 0) {
-        console.warn(`⚠️ Email NOT sent - no valid recipients. To: ${to}, Subject: ${subject}`);
+        console.error(`❌ No valid recipients. Original: ${to}`);
         return false;
     }
 
     const replyToList = normalizeEmailList(options.replyTo);
     const from = options.from || getFrom();
 
-    console.log(`📤 Attempting to send email via ${status.provider}. To: ${toList.join(', ')}, Subject: ${subject}`);
+    console.log(`📤 Sending email via ${status.provider} to ${toList.join(', ')}`);
 
     try {
         if (status.provider === 'resend') {
+            console.log('   Using Resend API...');
             const resend = getResendClient();
             const { error } = await resend.emails.send({
                 from,
@@ -138,26 +142,42 @@ async function sendEmail(to, subject, html, options = {}) {
             });
 
             if (error) {
+                console.error(`❌ Resend API error: ${error.message}`);
                 throw new Error(error.message || 'Resend email error');
             }
 
-            console.log(`✅ Email successfully sent via Resend to ${toList.join(', ')}`);
+            console.log(`✅ Email sent via Resend to ${toList.join(', ')}`);
             return true;
         }
 
+        console.log(`   Using ${status.provider === 'gmail' ? 'Gmail/Nodemailer' : 'SMTP'} transport...`);
         const transport = getNodemailerTransport(status.provider);
-        await transport.sendMail({
+        
+        const mailOptions = {
             from,
             to: toList.join(', '),
             subject,
             html,
             replyTo: replyToList.length ? replyToList.join(', ') : undefined
+        };
+
+        console.log(`   Mail options:`, {
+            from: mailOptions.from,
+            to: mailOptions.to,
+            subject: mailOptions.subject.substring(0, 50) + '...'
         });
 
-        console.log(`✅ Email successfully sent via ${status.provider} to ${toList.join(', ')}`);
+        const info = await transport.sendMail(mailOptions);
+        
+        console.log(`✅ Email successfully sent via ${status.provider}`);
+        console.log(`   Response: ${info.response}`);
+        console.log(`   Message ID: ${info.messageId}`);
         return true;
     } catch (err) {
-        console.error(`❌ Email sending error via ${status.provider}:`, err && err.message ? err.message : err);
+        console.error(`❌ CRITICAL Email sending error:`, err);
+        console.error(`   Error message: ${err.message}`);
+        console.error(`   Error code: ${err.code}`);
+        console.error(`   Error response: ${err.response}`);
         return false;
     }
 }

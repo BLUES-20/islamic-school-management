@@ -350,12 +350,22 @@ router.get('/payment-callback', async (req, res) => {
             
             // Try to send email but don't block if it fails
             try {
-                await sendEmail(pending.email, `Your Admission Number - ${pending.admission_number}`, admissionHtml);
-                console.log(`✅ Payment Complete & Email Sent: ${pending.admission_number} to ${pending.email}`);
+                console.log(`📧 ATTEMPTING TO SEND EMAIL`);
+                console.log(`   To: ${pending.email}`);
+                console.log(`   Subject: Your Admission Number - ${pending.admission_number}`);
+                console.log(`   Student Name: ${pending.full_name}`);
+                
+                const emailResult = await sendEmail(pending.email, `Your Admission Number - ${pending.admission_number}`, admissionHtml);
+                
+                if (emailResult) {
+                    console.log(`✅ EMAIL SENT SUCCESSFULLY to ${pending.email}`);
+                } else {
+                    console.warn(`⚠️ sendEmail returned false (email may not be configured)`);
+                }
             } catch (emailErr) {
-                console.error(`⚠️ Email send failed for ${pending.email}:`, emailErr.message);
-                console.log(`📌 Admission Number anyway: ${pending.admission_number}`);
-                // Don't fail the payment process - admission number is still valid
+                console.error(`❌ EMAIL SENDING EXCEPTION:`, emailErr);
+                console.error(`   Message: ${emailErr.message}`);
+                console.error(`   Stack: ${emailErr.stack}`);
             }
 
             // Store success data in session for the success page
@@ -403,6 +413,55 @@ router.get('/payment-success', (req, res) => {
 
     // Clear the success data after rendering
     delete req.session.paymentSuccess;
+});
+
+// =================== EMAIL DIAGNOSTIC TEST (for troubleshooting) ===================
+router.get('/test-email/:email', async (req, res) => {
+    const testEmail = req.params.email;
+    
+    console.log(`\n📧 ========== EMAIL TEST ==========`);
+    console.log(`Testing email to: ${testEmail}`);
+    
+    const testHtml = `
+        <div style="font-family: Arial; max-width: 600px; margin: 0 auto;">
+            <h2 style="color: #1a5f3f;">✅ Email System Test</h2>
+            <p>If you received this email, the email system is working correctly!</p>
+            <p><strong>Test Time:</strong> ${new Date().toISOString()}</p>
+            <p><strong>Environment:</strong> Render Production</p>
+        </div>
+    `;
+    
+    try {
+        console.log(`🔄 Calling sendEmail function...`);
+        const result = await sendEmail(testEmail, '✅ Islamic School - Email System Test', testHtml);
+        console.log(`📧 sendEmail result: ${result}`);
+        
+        res.json({
+            success: result,
+            message: result ? '✅ Email sent successfully!' : '⚠️ Email failed to send',
+            testEmail,
+            timestamp: new Date().toISOString(),
+            config: {
+                EMAIL_USER: process.env.EMAIL_USER ? '✓ configured' : '✗ missing',
+                EMAIL_PASS: process.env.EMAIL_PASS ? '✓ configured' : '✗ missing',
+                RESEND_API_KEY: process.env.RESEND_API_KEY ? '✓ configured' : '✗ missing',
+                SMTP_HOST: process.env.SMTP_HOST ? '✓ configured' : '✗ missing'
+            }
+        });
+    } catch (err) {
+        console.error(`❌ Email test error:`, err);
+        res.json({
+            success: false,
+            error: err.message,
+            testEmail,
+            config: {
+                EMAIL_USER: process.env.EMAIL_USER ? '✓ configured' : '✗ missing',
+                EMAIL_PASS: process.env.EMAIL_PASS ? '✓ configured' : '✗ missing',
+                RESEND_API_KEY: process.env.RESEND_API_KEY ? '✓ configured' : '✗ missing',
+                SMTP_HOST: process.env.SMTP_HOST ? '✓ configured' : '✗ missing'
+            }
+        });
+    }
 });
 
 // Forgot password, reset, logout (unchanged)
