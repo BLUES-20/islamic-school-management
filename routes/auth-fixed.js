@@ -358,11 +358,21 @@ router.get('/payment-callback', async (req, res) => {
                 // Don't fail the payment process - admission number is still valid
             }
 
-            const admissionNum = pending.admission_number;
+            // Store success data in session for the success page
+            req.session.paymentSuccess = {
+                student: {
+                    full_name: pending.full_name,
+                    email: pending.email,
+                    admission_number: pending.admission_number,
+                    class_name: pending.class_name
+                },
+                adminEmail: process.env.ADMIN_EMAIL || process.env.EMAIL_USER || 'admin@school.com'
+            };
+
             delete req.session.pendingRegistration;
-            req.flash('success', `✅ Payment successful! Your admission number is: ${admissionNum}`);
-            req.flash('info', `An email has been sent to ${pending.email} with your admission details.`);
-            res.redirect('/auth/student-login');
+            
+            // Redirect to success page
+            res.redirect('/auth/payment-success');
         } catch (err) {
             console.error('Payment callback error:', err);
             req.flash('error', 'Payment processing failed. Please contact admin.');
@@ -373,6 +383,26 @@ router.get('/payment-callback', async (req, res) => {
         req.flash('error', 'Payment was not successful. Please try again.');
         res.redirect('/auth/registration-payment');
     }
+});
+
+// =================== PAYMENT SUCCESS PAGE ===================
+router.get('/payment-success', (req, res) => {
+    const successData = req.session.paymentSuccess;
+    
+    if (!successData) {
+        req.flash('error', 'Session expired. Please contact admin.');
+        return res.redirect('/auth/student-login');
+    }
+
+    res.render('auth/payment-success', {
+        title: 'Registration Successful - Islamic School',
+        page: 'payment-success',
+        student: successData.student,
+        adminEmail: successData.adminEmail
+    });
+
+    // Clear the success data after rendering
+    delete req.session.paymentSuccess;
 });
 
 // Forgot password, reset, logout (unchanged)
