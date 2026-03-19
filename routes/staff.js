@@ -708,9 +708,7 @@ router.get('/edit-student/:id', async (req, res) => {
 // Update Student - Cloudinary version
 router.post('/edit-student/:id', uploadStudentPicture.single('profile_picture'), async (req, res) => {
     try {
-        const {
-            id
-        } = req.params;
+        const { id } = req.params;
         const {
             first_name,
             last_name,
@@ -724,10 +722,19 @@ router.post('/edit-student/:id', uploadStudentPicture.single('profile_picture'),
             address
         } = req.body;
 
+        // Validate required fields
+        if (!first_name || !last_name || !class_name || !parent_name || !parent_phone) {
+            req.flash('error', 'Please fill in all required fields (Name, Class, Parent Name, Parent Phone)');
+            return res.redirect(`/staff/edit-student/${id}`);
+        }
+
+        console.log(`📝 Updating student ${id}: ${first_name} ${last_name}`);
+
         // Handle profile picture - Cloudinary returns path as secure_url
         let picturePath = null;
         if (req.file && req.file.path) {
             picturePath = req.file.path;
+            console.log(`🖼️ New picture uploaded: ${picturePath}`);
         }
 
         // Build dynamic update query
@@ -739,13 +746,13 @@ router.post('/edit-student/:id', uploadStudentPicture.single('profile_picture'),
             first_name,
             last_name,
             class: class_name,
-            gender,
+            gender: gender || null,
             date_of_birth: date_of_birth || null,
             passport: passport || null,
             parent_name,
             parent_phone,
-            parent_email,
-            address
+            parent_email: parent_email || null,
+            address: address || null
         };
 
         if (picturePath) {
@@ -764,13 +771,19 @@ router.post('/edit-student/:id', uploadStudentPicture.single('profile_picture'),
         values.push(id);
 
         const updateQuery = `UPDATE students SET ${updateFields.join(', ')} WHERE id = $${paramIndex}`;
-        await db.query(updateQuery, values);
+        
+        console.log(`📋 Update query: ${updateQuery}`);
+        console.log(`📊 Update values: `, values);
 
+        const result = await db.query(updateQuery, values);
+        
+        console.log(`✅ Student ${id} updated successfully`);
+        
         req.flash('success', 'Student details updated successfully');
         res.redirect('/staff/manage-students');
     } catch (err) {
-        console.error('Update student error:', err);
-        req.flash('error', 'Error updating student record');
+        console.error('❌ Update student error:', err);
+        req.flash('error', `Error updating student record: ${err.message}`);
         res.redirect(`/staff/edit-student/${req.params.id}`);
     }
 });

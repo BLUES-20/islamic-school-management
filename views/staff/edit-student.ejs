@@ -3,13 +3,35 @@
 <div class="container py-5">
     <div class="row justify-content-center">
         <div class="col-lg-8">
+            <!-- Error Messages -->
+            <% if (error_msg && error_msg.length > 0) { %>
+                <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                    <strong><i class="fas fa-exclamation-circle"></i> Error:</strong>
+                    <% error_msg.forEach(msg => { %>
+                        <p class="mb-0"><%= msg %></p>
+                    <% }); %>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            <% } %>
+
+            <!-- Success Messages -->
+            <% if (success_msg && success_msg.length > 0) { %>
+                <div class="alert alert-success alert-dismissible fade show" role="alert">
+                    <strong><i class="fas fa-check-circle"></i> Success:</strong>
+                    <% success_msg.forEach(msg => { %>
+                        <p class="mb-0"><%= msg %></p>
+                    <% }); %>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            <% } %>
+
             <div class="card shadow-lg border-0" style="border-radius: 2rem; overflow: hidden;">
                 <div class="card-header bg-success text-white p-4 text-center">
                     <h3 class="mb-1 fw-bold"><i class="fas fa-user-edit me-3"></i>Edit Student Profile</h3>
                     <p class="mb-0 opacity-75">Updating record for <%= student.first_name %> <%= student.last_name %> (#<%= student.admission_number %>)</p>
                 </div>
                 <div class="card-body p-5">
-                    <form action="/staff/edit-student/<%= student.id %>" method="POST" enctype="multipart/form-data">
+                    <form action="/staff/edit-student/<%= student.id %>" method="POST" enctype="multipart/form-data" id="editStudentForm">
 
                         <div class="row g-4">
                             <!-- Personal Info -->
@@ -115,16 +137,47 @@
 </div>
 
 <script>
+    const form = document.getElementById('editStudentForm');
+    
+    // Handle Save Changes button submission
+    form.addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        const firstName = document.querySelector('input[name="first_name"]').value.trim();
+        const lastName = document.querySelector('input[name="last_name"]').value.trim();
+        const className = document.querySelector('select[name="class_name"]').value;
+        const parentName = document.querySelector('input[name="parent_name"]').value.trim();
+        const parentPhone = document.querySelector('input[name="parent_phone"]').value.trim();
+
+        // Validate required fields
+        if (!firstName || !lastName || !className || !parentName || !parentPhone) {
+            alert('⚠️ Please fill in all required fields:\n- First Name\n- Last Name\n- Class\n- Parent Name\n- Parent Phone');
+            return;
+        }
+
+        console.log('📝 Submitting form with data:', {
+            first_name: firstName,
+            last_name: lastName,
+            class_name: className,
+            parent_name: parentName,
+            parent_phone: parentPhone
+        });
+
+        // Submit the form
+        this.submit();
+    });
+
+    // Handle delete button
     document.getElementById('deleteBtn').addEventListener('click', function() {
         const id = this.getAttribute('data-id');
         const name = this.getAttribute('data-name');
 
         if (confirm(`⚠️ PERMANENT ACTION: Are you sure you want to delete ${name}?\n\nThis will permanently delete their account, results, and all history. This cannot be undone.`)) {
-            const form = document.createElement('form');
-            form.method = 'POST';
-            form.action = `/staff/delete-student/${id}`;
-            document.body.appendChild(form);
-            form.submit();
+            const deleteForm = document.createElement('form');
+            deleteForm.method = 'POST';
+            deleteForm.action = `/staff/delete-student/${id}`;
+            document.body.appendChild(deleteForm);
+            deleteForm.submit();
         }
     });
 
