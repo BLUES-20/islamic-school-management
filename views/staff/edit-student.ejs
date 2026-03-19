@@ -137,23 +137,43 @@
 </div>
 
 <script>
-    // Simple form validation without preventing default
-    document.getElementById('editStudentForm').addEventListener('submit', function(e) {
+    console.log('📄 Edit Student page loaded');
+    
+    const form = document.getElementById('editStudentForm');
+    console.log('✓ Form element found:', form);
+    
+    const submitBtn = form.querySelector('button[type="submit"]');
+    console.log('✓ Submit button found:', submitBtn);
+    
+    // Add click listener to see if button is being clicked
+    submitBtn.addEventListener('click', function(e) {
+        console.log('🔘 Save Changes button clicked!');
+        console.log('📌 Form action:', form.action);
+        console.log('📌 Form method:', form.method);
+    });
+    
+    // Simple form validation without preventing default submission
+    form.addEventListener('submit', function(e) {
+        console.log('📋 Form submit event triggered');
+        
         const firstName = document.querySelector('input[name="first_name"]').value.trim();
         const lastName = document.querySelector('input[name="last_name"]').value.trim();
         const className = document.querySelector('select[name="class_name"]').value;
         const parentName = document.querySelector('input[name="parent_name"]').value.trim();
         const parentPhone = document.querySelector('input[name="parent_phone"]').value.trim();
 
+        console.log('📝 Form data:', {firstName, lastName, className, parentName, parentPhone});
+
         // Validate required fields
         if (!firstName || !lastName || !className || !parentName || !parentPhone) {
+            console.warn('⚠️ Validation failed');
             e.preventDefault();
             alert('⚠️ Please fill in all required fields:\n- First Name\n- Last Name\n- Class\n- Parent Name\n- Parent Phone');
             return false;
         }
 
-        console.log('✅ Form validation passed, submitting...');
-        // Form will submit normally
+        console.log('✅ Form validation passed, submitting form...');
+        // Form will submit normally - no preventDefault
     });
 
     // Handle delete button
