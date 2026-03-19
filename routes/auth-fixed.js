@@ -188,74 +188,98 @@ router.get('/student-register', (req, res) => {
 });
 
 router.post('/student-register', uploadPicture.single('profile_picture'), async (req, res) => {
-    console.time('register-start');
+    console.log('\n📝 ========== STUDENT REGISTRATION REQUEST ==========');
+    console.time('register-duration');
+    
     const {
         first_name, last_name, email, date_of_birth, gender, class_name, parent_name, parent_phone, address, password, confirm_password
     } = req.body || {};
 
+    console.log('📋 Form data received:', {
+        first_name, last_name, email, class_name, parent_name, parent_phone,
+        password: password ? '***' : 'MISSING',
+        confirm_password: confirm_password ? '***' : 'MISSING',
+        file: req.file ? 'YES' : 'NO'
+    });
+
     // Handle file upload error
     if (req.fileValidationError) {
+        console.error('❌ File validation error:', req.fileValidationError.message);
         req.flash('error', req.fileValidationError.message);
         return res.redirect('/auth/student-register');
     }
 
     const full_name = `${first_name || ''} ${last_name || ''}`.trim();
 
+    // Validation checks
     if (!first_name || !last_name || !email || !password || !confirm_password) {
+        console.warn('⚠️ Missing required fields');
         req.flash('error', 'Please fill in all required fields');
         return res.redirect('/auth/student-register');
     }
 
     if (password !== confirm_password) {
+        console.warn('⚠️ Passwords do not match');
         req.flash('error', 'Passwords do not match');
         return res.redirect('/auth/student-register');
     }
 
     if (password.length < 6) {
+        console.warn('⚠️ Password too short');
         req.flash('error', 'Password must be at least 6 characters');
         return res.redirect('/auth/student-register');
     }
 
     try {
-// FAST: Single query for email check + max admission_number
-        // Check if email already exists
+        console.log('🔍 Checking if email already exists...');
         const { rows: existing } = await db.query('SELECT id FROM users WHERE email = $1', [email]);
         if (existing.length) {
-            req.flash('error', 'Email registered');
+            console.warn('⚠️ Email already registered:', email);
+            req.flash('error', 'Email already registered');
             return res.redirect('/auth/student-register');
         }
 
+        console.log('✅ Email is unique');
+
         const yearStr = new Date().getFullYear();
-        const { rows: countResult } = await db.query('SELECT COUNT(*) FROM students');
+        console.log(`📊 Generating admission number for year ${yearStr}`);
+        
+        const { rows: countResult } = await db.query('SELECT COUNT(*) as count FROM students');
         const count = parseInt(countResult[0].count) + 1;
-        const admission_number = `STU${yearStr}${count.toString().padStart(3, '0')}`;
+        const admission_number = `STU${yearStr}${String(count).padStart(3, '0')}`;
+        console.log(`✅ Generated admission number: ${admission_number}`);
 
-        // FAST: bcrypt first (parallel with other prep)
+        console.log('🔐 Hashing password...');
         const hashedPassword = await bcrypt.hash(password, 10);
+        console.log('✅ Password hashed');
 
-        // SINGLE TRANSACTION: All inserts atomic + fast
+        console.log('💾 Starting database transaction...');
         const client = await db.connect();
         try {
             await client.query('BEGIN');
-            
+            console.log('✅ Transaction started');
+
+            console.log('👤 Creating user record...');
             const userRes = await client.query(
                 'INSERT INTO users (username, email, password, role) VALUES ($1, $2, $3, $4) RETURNING id',
                 [email, email, hashedPassword, 'student']
             );
             const user_id = userRes.rows[0].id;
+            console.log(`✅ User created with ID: ${user_id}`);
 
-            await client.query(
+            console.log('📚 Creating student record...');
+            const insertRes = await client.query(
                 `INSERT INTO students (user_id, admission_number, first_name, last_name, email, date_of_birth, gender, picture, class, parent_name, parent_phone, address)
-                 VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)`,
-            [user_id, admission_number, first_name, last_name, email, date_of_birth || null, gender || null, req.file ? req.file.path : null, class_name || null, parent_name || null, parent_phone || null, address || null]
+                 VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12) RETURNING id`,
+                [user_id, admission_number, first_name, last_name, email, date_of_birth || null, gender || null, req.file ? req.file.path : null, class_name || null, parent_name || null, parent_phone || null, address || null]
             );
-
-            const studentRes = await client.query('SELECT id FROM students WHERE admission_number = $1', [admission_number]);
-            const student_id = studentRes.rows[0].id;
+            const student_id = insertRes.rows[0].id;
+            console.log(`✅ Student created with ID: ${student_id}`);
 
             await client.query('COMMIT');
-            
-            // Session + redirect
+            console.log('✅ Transaction committed');
+
+            // Session storage
             req.session.pendingRegistration = {
                 student_id,
                 admission_number,
@@ -264,17 +288,31 @@ router.post('/student-register', uploadPicture.single('profile_picture'), async 
                 class_name: class_name || 'Not specified'
             };
 
-            console.log(`✅ ULTRA-FAST Registration: ${admission_number} (${full_name})`);
+            console.log(`\n✅ REGISTRATION SUCCESS`);
+            console.log(`   Student: ${full_name}`);
+            console.log(`   Email: ${email}`);
+            console.log(`   Admission: ${admission_number}`);
+            console.timeEnd('register-duration');
+            console.log('========== REGISTRATION COMPLETE ==========\n');
             
+            res.redirect('/auth/registration-payment');
+        } catch (txErr) {
+            await client.query('ROLLBACK');
+            console.error('❌ Transaction error:', txErr.message);
+            throw txErr;
         } finally {
             client.release();
         }
-
-        console.timeEnd('register-start');
-        res.redirect('/auth/registration-payment');
     } catch (err) {
-        console.timeEnd('register-start');
-        console.error('Registration error:', err);
+        console.timeEnd('register-duration');
+        console.error('\n❌ ========== REGISTRATION FAILED ==========');
+        console.error(`Error message: ${err.message}`);
+        console.error(`Error code: ${err.code}`);
+        console.error(`Error detail: ${err.detail}`);
+        console.error(`Stack: ${err.stack}`);
+        console.error(`Input data: ${JSON.stringify({first_name, last_name, email, class_name})}`);
+        console.error('========== END ERROR ==========\n');
+        
         req.flash('error', 'Registration failed. Please try again.');
         res.redirect('/auth/student-register');
     }
