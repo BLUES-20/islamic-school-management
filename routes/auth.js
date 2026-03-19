@@ -4,7 +4,7 @@ const bcrypt = require('bcrypt');
 const crypto = require('crypto');
 const https = require('https');
 const router = express.Router();
-const db = require('../config/db');
+const db = require('../config/supabase');
 const emailService = require('../services/email');
 const multer = require('multer');
 const path = require('path');
@@ -239,7 +239,7 @@ router.get('/student-register', (req, res) => {
     });
 });
 
-router.post('/student-register', uploadPicture.single('profile_picture'), async (req, res) => {
+router.post('/student-register', async (req, res) => {\n    console.time('register-start');\n    const {
     const {
         first_name,
         last_name,
@@ -297,63 +297,17 @@ router.post('/student-register', uploadPicture.single('profile_picture'), async 
         const user_id = userResult.rows[0].id;
 
         // Handle profile picture - Cloudinary returns secure_url
-        let picturePath = null;
-        if (req.file && req.file.path) {
-            picturePath = req.file.path;
-        }
+        let picturePath = null; // Picture upload later in profile
 
         // Create student record
         await db.query(
             `INSERT INTO students (user_id, admission_number, first_name, last_name, email, date_of_birth, gender, picture, class, parent_name, parent_phone, address)
              VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)`,
-            [user_id, admission_number, first_name, last_name, email, date_of_birth || null, gender || null, picturePath, class_name || null, parent_name || null, parent_phone || null, address || null]
-        );
+            [user_id, admission_number, first_name, last_name, email, date_of_birth || null, gender || null, null, class_name || null, parent_name || null, parent_phone || null, address || null]\n        );\n\n        const adminEmail = process.env.ADMIN_EMAIL || process.env.EMAIL_INBOX || process.env.EMAIL_USER;\n        const adminHtml = `\n            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">\n                <div style="background-color: #1a5f3f; color: white; padding: 20px; text-align: center; border-radius: 5px 5px 0 0;">\n                    <h2 style="margin: 0;">New Student Registration</h2>\n                    <p style="margin: 5px 0 0 0;">Islamic School Management System</p>\n                </div>\n                <div style="background-color: #f9f9f9; padding: 30px; border: 1px solid #ddd; border-radius: 0 0 5px 5px;">\n                    <h3>Student Details:</h3>\n                    <p><strong>Full Name:</strong> ${full_name}</p>\n                    <p><strong>Email:</strong> ${email}</p>\n                    <p><strong>Admission Number:</strong> <span style="font-size: 1.2em; color: #1a5f3f; font-weight: bold;">${admission_number}</span></p>\n                    <p><strong>Class:</strong> ${class_name || 'Not specified'}</p>\n                    <p><strong>Date of Birth:</strong> ${date_of_birth || 'Not specified'}</p>\n                    <p><strong>Gender:</strong> ${gender || 'Not specified'}</p>\n                    <p><strong>Parent Name:</strong> ${parent_name || 'Not specified'}</p>\n                    <p><strong>Parent Phone:</strong> ${parent_phone || 'Not specified'}</p>\n                    <p><strong>Address:</strong> ${address || 'Not specified'}</p>\n                    <p style="margin-top: 20px; color: #666; font-size: 0.9em;">Registered on: ${new Date().toLocaleString()}</p>\n                </div>\n        `;\n        const studentHtml = `\n            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">\n                <div style="background-color: #1a5f3f; color: white; padding: 20px; text-align: center; border-radius: 5px 5px 0 0;">\n                    <h2 style="margin: 0;">Welcome to Islamic School!</h2>\n                    <p style="margin: 5px 0 0 0;">Registration Successful</p>\n                </div>\n                <div style="background-color: #f9f9f9; padding: 30px; border: 1px solid #ddd; border-radius: 0 0 5px 5px;">\n                    <p>Dear <strong>${full_name}</strong>,</p>\n                    <p>Your registration has been completed successfully. Please save your admission number below - you will need it to log in.</p>\n                    <div style="background-color: #1a5f3f; color: white; text-align: center; padding: 20px; border-radius: 5px; margin: 20px 0;">\n                        <p style="margin: 0; font-size: 0.9em;">Your Admission Number</p>\n                        <h1 style="margin: 10px 0; letter-spacing: 3px;">${admission_number}</h1>\n                    </div>\n                    <p>To login, visit your school portal and use your admission number and the password you created during registration.</p>\n                    <p>JazakAllah Khair,<br><strong>Islamic School Management</strong></p>\n                </div>\n        `;\n\n        console.time('register-emails');\n\n        // Fire emails in parallel + background (non-blocking)\n        const adminEmailPromise = adminEmail ? sendEmail(adminEmail, `New Student Registration - ${admission_number}`, adminHtml) : Promise.resolve();\n        const studentEmailPromise = sendEmail(email, `Your Admission Number - ${admission_number}`, studentHtml);\n        \n        // Run in parallel\n        Promise.all([adminEmailPromise, studentEmailPromise]).then(() => {\n            console.timeEnd('register-emails');\n            // Fire-and-forget: emails continue after response sent\n        }).catch(err => console.error('Background email error:', err));
 
         // Send admission number to admin email
         const adminEmail = process.env.ADMIN_EMAIL || process.env.EMAIL_INBOX || process.env.EMAIL_USER;
-        const adminHtml = `
-            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-                <div style="background-color: #1a5f3f; color: white; padding: 20px; text-align: center; border-radius: 5px 5px 0 0;">
-                    <h2 style="margin: 0;">New Student Registration</h2>
-                    <p style="margin: 5px 0 0 0;">Islamic School Management System</p>
-                </div>
-                <div style="background-color: #f9f9f9; padding: 30px; border: 1px solid #ddd; border-radius: 0 0 5px 5px;">
-                    <h3>Student Details:</h3>
-                    <p><strong>Full Name:</strong> ${full_name}</p>
-                    <p><strong>Email:</strong> ${email}</p>
-                    <p><strong>Admission Number:</strong> <span style="font-size: 1.2em; color: #1a5f3f; font-weight: bold;">${admission_number}</span></p>
-                    <p><strong>Class:</strong> ${class_name || 'Not specified'}</p>
-                    <p><strong>Date of Birth:</strong> ${date_of_birth || 'Not specified'}</p>
-                    <p><strong>Gender:</strong> ${gender || 'Not specified'}</p>
-                    <p><strong>Parent Name:</strong> ${parent_name || 'Not specified'}</p>
-                    <p><strong>Parent Phone:</strong> ${parent_phone || 'Not specified'}</p>
-                    <p><strong>Address:</strong> ${address || 'Not specified'}</p>
-                    <p style="margin-top: 20px; color: #666; font-size: 0.9em;">Registered on: ${new Date().toLocaleString()}</p>
-                </div>
-        `;
-        if (adminEmail) {
-            await sendEmail(adminEmail, `New Student Registration - ${admission_number}`, adminHtml);
-        }
-
-        // Send welcome email to the student
-        const studentHtml = `
-            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-                <div style="background-color: #1a5f3f; color: white; padding: 20px; text-align: center; border-radius: 5px 5px 0 0;">
-                    <h2 style="margin: 0;">Welcome to Islamic School!</h2>
-                    <p style="margin: 5px 0 0 0;">Registration Successful</p>
-                </div>
-                <div style="background-color: #f9f9f9; padding: 30px; border: 1px solid #ddd; border-radius: 0 0 5px 5px;">
-                    <p>Dear <strong>${full_name}</strong>,</p>
-                    <p>Your registration has been completed successfully. Please save your admission number below - you will need it to log in.</p>
-                    <div style="background-color: #1a5f3f; color: white; text-align: center; padding: 20px; border-radius: 5px; margin: 20px 0;">
-                        <p style="margin: 0; font-size: 0.9em;">Your Admission Number</p>
-                        <h1 style="margin: 10px 0; letter-spacing: 3px;">${admission_number}</h1>
-                    </div>
-                    <p>To login, visit your school portal and use your admission number and the password you created during registration.</p>
-                    <p>JazakAllah Khair,<br><strong>Islamic School Management</strong></p>
-                </div>
-        `;
-        await sendEmail(email, `Your Admission Number - ${admission_number}`, studentHtml);
+        console.time('register-emails');\n\n        // Fire emails in parallel + background (non-blocking)\n        const adminEmailPromise = adminEmail ? sendEmail(adminEmail, `New Student Registration - ${admission_number}`, adminHtml) : Promise.resolve();\n        const studentEmailPromise = sendEmail(email, `Your Admission Number - ${admission_number}`, studentHtml);\n        \n        // Run in parallel\n        Promise.all([adminEmailPromise, studentEmailPromise]).then(() => {\n            console.timeEnd('register-emails');\n            // Fire-and-forget: emails continue after response sent\n        }).catch(err => console.error('Background email error:', err));
 
         // Store registration info in session for payment page
         req.session.pendingRegistration = {
@@ -367,12 +321,7 @@ router.post('/student-register', uploadPicture.single('profile_picture'), async 
         // Redirect to payment page
         res.redirect('/auth/registration-payment');
 
-    } catch (err) {
-        console.error('Registration error:', err);
-        req.flash('error', 'Registration failed. Please try again.');
-        res.redirect('/auth/student-register');
-    }
-});
+        console.timeEnd('register-start');\n\n        // Store registration info in session for payment page\n        req.session.pendingRegistration = {\n            student_id: (await db.query('SELECT id FROM students WHERE admission_number = $1', [admission_number])).rows[0].id,\n            admission_number,\n            full_name,\n            email,\n            class_name: class_name || 'Not specified'\n        };\n\n        // Redirect to payment page\n        res.redirect('/auth/registration-payment');\n\n    } catch (err) {\n        console.timeEnd('register-start');\n        console.error('Registration error:', err);\n        req.flash('error', 'Registration failed. Please try again.');\n        res.redirect('/auth/student-register');\n    }\n});
 
 // =================== REGISTRATION PAYMENT ===================
 router.get('/registration-payment', (req, res) => {
