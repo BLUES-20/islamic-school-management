@@ -108,6 +108,7 @@ async function sendEmail(to, subject, html, options = {}) {
     const status = getStatus();
 
     if (!status.configured) {
+        console.warn(`⚠️ Email NOT sent - provider '${status.provider}' not configured. To: ${to}, Subject: ${subject}`);
         if (process.env.EMAIL_DEBUG === '1') {
             console.log('📧 Email skipped (not configured):', subject);
         }
@@ -115,10 +116,15 @@ async function sendEmail(to, subject, html, options = {}) {
     }
 
     const toList = normalizeEmailList(to);
-    if (toList.length === 0) return false;
+    if (toList.length === 0) {
+        console.warn(`⚠️ Email NOT sent - no valid recipients. To: ${to}, Subject: ${subject}`);
+        return false;
+    }
 
     const replyToList = normalizeEmailList(options.replyTo);
     const from = options.from || getFrom();
+
+    console.log(`📤 Attempting to send email via ${status.provider}. To: ${toList.join(', ')}, Subject: ${subject}`);
 
     try {
         if (status.provider === 'resend') {
@@ -135,9 +141,7 @@ async function sendEmail(to, subject, html, options = {}) {
                 throw new Error(error.message || 'Resend email error');
             }
 
-            if (process.env.EMAIL_DEBUG === '1') {
-                console.log(`✅ Email sent via Resend to ${toList.join(', ')}`);
-            }
+            console.log(`✅ Email successfully sent via Resend to ${toList.join(', ')}`);
             return true;
         }
 
@@ -150,12 +154,10 @@ async function sendEmail(to, subject, html, options = {}) {
             replyTo: replyToList.length ? replyToList.join(', ') : undefined
         });
 
-        if (process.env.EMAIL_DEBUG === '1') {
-            console.log(`✅ Email sent via ${status.provider} to ${toList.join(', ')}`);
-        }
+        console.log(`✅ Email successfully sent via ${status.provider} to ${toList.join(', ')}`);
         return true;
     } catch (err) {
-        console.error('Email sending error:', err && err.message ? err.message : err);
+        console.error(`❌ Email sending error via ${status.provider}:`, err && err.message ? err.message : err);
         return false;
     }
 }
