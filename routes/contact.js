@@ -1,5 +1,6 @@
 const express = require('express');
 const router = express.Router();
+const db = require('../config/supabase');
 const {
     sendEmail
 } = require('../services/email');
@@ -27,8 +28,7 @@ router.post('/contact', async (req, res) => {
     }
 
     try {
-        // Save message to database first
-        const db = require('../config/db');
+        // Save message to database
         await db.query(
             `INSERT INTO contact_messages (name, email, subject, message, status) VALUES ($1, $2, $3, $4, 'unread')`,
             [name, email, subject, message]
