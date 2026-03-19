@@ -218,7 +218,8 @@ router.post('/student-register', uploadPicture.single('profile_picture'), async 
 
     try {
 // FAST: Single query for email check + max admission_number
-        // Simple original query
+        // Check if email already exists
+        const { rows: existing } = await db.query('SELECT id FROM users WHERE email = $1', [email]);
         if (existing.length) {
             req.flash('error', 'Email registered');
             return res.redirect('/auth/student-register');
