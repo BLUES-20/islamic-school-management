@@ -465,7 +465,7 @@
             <!-- Form Content -->
             <div class="col-lg-8">
                 <div class="form-content">
-                    <form action="/auth/student-register" method="POST" enctype="multipart/form-data" class="needs-validation" novalidate>
+                    <form action="/auth/student-register" method="POST" enctype="multipart/form-data">
 
                         <!-- Personal Info -->
                         <div class="section-title">
@@ -645,21 +645,6 @@
             preview.style.display = 'none';
         }
     }
-
-    // Form validation bootstrap
-    (function() {
-        'use strict'
-        var forms = document.querySelectorAll('.needs-validation')
-        Array.prototype.slice.call(forms).forEach(function(form) {
-            form.addEventListener('submit', function(event) {
-                if (!form.checkValidity()) {
-                    event.preventDefault()
-                    event.stopPropagation()
-                }
-                form.classList.add('was-validated')
-            }, false)
-        })
-    })()
 
 </script>
 
