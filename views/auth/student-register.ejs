@@ -5,268 +5,175 @@
         --islamic-primary: #1a5f3f;
         --islamic-secondary: #2d7a5f;
         --islamic-accent: #3a8f6f;
-        --glass-bg: rgba(255, 255, 255, 0.98);
-        --shadow-soft: 0 8px 32px rgba(26, 95, 63, 0.1);
-        --shadow-strong: 0 20px 60px rgba(26, 95, 63, 0.15);
-        --gradient-primary: linear-gradient(135deg, var(--islamic-primary), var(--islamic-secondary));
-        --gradient-accent: linear-gradient(135deg, var(--islamic-accent), var(--islamic-primary));
     }
 
     body {
         background: linear-gradient(135deg, #f8fdf9 0%, #e8f5ed 50%, #d4edde 100%);
         min-height: 100vh;
-        font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     }
 
-    .registration-container {
-        padding: 3rem 1rem;
+    .registration-wrapper {
         min-height: 100vh;
         display: flex;
         align-items: center;
+        justify-content: center;
+        padding: 2rem 1rem;
     }
 
     .registration-card {
-        background: var(--glass-bg);
-        backdrop-filter: blur(20px);
-        border-radius: 24px;
-        border: 1px solid rgba(255, 255, 255, 0.2);
-        box-shadow: var(--shadow-strong);
+        background: white;
+        border-radius: 16px;
+        box-shadow: 0 20px 60px rgba(26, 95, 63, 0.15);
         overflow: hidden;
-        max-width: 1200px;
+        max-width: 900px;
         width: 100%;
-        margin: 0 auto;
     }
 
-    .registration-card::before {
-        content: '';
-        position: absolute;
-        top: 0;
-        left: 0;
-        right: 0;
-        height: 4px;
-        background: var(--gradient-primary);
-    }
-
-    .form-sidebar {
-        background: var(--gradient-primary);
+    .registration-header {
+        background: linear-gradient(135deg, var(--islamic-primary), var(--islamic-secondary));
         color: white;
         padding: 3rem 2rem;
-        display: flex;
-        flex-direction: column;
-        justify-content: center;
-        min-height: 600px;
-        position: relative;
-        overflow: hidden;
+        text-align: center;
     }
 
-    .form-sidebar::before {
-        content: '';
-        position: absolute;
-        top: -50%;
-        left: -50%;
-        width: 200%;
-        height: 200%;
-        background: radial-gradient(circle, rgba(255, 255, 255, 0.1) 0%, transparent 70%);
-        animation: float 6s ease-in-out infinite;
-    }
-
-    @keyframes float {
-
-        0%,
-        100% {
-            transform: translate(-50%, -50%) scale(1);
-        }
-
-        50% {
-            transform: translate(-50%, -50%) scale(1.1);
-        }
-    }
-
-    .sidebar-content {
-        position: relative;
-        z-index: 2;
-    }
-
-    .sidebar-title {
-        font-size: 2.2rem;
+    .registration-header h1 {
+        font-size: 2rem;
         font-weight: 700;
-        margin-bottom: 1rem;
-        line-height: 1.2;
+        margin-bottom: 0.5rem;
     }
 
-    .sidebar-subtitle {
+    .registration-header p {
+        font-size: 1rem;
         opacity: 0.9;
-        font-size: 1.1rem;
-        margin-bottom: 3rem;
-        line-height: 1.5;
+        margin: 0;
     }
 
-    .step-indicator {
-        display: flex;
-        align-items: center;
+    .registration-body {
+        padding: 3rem;
+    }
+
+    .form-section {
         margin-bottom: 2rem;
-        opacity: 0.8;
-        transition: all 0.3s ease;
-        padding: 1rem;
-        border-radius: 12px;
-        background: rgba(255, 255, 255, 0.1);
-        backdrop-filter: blur(10px);
     }
 
-    .step-indicator.active {
-        opacity: 1;
-        background: rgba(255, 255, 255, 0.2);
-        transform: translateX(10px);
-    }
-
-    .step-number {
-        width: 40px;
-        height: 40px;
-        border: 2px solid white;
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        margin-right: 1rem;
-        font-size: 1rem;
-        font-weight: 700;
-        background: rgba(255, 255, 255, 0.2);
-    }
-
-    .step-text {
-        font-weight: 600;
-        font-size: 1rem;
-    }
-
-    .sidebar-footer {
-        margin-top: auto;
-        opacity: 0.8;
-        font-size: 0.9rem;
-        display: flex;
-        align-items: center;
-    }
-
-    .sidebar-footer i {
-        margin-right: 0.5rem;
-    }
-
-    .form-content {
-        padding: 3rem 3rem;
-        background: white;
-    }
-
-    .section-title {
+    .form-section-title {
         color: var(--islamic-primary);
+        font-size: 1.2rem;
         font-weight: 700;
-        font-size: 1.5rem;
-        margin-bottom: 2rem;
+        margin-bottom: 1.5rem;
+        padding-bottom: 0.5rem;
+        border-bottom: 2px solid #f0f2f5;
         display: flex;
         align-items: center;
-        padding-bottom: 1rem;
-        border-bottom: 2px solid #f0f2f5;
     }
 
-    .section-title i {
-        background: linear-gradient(135deg, var(--islamic-primary), var(--islamic-secondary));
-        width: 45px;
-        height: 45px;
-        border-radius: 12px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        margin-right: 1rem;
-        color: white;
-        box-shadow: 0 4px 12px rgba(26, 95, 63, 0.3);
+    .form-section-title i {
+        margin-right: 0.8rem;
+        font-size: 1.3rem;
     }
 
     .form-row {
         display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
         gap: 1.5rem;
-        margin-bottom: 2rem;
+        margin-bottom: 1.5rem;
     }
 
     .form-group {
-        margin-bottom: 0;
+        display: flex;
+        flex-direction: column;
     }
 
-    .form-label {
+    .form-group label {
         font-weight: 600;
         color: #374151;
-        font-size: 0.9rem;
+        font-size: 0.95rem;
         margin-bottom: 0.5rem;
-        display: block;
+        display: flex;
+        align-items: center;
     }
 
-    .form-control,
-    .form-select {
+    .form-group label .required {
+        color: #dc2626;
+        margin-left: 0.25rem;
+    }
+
+    .form-group input,
+    .form-group select,
+    .form-group textarea {
         border: 2px solid #e5e7eb;
-        border-radius: 12px;
-        padding: 1rem 1.25rem;
+        border-radius: 8px;
+        padding: 0.75rem 1rem;
         font-size: 1rem;
+        font-family: inherit;
         transition: all 0.3s ease;
         background: #f9fafb;
-        width: 100%;
     }
 
-    .form-control:focus,
-    .form-select:focus {
+    .form-group input:focus,
+    .form-group select:focus,
+    .form-group textarea:focus {
         border-color: var(--islamic-primary);
-        box-shadow: 0 0 0 4px rgba(26, 95, 63, 0.1);
         background: white;
-        transform: translateY(-1px);
+        box-shadow: 0 0 0 3px rgba(26, 95, 63, 0.1);
         outline: none;
     }
 
-    .form-text {
-        color: #6b7280;
-        font-size: 0.85rem;
-        margin-top: 0.5rem;
+    .form-group input:invalid:not(:placeholder-shown),
+    .form-group select:invalid:not([value=""]),
+    .form-group textarea:invalid:not(:placeholder-shown) {
+        border-color: #dc2626;
     }
 
-    .file-input-wrapper {
-        position: relative;
+    .form-group input:valid:not(:placeholder-shown),
+    .form-group select:valid:not([value=""]),
+    .form-group textarea:valid:not(:placeholder-shown) {
+        border-color: #10b981;
+    }
+
+    .file-upload {
         border: 2px dashed #d1d5db;
-        border-radius: 12px;
+        border-radius: 8px;
         padding: 2rem;
         text-align: center;
         transition: all 0.3s ease;
-        background: #f9fafb;
         cursor: pointer;
+        background: #f9fafb;
     }
 
-    .file-input-wrapper:hover {
+    .file-upload:hover {
         border-color: var(--islamic-primary);
         background: rgba(26, 95, 63, 0.02);
     }
 
-    .file-input-wrapper.dragover {
+    .file-upload.dragover {
         border-color: var(--islamic-primary);
         background: rgba(26, 95, 63, 0.05);
         transform: scale(1.02);
     }
 
-    .file-input {
-        position: absolute;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        opacity: 0;
-        cursor: pointer;
+    .file-upload input[type="file"] {
+        display: none;
     }
 
-    .file-input-label {
+    .file-upload-label {
         display: block;
-        color: #6b7280;
-        font-weight: 500;
+        color: var(--islamic-primary);
+        font-weight: 600;
         margin-bottom: 0.5rem;
     }
 
-    .file-input-icon {
-        font-size: 2rem;
+    .file-upload-text {
+        color: #6b7280;
+        font-size: 0.9rem;
+    }
+
+    .file-upload-icon {
+        font-size: 2.5rem;
         color: var(--islamic-primary);
-        margin-bottom: 1rem;
+        margin-bottom: 0.5rem;
+        opacity: 0.8;
     }
 
     .image-preview {
@@ -275,377 +182,484 @@
         text-align: center;
     }
 
-    .preview-image {
-        max-width: 150px;
-        max-height: 150px;
-        border-radius: 12px;
-        border: 3px solid #e5e7eb;
+    .image-preview img {
+        max-width: 120px;
+        max-height: 120px;
+        border-radius: 8px;
+        border: 2px solid #e5e7eb;
         box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
     }
 
-    .btn-register {
-        background: var(--gradient-primary);
-        border: none;
-        border-radius: 12px;
-        padding: 1.25rem 3rem;
+    .form-check {
+        display: flex;
+        align-items: flex-start;
+        margin: 1.5rem 0;
+    }
+
+    .form-check input[type="checkbox"] {
+        width: 20px;
+        height: 20px;
+        margin-right: 0.75rem;
+        margin-top: 0.25rem;
+        cursor: pointer;
+        accent-color: var(--islamic-primary);
+    }
+
+    .form-check label {
+        font-size: 0.95rem;
+        color: #6b7280;
+        cursor: pointer;
+        margin: 0;
+        font-weight: normal;
+    }
+
+    .form-check a {
+        color: var(--islamic-primary);
+        text-decoration: none;
         font-weight: 600;
-        font-size: 1.1rem;
-        letter-spacing: 0.5px;
+    }
+
+    .form-check a:hover {
+        text-decoration: underline;
+    }
+
+    .btn-register {
+        background: linear-gradient(135deg, var(--islamic-primary), var(--islamic-secondary));
         color: white;
+        border: none;
+        border-radius: 8px;
+        padding: 1rem 2rem;
+        font-size: 1.05rem;
+        font-weight: 700;
+        letter-spacing: 0.5px;
         width: 100%;
+        cursor: pointer;
         transition: all 0.3s ease;
-        position: relative;
-        overflow: hidden;
-        margin-top: 2rem;
-        box-shadow: 0 4px 16px rgba(26, 95, 63, 0.3);
-    }
-
-    .btn-register::before {
-        content: '';
-        position: absolute;
-        top: 0;
-        left: -100%;
-        width: 100%;
-        height: 100%;
-        background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
-        transition: left 0.5s;
-    }
-
-    .btn-register:hover::before {
-        left: 100%;
+        box-shadow: 0 4px 15px rgba(26, 95, 63, 0.3);
+        margin-top: 1rem;
     }
 
     .btn-register:hover {
         transform: translateY(-2px);
-        box-shadow: 0 8px 25px rgba(26, 95, 63, 0.4);
-        color: white;
+        box-shadow: 0 6px 20px rgba(26, 95, 63, 0.4);
     }
 
     .btn-register:active {
         transform: translateY(0);
     }
 
-    .login-link {
-        text-align: center;
-        margin-top: 2rem;
-        padding-top: 2rem;
-        border-top: 1px solid #e5e7eb;
+    .btn-register:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+        transform: none;
     }
 
-    .login-link p {
+    .login-link {
+        text-align: center;
+        margin-top: 1.5rem;
+        padding-top: 1.5rem;
+        border-top: 1px solid #e5e7eb;
         color: #6b7280;
-        margin-bottom: 0.5rem;
+        font-size: 0.95rem;
     }
 
     .login-link a {
         color: var(--islamic-primary);
-        font-weight: 600;
         text-decoration: none;
-        transition: all 0.3s ease;
+        font-weight: 600;
     }
 
     .login-link a:hover {
-        color: var(--islamic-secondary);
         text-decoration: underline;
     }
 
-    @media (max-width: 992px) {
-        .form-sidebar {
-            display: none;
-        }
-
-        .form-content {
-            padding: 2rem;
-        }
-
-        .registration-card {
-            border-radius: 16px;
-        }
+    .error-message {
+        background: #fee2e2;
+        color: #991b1b;
+        border: 1px solid #fecaca;
+        border-radius: 8px;
+        padding: 1rem;
+        margin-bottom: 1rem;
+        display: none;
     }
 
-    @media (max-width: 576px) {
+    .error-message.show {
+        display: block;
+    }
+
+    .password-strength {
+        height: 4px;
+        background: #e5e7eb;
+        border-radius: 2px;
+        margin-top: 0.5rem;
+        overflow: hidden;
+    }
+
+    .password-strength-bar {
+        height: 100%;
+        background: #dc2626;
+        width: 0%;
+        transition: all 0.3s ease;
+        border-radius: 2px;
+    }
+
+    .password-strength-bar.weak {
+        background: #dc2626;
+        width: 33%;
+    }
+
+    .password-strength-bar.fair {
+        background: #f59e0b;
+        width: 66%;
+    }
+
+    .password-strength-bar.good {
+        background: #10b981;
+        width: 100%;
+    }
+
+    @media (max-width: 768px) {
+        .registration-body {
+            padding: 1.5rem;
+        }
+
+        .registration-header {
+            padding: 2rem 1.5rem;
+        }
+
+        .registration-header h1 {
+            font-size: 1.5rem;
+        }
+
         .form-row {
             grid-template-columns: 1fr;
             gap: 1rem;
         }
-
-        .form-content {
-            padding: 1.5rem;
-        }
-
-        .section-title {
-            font-size: 1.3rem;
-        }
-
-        .sidebar-title {
-            font-size: 1.8rem;
-        }
     }
-
-    /* Animation for form entrance */
-    .registration-card {
-        animation: slideIn 0.8s ease-out;
-    }
-
-    @keyframes slideIn {
-        from {
-            opacity: 0;
-            transform: translateY(40px) scale(0.95);
-        }
-
-        to {
-            opacity: 1;
-            transform: translateY(0) scale(1);
-        }
-    }
-
-    /* Custom scrollbar */
-    ::-webkit-scrollbar {
-        width: 8px;
-    }
-
-    ::-webkit-scrollbar-track {
-        background: #f1f1f1;
-        border-radius: 4px;
-    }
-
-    ::-webkit-scrollbar-thumb {
-        background: var(--islamic-primary);
-        border-radius: 4px;
-    }
-
-    ::-webkit-scrollbar-thumb:hover {
-        background: var(--islamic-secondary);
-    }
-
 </style>
 
-<div class="registration-container">
+<div class="registration-wrapper">
     <div class="registration-card">
-        <div class="row g-0">
-            <!-- Sidebar -->
-            <div class="col-lg-4 d-none d-lg-block">
-                <div class="form-sidebar">
-                    <div class="sidebar-content">
-                        <h1 class="sidebar-title">Join Our Madrasah</h1>
-                        <p class="sidebar-subtitle">Start your journey of knowledge with us today. Complete your registration to begin your educational adventure.</p>
+        <!-- Header -->
+        <div class="registration-header">
+            <h1>🎓 Student Registration</h1>
+            <p>Join our Islamic School and start your educational journey</p>
+        </div>
 
-                        <div class="step-indicator active">
-                            <div class="step-number">1</div>
-                            <div class="step-text">
-                                <strong>Personal Details</strong><br>
-                                <small>Your basic information</small>
-                            </div>
+        <!-- Body -->
+        <div class="registration-body">
+            <div class="error-message" id="errorMessage"></div>
+
+            <form id="registrationForm" action="/auth/student-register" method="POST" enctype="multipart/form-data">
+
+                <!-- Personal Information Section -->
+                <div class="form-section">
+                    <div class="form-section-title">
+                        <i class="fas fa-user"></i>
+                        Personal Information
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="first_name">
+                                First Name
+                                <span class="required">*</span>
+                            </label>
+                            <input type="text" id="first_name" name="first_name" placeholder="Enter your first name" required>
                         </div>
-
-                        <div class="step-indicator active">
-                            <div class="step-number">2</div>
-                            <div class="step-text">
-                                <strong>Family Information</strong><br>
-                                <small>Parent and guardian details</small>
-                            </div>
+                        <div class="form-group">
+                            <label for="last_name">
+                                Last Name
+                                <span class="required">*</span>
+                            </label>
+                            <input type="text" id="last_name" name="last_name" placeholder="Enter your last name" required>
                         </div>
+                    </div>
 
-                        <div class="step-indicator active">
-                            <div class="step-number">3</div>
-                            <div class="step-text">
-                                <strong>Security Setup</strong><br>
-                                <small>Account protection</small>
-                            </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="email">
+                                Email Address
+                                <span class="required">*</span>
+                            </label>
+                            <input type="email" id="email" name="email" placeholder="your.email@example.com" required>
                         </div>
+                        <div class="form-group">
+                            <label for="date_of_birth">
+                                Date of Birth
+                                <span class="required">*</span>
+                            </label>
+                            <input type="date" id="date_of_birth" name="date_of_birth" required>
+                        </div>
+                    </div>
 
-                        <div class="sidebar-footer">
-                            <i class="fas fa-shield-alt"></i>
-                            <span>Secure SSL Encrypted Registration</span>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="gender">
+                                Gender
+                                <span class="required">*</span>
+                            </label>
+                            <select id="gender" name="gender" required>
+                                <option value="">-- Select Gender --</option>
+                                <option value="male">Male</option>
+                                <option value="female">Female</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="class_name">
+                                Enrollment Class
+                                <span class="required">*</span>
+                            </label>
+                            <select id="class_name" name="class_name" required>
+                                <option value="">-- Select Class --</option>
+                                <option value="PRELIMINARY 2">PRELIMINARY 2</option>
+                                <option value="PRELIMINARY 3">PRELIMINARY 3</option>
+                                <option value="CLASS 1">CLASS 1</option>
+                                <option value="CLASS 2">CLASS 2</option>
+                                <option value="CLASS 3">CLASS 3</option>
+                                <option value="CLASS 4">CLASS 4</option>
+                                <option value="CLASS 5">CLASS 5</option>
+                                <option value="ALIF CLASS">ALIF CLASS</option>
+                                <option value="BA CLASS">BA CLASS</option>
+                                <option value="TA CLASS">TA CLASS</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Profile Picture (Optional)</label>
+                            <div class="file-upload" onclick="document.getElementById('profile_picture').click()" ondrop="handleDrop(event)" ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)">
+                                <div class="file-upload-icon">
+                                    <i class="fas fa-image"></i>
+                                </div>
+                                <div class="file-upload-label">Click or drag image here</div>
+                                <div class="file-upload-text">JPG, PNG up to 2MB</div>
+                                <input type="file" id="profile_picture" name="profile_picture" accept="image/*" onchange="handleFileSelect(event)">
+                            </div>
+                            <div class="image-preview" id="imagePreview">
+                                <img id="previewImg" src="" alt="Preview">
+                            </div>
                         </div>
                     </div>
                 </div>
-            </div>
 
-            <!-- Form Content -->
-            <div class="col-lg-8">
-                <div class="form-content">
-                    <form action="/auth/student-register" method="POST" enctype="multipart/form-data">
+                <!-- Parental Information Section -->
+                <div class="form-section">
+                    <div class="form-section-title">
+                        <i class="fas fa-family"></i>
+                        Parental/Guardian Details
+                    </div>
 
-                        <!-- Personal Info -->
-                        <div class="section-title">
-                            <i class="fas fa-user-graduate"></i>
-                            <span>Personal Information</span>
-                        </div>
-
-                        <div class="form-row">
-                            <div class="form-group">
-                                <label class="form-label">First Name</label>
-                                <input type="text" name="first_name" class="form-control" placeholder="Enter your first name" required>
-                            </div>
-                            <div class="form-group">
-                                <label class="form-label">Last Name</label>
-                                <input type="text" name="last_name" class="form-control" placeholder="Enter your last name" required>
-                            </div>
-                        </div>
-
-                        <div class="form-row">
-                            <div class="form-group">
-                                <label class="form-label">Email Address</label>
-                                <input type="email" name="email" class="form-control" placeholder="your.email@example.com" required>
-                            </div>
-                            <div class="form-group">
-                                <label class="form-label">Date of Birth</label>
-                                <input type="date" name="date_of_birth" class="form-control" required>
-                            </div>
-                        </div>
-
-                        <div class="form-row">
-                            <div class="form-group">
-                                <label class="form-label">Gender</label>
-                                <select name="gender" class="form-select" required>
-                                    <option value="">Select your gender</option>
-                                    <option value="male">Male</option>
-                                    <option value="female">Female</option>
-                                </select>
-                            </div>
-                            <div class="form-group">
-                                <label class="form-label">Enrollment Class</label>
-                                <select name="class_name" class="form-select" required>
-                                    <option value="">Select prospective class</option>
-                                    <option value="PRELIMINARY 2">PRELIMINARY 2</option>
-                                    <option value="PRELIMINARY 3">PRELIMINARY 3</option>
-                                    <option value="CLASS 1">CLASS 1</option>
-                                    <option value="CLASS 2">CLASS 2</option>
-                                    <option value="CLASS 3">CLASS 3</option>
-                                    <option value="CLASS 4">CLASS 4</option>
-                                    <option value="CLASS 5">CLASS 5</option>
-                                    <option value="ALIF CLASS">ALIF CLASS</option>
-                                    <option value="BA CLASS">BA CLASS</option>
-                                    <option value="TA CLASS">TA CLASS</option>
-                                </select>
-                            </div>
-                        </div>
-
-                        <!-- Profile Picture -->
-                        <div class="form-row">
-                            <div class="form-group">
-                                <label class="form-label">Profile Picture (Optional)</label>
-                                <div class="file-input-wrapper" onclick="document.getElementById('profile_picture').click()">
-                                    <div class="file-input-icon">
-                                        <i class="fas fa-cloud-upload-alt"></i>
-                                    </div>
-                                    <div class="file-input-label">Click to upload or drag and drop</div>
-                                    <div class="form-text">JPG, PNG files up to 2MB</div>
-                                    <input type="file" name="profile_picture" id="profile_picture" class="file-input" accept="image/*" onchange="previewImage(this)">
-                                </div>
-                                <div id="imagePreview" class="image-preview">
-                                    <img id="previewImg" src="" alt="Preview" class="preview-image">
-                                </div>
-                            </div>
-                        </div>
-
-                        <hr class="my-4 opacity-25">
-
-                        <!-- Parent Info -->
-                        <div class="section-title">
-                            <i class="fas fa-users-cog"></i>
-                            <span>Parental Details</span>
-                        </div>
-
-                        <div class="form-row">
-                            <div class="form-group">
-                                <label class="form-label">Guardian Name</label>
-                                <input type="text" name="parent_name" class="form-control" placeholder="Full name of guardian" required>
-                            </div>
-                            <div class="form-group">
-                                <label class="form-label">Guardian Phone</label>
-                                <input type="tel" name="parent_phone" class="form-control" placeholder="+234..." required>
-                            </div>
-                        </div>
-
-                        <div class="form-row">
-                            <div class="form-group">
-                                <label class="form-label">Residential Address</label>
-                                <textarea name="address" class="form-control" rows="2" placeholder="Full home address"></textarea>
-                            </div>
-                        </div>
-
-                        <hr class="my-4 opacity-25">
-
-                        <!-- Security -->
-                        <div class="section-title">
-                            <i class="fas fa-lock"></i>
-                            <span>Portal Access</span>
-                        </div>
-
-                        <div class="form-row">
-                            <div class="form-group">
-                                <label class="form-label">Set Password</label>
-                                <input type="password" name="password" id="password" class="form-control" minlength="6" placeholder="At least 6 characters" required>
-                            </div>
-                            <div class="form-group">
-                                <label class="form-label">Confirm Password</label>
-                                <input type="password" name="confirm_password" id="confirm_password" class="form-control" placeholder="Repeat password" required>
-                            </div>
-                        </div>
-
-                        <div class="form-check mb-4">
-                            <input class="form-check-input" type="checkbox" id="agree" required>
-                            <label class="form-check-label small text-muted" for="agree">
-                                I hereby certify that the information provided is correct to the best of my knowledge and I agree to the school's code of conduct.
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="parent_name">
+                                Guardian Name
+                                <span class="required">*</span>
                             </label>
+                            <input type="text" id="parent_name" name="parent_name" placeholder="Full name of guardian/parent" required>
                         </div>
-
-                        <button type="submit" class="btn btn-register w-100 btn-lg shadow">
-                            COMPLETE REGISTRATION <i class="fas fa-arrow-right ms-2 font-size-sm"></i>
-                        </button>
-
-                        <div class="login-link">
-                            <p class="small text-muted mb-0">Already registered? <a href="/auth/student-login">Login to Portal</a></p>
+                        <div class="form-group">
+                            <label for="parent_phone">
+                                Guardian Phone
+                                <span class="required">*</span>
+                            </label>
+                            <input type="tel" id="parent_phone" name="parent_phone" placeholder="+234123456789" required>
                         </div>
-                    </form>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="parent_email">Guardian Email</label>
+                            <input type="email" id="parent_email" name="parent_email" placeholder="guardian@example.com">
+                        </div>
+                        <div class="form-group">
+                            <label for="address">Residential Address</label>
+                            <textarea id="address" name="address" placeholder="Full home address" rows="2"></textarea>
+                        </div>
+                    </div>
                 </div>
-            </div>
+
+                <!-- Security Section -->
+                <div class="form-section">
+                    <div class="form-section-title">
+                        <i class="fas fa-lock"></i>
+                        Portal Access & Security
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="password">
+                                Set Password
+                                <span class="required">*</span>
+                            </label>
+                            <input type="password" id="password" name="password" placeholder="At least 6 characters" required minlength="6" oninput="checkPasswordStrength(this.value)">
+                            <div class="password-strength">
+                                <div class="password-strength-bar" id="strengthBar"></div>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="confirm_password">
+                                Confirm Password
+                                <span class="required">*</span>
+                            </label>
+                            <input type="password" id="confirm_password" name="confirm_password" placeholder="Repeat your password" required minlength="6" oninput="validatePasswordMatch()">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Agreement Section -->
+                <div class="form-section">
+                    <div class="form-check">
+                        <input type="checkbox" id="agree" name="agree" required>
+                        <label for="agree">
+                            I certify that all information provided is correct and I agree to the school's code of conduct and terms of service.
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Submit Button -->
+                <button type="submit" class="btn-register" id="submitBtn">
+                    <i class="fas fa-check-circle"></i> COMPLETE REGISTRATION
+                </button>
+
+                <!-- Login Link -->
+                <div class="login-link">
+                    Already registered? <a href="/auth/student-login">Login here</a>
+                </div>
+            </form>
         </div>
     </div>
 </div>
 
 <script>
-    // Validation for confirm password
-    const password = document.getElementById('password');
-    const confirm = document.getElementById('confirm_password');
+    const form = document.getElementById('registrationForm');
+    const errorMessage = document.getElementById('errorMessage');
 
-    confirm.addEventListener('input', () => {
-        if (password.value !== confirm.value) {
-            confirm.setCustomValidity('Passwords do not match');
-        } else {
-            confirm.setCustomValidity('');
-        }
-    });
-
-    // Image preview function
-    function previewImage(input) {
-        const preview = document.getElementById('imagePreview');
-        const previewImg = document.getElementById('previewImg');
-
-        if (input.files && input.files[0]) {
-            const file = input.files[0];
-
-            // Check file size (2MB)
-            if (file.size > 2 * 1024 * 1024) {
-                alert('File size must be less than 2MB');
-                input.value = '';
-                preview.style.display = 'none';
-                return;
-            }
-
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                previewImg.src = e.target.result;
-                preview.style.display = 'block';
-            };
-            reader.readAsDataURL(file);
-        } else {
-            preview.style.display = 'none';
+    // File upload handlers
+    function handleFileSelect(event) {
+        const file = event.target.files[0];
+        if (file) {
+            validateAndPreviewFile(file);
         }
     }
 
+    function handleDrop(event) {
+        event.preventDefault();
+        event.stopPropagation();
+        const fileUpload = event.currentTarget;
+        fileUpload.classList.remove('dragover');
+        
+        const files = event.dataTransfer.files;
+        if (files.length > 0) {
+            validateAndPreviewFile(files[0]);
+            document.getElementById('profile_picture').files = files;
+        }
+    }
+
+    function handleDragOver(event) {
+        event.preventDefault();
+        event.stopPropagation();
+        event.currentTarget.classList.add('dragover');
+    }
+
+    function handleDragLeave(event) {
+        event.currentTarget.classList.remove('dragover');
+    }
+
+    function validateAndPreviewFile(file) {
+        const maxSize = 2 * 1024 * 1024; // 2MB
+        const validTypes = ['image/jpeg', 'image/png', 'image/gif'];
+
+        if (!validTypes.includes(file.type)) {
+            showError('Please upload a valid image file (JPG, PNG, GIF)');
+            return;
+        }
+
+        if (file.size > maxSize) {
+            showError('File size must be less than 2MB');
+            return;
+        }
+
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            document.getElementById('previewImg').src = e.target.result;
+            document.getElementById('imagePreview').style.display = 'block';
+        };
+        reader.readAsDataURL(file);
+    }
+
+    // Password validation
+    function checkPasswordStrength(password) {
+        const strengthBar = document.getElementById('strengthBar');
+        const confirmPassword = document.getElementById('confirm_password');
+
+        if (password.length === 0) {
+            strengthBar.className = 'password-strength-bar';
+            return;
+        }
+
+        let strength = 0;
+        if (password.length >= 6) strength++;
+        if (/[a-z]/.test(password) && /[A-Z]/.test(password)) strength++;
+        if (/[0-9]/.test(password)) strength++;
+        if (/[^a-zA-Z0-9]/.test(password)) strength++;
+
+        strengthBar.className = 'password-strength-bar';
+        if (strength <= 1) strengthBar.classList.add('weak');
+        else if (strength <= 2) strengthBar.classList.add('fair');
+        else strengthBar.classList.add('good');
+
+        validatePasswordMatch();
+    }
+
+    function validatePasswordMatch() {
+        const password = document.getElementById('password').value;
+        const confirmPassword = document.getElementById('confirm_password').value;
+
+        if (confirmPassword && password !== confirmPassword) {
+            document.getElementById('confirm_password').setCustomValidity('Passwords do not match');
+        } else {
+            document.getElementById('confirm_password').setCustomValidity('');
+        }
+    }
+
+    function showError(message) {
+        errorMessage.textContent = message;
+        errorMessage.classList.add('show');
+        setTimeout(() => {
+            errorMessage.classList.remove('show');
+        }, 5000);
+    }
+
+    // Form submission
+    form.addEventListener('submit', function(e) {
+        // Client-side validation
+        if (!form.checkValidity()) {
+            e.preventDefault();
+            e.stopPropagation();
+            showError('Please fill in all required fields correctly');
+            return false;
+        }
+
+        const password = document.getElementById('password').value;
+        const confirmPassword = document.getElementById('confirm_password').value;
+
+        if (password !== confirmPassword) {
+            e.preventDefault();
+            showError('Passwords do not match');
+            return false;
+        }
+
+        if (!document.getElementById('agree').checked) {
+            e.preventDefault();
+            showError('Please agree to the terms and conditions');
+            return false;
+        }
+
+        document.getElementById('submitBtn').disabled = true;
+        document.getElementById('submitBtn').innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
+    });
 </script>
 
 <%- include('../layout/footer') %>
