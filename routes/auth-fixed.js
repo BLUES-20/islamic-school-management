@@ -486,42 +486,93 @@ router.get('/payment-callback', async (req, res) => {
                 adminEmail: process.env.ADMIN_EMAIL || process.env.EMAIL_USER || 'admin@school.com'
             };
             
-            console.log(`🎉 Payment recorded and session stored - sending email in background`);
+            console.log(`🎉 Payment recorded and session stored - sending email`);
             
-            // SEND EMAIL IN BACKGROUND (non-blocking)
-            // This doesn't block the redirect, but we'll log any failures
+            // SEND EMAIL WITH RETRY LOGIC
+            let emailSent = false;
+            let retryCount = 0;
+            const maxRetries = 3;
+            
             (async () => {
                 await new Promise(resolve => setTimeout(resolve, 100)); // Small delay to ensure DB is updated
                 
-                try {
-                    console.log(`\n📧 ========== BACKGROUND EMAIL SEND ==========`);
-                    console.log(`To: ${pending.email}`);
-                    console.log(`Student: ${pending.full_name}`);
-                    console.log(`Admission #: ${pending.admission_number}`);
-                    console.log(`Time: ${new Date().toISOString()}`);
-                    
-                    const emailResult = await sendEmail(
-                        pending.email,
-                        `Your Admission Number - ${pending.admission_number}`,
-                        admissionHtml
-                    );
-                    
-                    if (emailResult === true) {
-                        console.log(`✅ SUCCESS: Email sent successfully to ${pending.email}`);
-                        console.log(`========== EMAIL SEND COMPLETE ==========\n`);
-                    } else {
-                        console.error(`❌ FAILED: Email service returned ${emailResult}`);
-                        console.error(`- Check Render environment variables`);
-                        console.error(`- EMAIL_USER: ${process.env.EMAIL_USER ? 'SET ✓' : 'MISSING ✗'}`);
-                        console.error(`- EMAIL_PASS: ${process.env.EMAIL_PASS ? 'SET ✓' : 'MISSING ✗'}`);
-                        console.error(`========== EMAIL SEND FAILED ==========\n`);
+                while (retryCount < maxRetries && !emailSent) {
+                    try {
+                        console.log(`\n📧 ========== EMAIL SEND ATTEMPT ${retryCount + 1}/${maxRetries} ==========`);
+                        console.log(`To: ${pending.email}`);
+                        console.log(`Student: ${pending.full_name}`);
+                        console.log(`Admission #: ${pending.admission_number}`);
+                        console.log(`Time: ${new Date().toISOString()}`);
+                        
+                        const emailResult = await sendEmail(
+                            pending.email,
+                            `Your Admission Number - ${pending.admission_number}`,
+                            admissionHtml
+                        );
+                        
+                        if (emailResult === true) {
+                            console.log(`✅ SUCCESS: Email sent successfully to ${pending.email}`);
+                            console.log(`========== EMAIL SEND COMPLETE ==========\n`);
+                            emailSent = true;
+                            
+                            // Also send copy to admin
+                            try {
+                                const adminEmail = process.env.ADMIN_EMAIL || process.env.EMAIL_USER || 'admin@school.com';
+                                if (adminEmail && adminEmail !== pending.email) {
+                                    const adminHtml = `
+                                        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+                                            <div style="background-color: #1a5f3f; color: white; padding: 20px; text-align: center; border-radius: 5px 5px 0 0;">
+                                                <h2 style="margin: 0;">📋 New Student Registration</h2>
+                                                <p style="margin: 5px 0 0 0;">Islamic School Management System</p>
+                                            </div>
+                                            <div style="background-color: #f9f9f9; padding: 30px; border: 1px solid #ddd; border-radius: 0 0 5px 5px;">
+                                                <p><strong>New Student:</strong> ${pending.full_name}</p>
+                                                <p><strong>Email:</strong> ${pending.email}</p>
+                                                <p><strong>Admission Number:</strong> ${pending.admission_number}</p>
+                                                <p><strong>Class:</strong> ${pending.class_name}</p>
+                                                <p><strong>Registration Date:</strong> ${new Date().toLocaleString()}</p>
+                                                <p style="margin-top: 20px; border-top: 1px solid #ddd; padding-top: 15px;">
+                                                    Student portal: <a href="https://islamic-school-management.onrender.com/auth/student-login">Login</a>
+                                                </p>
+                                            </div>
+                                        </div>
+                                    `;
+                                    await sendEmail(adminEmail, `New Registration: ${pending.full_name}`, adminHtml);
+                                    console.log(`💌 Admin notification sent to ${adminEmail}`);
+                                }
+                            } catch (adminErr) {
+                                console.warn(`⚠️ Admin notification failed (non-critical):`, adminErr.message);
+                            }
+                        } else {
+                            retryCount++;
+                            console.error(`❌ ATTEMPT FAILED: Email service returned ${emailResult}`);
+                            console.error(`- Check Render environment variables`);
+                            console.error(`- EMAIL_USER: ${process.env.EMAIL_USER ? 'SET ✓' : 'MISSING ✗'}`);
+                            console.error(`- EMAIL_PASS: ${process.env.EMAIL_PASS ? 'SET ✓' : 'MISSING ✗'}`);
+                            console.error(`- RESEND_API_KEY: ${process.env.RESEND_API_KEY ? 'SET ✓' : 'MISSING ✗'}`);
+                            if (retryCount < maxRetries) {
+                                console.log(`⏰ Retrying in 2 seconds...`);
+                                await new Promise(resolve => setTimeout(resolve, 2000));
+                            }
+                        }
+                    } catch (emailErr) {
+                        retryCount++;
+                        console.error(`\n❌ ========== EMAIL EXCEPTION ${retryCount}/${maxRetries} ==========`);
+                        console.error(`Error: ${emailErr.message}`);
+                        console.error(`To: ${pending.email}`);
+                        if (retryCount < maxRetries) {
+                            console.log(`⏰ Retrying in 2 seconds...`);
+                            await new Promise(resolve => setTimeout(resolve, 2000));
+                        }
                     }
-                } catch (emailErr) {
-                    console.error(`\n❌ ========== EMAIL EXCEPTION ==========`);
-                    console.error(`Error: ${emailErr.message}`);
-                    console.error(`Stack: ${emailErr.stack}`);
-                    console.error(`To: ${pending.email}`);
-                    console.error(`========== EMAIL EXCEPTION END ==========\n`);
+                }
+                
+                if (!emailSent) {
+                    console.warn(`\n⚠️ ========== EMAIL SEND FAILED AFTER ${maxRetries} ATTEMPTS ==========`);
+                    console.warn(`Admission Number: ${pending.admission_number}`);
+                    console.warn(`Email: ${pending.email}`);
+                    console.warn(`ACTION: Admin should manually resend or student can ask for re-send`);
+                    console.warn(`========== EMAIL CRITICAL FAILURE ==========\n`);
                 }
             })();
 
@@ -606,6 +657,153 @@ router.get('/test-email/:email', async (req, res) => {
                 RESEND_API_KEY: process.env.RESEND_API_KEY ? '✓ configured' : '✗ missing',
                 SMTP_HOST: process.env.SMTP_HOST ? '✓ configured' : '✗ missing'
             }
+        });
+    }
+});
+
+// ==================== RESEND ADMISSION EMAIL ====================
+// Allows admin to manually resend admission email to student
+router.post('/resend-admission', async (req, res) => {
+    try {
+        const { email, admission_number } = req.body;
+
+        if (!email || !admission_number) {
+            return res.status(400).json({
+                success: false,
+                error: 'Email and admission number required'
+            });
+        }
+
+        console.log(`\n🔄 ========== MANUAL RESEND REQUEST ==========`);
+        console.log(`Email: ${email}`);
+        console.log(`Admission #: ${admission_number}`);
+        console.log(`Time: ${new Date().toISOString()}`);
+
+        // Get student and class info from database
+        let studentResult;
+        try {
+            studentResult = await db.query(
+                `SELECT s.*, c.name as class_name FROM students s 
+                 LEFT JOIN classes c ON s.class_id = c.id 
+                 WHERE s.admission_number = $1 AND s.email = $2`,
+                [admission_number, email]
+            );
+        } catch (dbErr) {
+            console.error(`Database error:`, dbErr.message);
+            return res.status(500).json({
+                success: false,
+                error: 'Database error: ' + dbErr.message
+            });
+        }
+
+        if (studentResult.rows.length === 0) {
+            return res.status(404).json({
+                success: false,
+                error: 'Student not found'
+            });
+        }
+
+        const student = studentResult.rows[0];
+
+        // Generate HTML email
+        const admissionHtml = `
+            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+                <div style="background-color: #1a5f3f; color: white; padding: 20px; text-align: center; border-radius: 5px 5px 0 0;">
+                    <h2 style="margin: 0;">✅ Your Admission Letter</h2>
+                    <p style="margin: 5px 0 0 0;">Islamic School Management System</p>
+                </div>
+                <div style="background-color: #f9f9f9; padding: 30px; border: 1px solid #ddd; border-radius: 0 0 5px 5px;">
+                    <p>Dear <strong>${student.full_name}</strong>,</p>
+                    <p>Congratulations on your successful admission. Here are your details:</p>
+                    <table style="width: 100%; margin: 20px 0; border-collapse: collapse;">
+                        <tr style="border-bottom: 1px solid #ddd;">
+                            <td style="padding: 10px; font-weight: bold; color: #1a5f3f;">Admission Number:</td>
+                            <td style="padding: 10px; font-size: 18px; font-weight: bold; color: #d97706;">${student.admission_number}</td>
+                        </tr>
+                        <tr style="border-bottom: 1px solid #ddd;">
+                            <td style="padding: 10px; font-weight: bold; color: #1a5f3f;">Class:</td>
+                            <td style="padding: 10px;">${student.class_name || 'To be assigned'}</td>
+                        </tr>
+                        <tr style="border-bottom: 1px solid #ddd;">
+                            <td style="padding: 10px; font-weight: bold; color: #1a5f3f;">Login Email:</td>
+                            <td style="padding: 10px;">${student.email}</td>
+                        </tr>
+                    </table>
+                    <p>Use your admission number and email to log in to the student portal:</p>
+                    <p style="text-align: center; margin: 20px 0;">
+                        <a href="https://islamic-school-management.onrender.com/auth/student-login" style="background-color: #1a5f3f; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; display: inline-block;">
+                            🔗 Go to Student Login
+                        </a>
+                    </p>
+                    <p style="margin-top: 20px; padding-top: 15px; border-top: 1px solid #ddd; font-size: 12px; color: #666;">
+                        If you have any questions, please contact the school office.<br>
+                        <strong>Islamic School Management System</strong>
+                    </p>
+                </div>
+            </div>
+        `;
+
+        // Send email with retry
+        let emailSent = false;
+        let retryCount = 0;
+        const maxRetries = 3;
+
+        while (retryCount < maxRetries && !emailSent) {
+            try {
+                console.log(`📧 Resend attempt ${retryCount + 1}/${maxRetries}...`);
+                const emailResult = await sendEmail(
+                    email,
+                    `Your Admission Number (Resent) - ${admission_number}`,
+                    admissionHtml
+                );
+
+                if (emailResult === true) {
+                    console.log(`✅ Resend successful to ${email}`);
+                    emailSent = true;
+                } else {
+                    retryCount++;
+                    if (retryCount < maxRetries) {
+                        console.log(`⏰ Waiting before retry...`);
+                        await new Promise(resolve => setTimeout(resolve, 2000));
+                    }
+                }
+            } catch (err) {
+                retryCount++;
+                console.error(`❌ Resend attempt ${retryCount} failed:`, err.message);
+                if (retryCount < maxRetries) {
+                    await new Promise(resolve => setTimeout(resolve, 2000));
+                }
+            }
+        }
+
+        if (emailSent) {
+            res.json({
+                success: true,
+                message: `Admission email resent successfully to ${email}`,
+                student: {
+                    name: student.full_name,
+                    admission_number: student.admission_number,
+                    email: student.email,
+                    class: student.class_name
+                }
+            });
+        } else {
+            res.status(500).json({
+                success: false,
+                error: `Failed to send email after ${maxRetries} attempts. Check email configuration.`,
+                debug: {
+                    EMAIL_USER: process.env.EMAIL_USER ? '✓' : '✗',
+                    EMAIL_PASS: process.env.EMAIL_PASS ? '✓' : '✗',
+                    RESEND_API_KEY: process.env.RESEND_API_KEY ? '✓' : '✗'
+                }
+            });
+        }
+
+    } catch (err) {
+        console.error(`Error in resend endpoint:`, err.message);
+        res.status(500).json({
+            success: false,
+            error: err.message
         });
     }
 });
