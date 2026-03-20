@@ -1,83 +1,156 @@
 <%- include('../layout/header') %>
 
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Registration - Islamic School</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+
 <style>
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+    }
+
     :root {
-        --islamic-primary: #1a5f3f;
-        --islamic-secondary: #2d7a5f;
-        --islamic-accent: #3a8f6f;
+        --primary: #1a5f3f;
+        --secondary: #2d7a5f;
+        --accent: #10b981;
+        --light: #f3faf7;
+        --border: #e5e7eb;
+        --text: #374151;
+        --error: #dc2626;
+        --success: #10b981;
     }
 
     body {
-        background: linear-gradient(135deg, #f8fdf9 0%, #e8f5ed 50%, #d4edde 100%);
-        min-height: 100vh;
         font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    }
-
-    .registration-wrapper {
+        background: linear-gradient(135deg, var(--light) 0%, #d4edde 100%);
         min-height: 100vh;
         display: flex;
         align-items: center;
         justify-content: center;
-        padding: 2rem 1rem;
+        padding: 20px;
     }
 
-    .registration-card {
+    .registration-container {
+        width: 100%;
+        max-width: 1000px;
         background: white;
         border-radius: 16px;
-        box-shadow: 0 20px 60px rgba(26, 95, 63, 0.15);
+        box-shadow: 0 25px 50px rgba(26, 95, 63, 0.15);
         overflow: hidden;
-        max-width: 900px;
-        width: 100%;
+        display: grid;
+        grid-template-columns: 1fr 1fr;
     }
 
-    .registration-header {
-        background: linear-gradient(135deg, var(--islamic-primary), var(--islamic-secondary));
+    .registration-sidebar {
+        background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
         color: white;
-        padding: 3rem 2rem;
-        text-align: center;
+        padding: 60px 40px;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
     }
 
-    .registration-header h1 {
-        font-size: 2rem;
+    .sidebar-content h1 {
+        font-size: 32px;
         font-weight: 700;
-        margin-bottom: 0.5rem;
+        margin-bottom: 20px;
     }
 
-    .registration-header p {
-        font-size: 1rem;
+    .sidebar-content p {
+        font-size: 16px;
+        line-height: 1.6;
+        margin-bottom: 40px;
+        opacity: 0.95;
+    }
+
+    .sidebar-feature {
+        display: flex;
+        margin-bottom: 30px;
+        align-items: flex-start;
+    }
+
+    .sidebar-feature i {
+        font-size: 24px;
+        margin-right: 15px;
+        background: rgba(255, 255, 255, 0.2);
+        width: 50px;
+        height: 50px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 10px;
+        flex-shrink: 0;
+    }
+
+    .sidebar-feature-text h3 {
+        font-size: 16px;
+        margin-bottom: 5px;
+    }
+
+    .sidebar-feature-text p {
+        font-size: 13px;
         opacity: 0.9;
         margin: 0;
     }
 
-    .registration-body {
-        padding: 3rem;
+    .registration-form {
+        padding: 60px 40px;
+        max-height: calc(100vh - 100px);
+        overflow-y: auto;
+    }
+
+    .form-header {
+        margin-bottom: 40px;
+    }
+
+    .form-header h2 {
+        color: var(--primary);
+        font-size: 28px;
+        margin-bottom: 10px;
+    }
+
+    .form-header p {
+        color: #6b7280;
+        font-size: 14px;
     }
 
     .form-section {
-        margin-bottom: 2rem;
+        margin-bottom: 35px;
     }
 
-    .form-section-title {
-        color: var(--islamic-primary);
-        font-size: 1.2rem;
+    .section-title {
+        color: var(--primary);
+        font-size: 16px;
         font-weight: 700;
-        margin-bottom: 1.5rem;
-        padding-bottom: 0.5rem;
-        border-bottom: 2px solid #f0f2f5;
+        margin-bottom: 20px;
+        padding-bottom: 12px;
+        border-bottom: 2px solid var(--border);
         display: flex;
         align-items: center;
     }
 
-    .form-section-title i {
-        margin-right: 0.8rem;
-        font-size: 1.3rem;
+    .section-title i {
+        margin-right: 8px;
+        font-size: 18px;
     }
 
     .form-row {
         display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-        gap: 1.5rem;
-        margin-bottom: 1.5rem;
+        grid-template-columns: 1fr 1fr;
+        gap: 20px;
+        margin-bottom: 20px;
+    }
+
+    .form-row.full {
+        grid-template-columns: 1fr;
     }
 
     .form-group {
@@ -86,185 +159,179 @@
     }
 
     .form-group label {
+        color: var(--text);
         font-weight: 600;
-        color: #374151;
-        font-size: 0.95rem;
-        margin-bottom: 0.5rem;
+        font-size: 14px;
+        margin-bottom: 8px;
         display: flex;
         align-items: center;
     }
 
-    .form-group label .required {
-        color: #dc2626;
-        margin-left: 0.25rem;
+    .form-group .required {
+        color: var(--error);
+        margin-left: 4px;
     }
 
     .form-group input,
     .form-group select,
     .form-group textarea {
-        border: 2px solid #e5e7eb;
+        border: 2px solid var(--border);
         border-radius: 8px;
-        padding: 0.75rem 1rem;
-        font-size: 1rem;
+        padding: 12px 16px;
+        font-size: 14px;
         font-family: inherit;
         transition: all 0.3s ease;
         background: #f9fafb;
     }
 
+    .form-group input::placeholder,
+    .form-group textarea::placeholder {
+        color: #9ca3af;
+    }
+
     .form-group input:focus,
     .form-group select:focus,
     .form-group textarea:focus {
-        border-color: var(--islamic-primary);
+        outline: none;
+        border-color: var(--primary);
         background: white;
         box-shadow: 0 0 0 3px rgba(26, 95, 63, 0.1);
-        outline: none;
     }
 
-    .form-group input:invalid:not(:placeholder-shown),
-    .form-group select:invalid:not([value=""]),
-    .form-group textarea:invalid:not(:placeholder-shown) {
-        border-color: #dc2626;
+    .form-group input.error,
+    .form-group select.error {
+        border-color: var(--error);
+        background: #fef2f2;
     }
 
-    .form-group input:valid:not(:placeholder-shown),
-    .form-group select:valid:not([value=""]),
-    .form-group textarea:valid:not(:placeholder-shown) {
-        border-color: #10b981;
+    .form-group input.success,
+    .form-group select.success {
+        border-color: var(--success);
+        background: #f0fdf4;
     }
 
-    .file-upload {
-        border: 2px dashed #d1d5db;
-        border-radius: 8px;
-        padding: 2rem;
-        text-align: center;
-        transition: all 0.3s ease;
-        cursor: pointer;
-        background: #f9fafb;
-    }
-
-    .file-upload:hover {
-        border-color: var(--islamic-primary);
-        background: rgba(26, 95, 63, 0.02);
-    }
-
-    .file-upload.dragover {
-        border-color: var(--islamic-primary);
-        background: rgba(26, 95, 63, 0.05);
-        transform: scale(1.02);
-    }
-
-    .file-upload input[type="file"] {
+    .error-text {
+        color: var(--error);
+        font-size: 12px;
+        margin-top: 4px;
         display: none;
     }
 
-    .file-upload-label {
+    .error-text.show {
         display: block;
-        color: var(--islamic-primary);
-        font-weight: 600;
-        margin-bottom: 0.5rem;
     }
 
-    .file-upload-text {
-        color: #6b7280;
-        font-size: 0.9rem;
-    }
-
-    .file-upload-icon {
-        font-size: 2.5rem;
-        color: var(--islamic-primary);
-        margin-bottom: 0.5rem;
-        opacity: 0.8;
-    }
-
-    .image-preview {
-        margin-top: 1rem;
-        display: none;
-        text-align: center;
-    }
-
-    .image-preview img {
-        max-width: 120px;
-        max-height: 120px;
-        border-radius: 8px;
-        border: 2px solid #e5e7eb;
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-    }
-
-    .form-check {
+    .checkbox-group {
         display: flex;
         align-items: flex-start;
-        margin: 1.5rem 0;
+        margin: 20px 0;
+        gap: 12px;
     }
 
-    .form-check input[type="checkbox"] {
+    .checkbox-group input[type="checkbox"] {
         width: 20px;
         height: 20px;
-        margin-right: 0.75rem;
-        margin-top: 0.25rem;
+        margin-top: 2px;
         cursor: pointer;
-        accent-color: var(--islamic-primary);
+        accent-color: var(--primary);
+        flex-shrink: 0;
     }
 
-    .form-check label {
-        font-size: 0.95rem;
-        color: #6b7280;
+    .checkbox-group label {
+        font-size: 14px;
+        color: var(--text);
         cursor: pointer;
+        line-height: 1.5;
         margin: 0;
-        font-weight: normal;
     }
 
-    .form-check a {
-        color: var(--islamic-primary);
+    .checkbox-group a {
+        color: var(--primary);
         text-decoration: none;
         font-weight: 600;
     }
 
-    .form-check a:hover {
+    .checkbox-group a:hover {
         text-decoration: underline;
     }
 
-    .btn-register {
-        background: linear-gradient(135deg, var(--islamic-primary), var(--islamic-secondary));
-        color: white;
+    .alert {
+        padding: 16px;
+        border-radius: 8px;
+        margin-bottom: 20px;
+        display: none;
+        font-size: 14px;
+    }
+
+    .alert.show {
+        display: block;
+    }
+
+    .alert.error {
+        background: #fee2e2;
+        color: #991b1b;
+        border: 1px solid #fecaca;
+    }
+
+    .alert.success {
+        background: #f0fdf4;
+        color: #15803d;
+        border: 1px solid #bbf7d0;
+    }
+
+    .button-group {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 15px;
+        margin-top: 30px;
+    }
+
+    .btn {
+        padding: 14px 28px;
         border: none;
         border-radius: 8px;
-        padding: 1rem 2rem;
-        font-size: 1.05rem;
+        font-size: 15px;
         font-weight: 700;
-        letter-spacing: 0.5px;
-        width: 100%;
         cursor: pointer;
         transition: all 0.3s ease;
-        box-shadow: 0 4px 15px rgba(26, 95, 63, 0.3);
-        margin-top: 1rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
     }
 
-    .btn-register:hover {
+    .btn-primary {
+        background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+        color: white;
+        width: 100%;
+        box-shadow: 0 6px 20px rgba(26, 95, 63, 0.3);
+    }
+
+    .btn-primary:hover:not(:disabled) {
         transform: translateY(-2px);
-        box-shadow: 0 6px 20px rgba(26, 95, 63, 0.4);
+        box-shadow: 0 8px 25px rgba(26, 95, 63, 0.4);
     }
 
-    .btn-register:active {
+    .btn-primary:active:not(:disabled) {
         transform: translateY(0);
     }
 
-    .btn-register:disabled {
+    .btn-primary:disabled {
         opacity: 0.6;
         cursor: not-allowed;
-        transform: none;
     }
 
     .login-link {
         text-align: center;
-        margin-top: 1.5rem;
-        padding-top: 1.5rem;
-        border-top: 1px solid #e5e7eb;
+        margin-top: 20px;
+        padding-top: 20px;
+        border-top: 1px solid var(--border);
+        font-size: 14px;
         color: #6b7280;
-        font-size: 0.95rem;
     }
 
     .login-link a {
-        color: var(--islamic-primary);
+        color: var(--primary);
         text-decoration: none;
         font-weight: 600;
     }
@@ -273,393 +340,427 @@
         text-decoration: underline;
     }
 
-    .error-message {
-        background: #fee2e2;
-        color: #991b1b;
-        border: 1px solid #fecaca;
-        border-radius: 8px;
-        padding: 1rem;
-        margin-bottom: 1rem;
-        display: none;
-    }
-
-    .error-message.show {
-        display: block;
-    }
-
-    .password-strength {
-        height: 4px;
-        background: #e5e7eb;
-        border-radius: 2px;
-        margin-top: 0.5rem;
-        overflow: hidden;
-    }
-
-    .password-strength-bar {
-        height: 100%;
-        background: #dc2626;
-        width: 0%;
-        transition: all 0.3s ease;
-        border-radius: 2px;
-    }
-
-    .password-strength-bar.weak {
-        background: #dc2626;
-        width: 33%;
-    }
-
-    .password-strength-bar.fair {
-        background: #f59e0b;
-        width: 66%;
-    }
-
-    .password-strength-bar.good {
-        background: #10b981;
-        width: 100%;
-    }
-
     @media (max-width: 768px) {
-        .registration-body {
-            padding: 1.5rem;
+        .registration-container {
+            grid-template-columns: 1fr;
         }
 
-        .registration-header {
-            padding: 2rem 1.5rem;
+        .registration-sidebar {
+            padding: 40px 30px;
+            display: none;
         }
 
-        .registration-header h1 {
-            font-size: 1.5rem;
+        .registration-form {
+            padding: 40px 30px;
         }
 
         .form-row {
             grid-template-columns: 1fr;
-            gap: 1rem;
+            gap: 15px;
+        }
+
+        .form-header h2 {
+            font-size: 22px;
+        }
+    }
+
+    @media (max-width: 480px) {
+        .registration-form {
+            padding: 30px 20px;
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            padding: 10px 12px;
+            font-size: 16px;
+        }
+
+        .btn {
+            padding: 12px 20px;
+            font-size: 14px;
         }
     }
 </style>
 
-<div class="registration-wrapper">
-    <div class="registration-card">
-        <!-- Header -->
-        <div class="registration-header">
-            <h1>🎓 Student Registration</h1>
-            <p>Join our Islamic School and start your educational journey</p>
+<div class="registration-container">
+    <!-- Sidebar -->
+    <div class="registration-sidebar">
+        <div class="sidebar-content">
+            <h1>Welcome! 🎓</h1>
+            <p>Join our Islamic School and become part of a community dedicated to knowledge and faith.</p>
+
+            <div class="sidebar-feature">
+                <i class="fas fa-graduation-cap"></i>
+                <div class="sidebar-feature-text">
+                    <h3>Quality Education</h3>
+                    <p>Experience world-class Islamic education</p>
+                </div>
+            </div>
+
+            <div class="sidebar-feature">
+                <i class="fas fa-book"></i>
+                <div class="sidebar-feature-text">
+                    <h3>Modern Curriculum</h3>
+                    <p>Traditional values with modern learning methods</p>
+                </div>
+            </div>
+
+            <div class="sidebar-feature">
+                <i class="fas fa-heart"></i>
+                <div class="sidebar-feature-text">
+                    <h3>Caring Community</h3>
+                    <p>Supportive environment for every student</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Form -->
+    <div class="registration-form">
+        <div class="form-header">
+            <h2>Student Registration</h2>
+            <p>Fill in your details to create your account</p>
         </div>
 
-        <!-- Body -->
-        <div class="registration-body">
-            <div class="error-message" id="errorMessage"></div>
+        <div class="alert alert-error" id="errorAlert"></div>
+        <div class="alert alert-success" id="successAlert"></div>
 
-            <form id="registrationForm" action="/auth/student-register" method="POST" enctype="multipart/form-data">
+        <form id="registrationForm" method="POST" action="/auth/student-register" enctype="multipart/form-data">
 
-                <!-- Personal Information Section -->
-                <div class="form-section">
-                    <div class="form-section-title">
-                        <i class="fas fa-user"></i>
-                        Personal Information
-                    </div>
-
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label for="first_name">
-                                First Name
-                                <span class="required">*</span>
-                            </label>
-                            <input type="text" id="first_name" name="first_name" placeholder="Enter your first name" required>
-                        </div>
-                        <div class="form-group">
-                            <label for="last_name">
-                                Last Name
-                                <span class="required">*</span>
-                            </label>
-                            <input type="text" id="last_name" name="last_name" placeholder="Enter your last name" required>
-                        </div>
-                    </div>
-
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label for="email">
-                                Email Address
-                                <span class="required">*</span>
-                            </label>
-                            <input type="email" id="email" name="email" placeholder="your.email@example.com" required>
-                        </div>
-                        <div class="form-group">
-                            <label for="date_of_birth">
-                                Date of Birth
-                                <span class="required">*</span>
-                            </label>
-                            <input type="date" id="date_of_birth" name="date_of_birth" required>
-                        </div>
-                    </div>
-
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label for="gender">
-                                Gender
-                                <span class="required">*</span>
-                            </label>
-                            <select id="gender" name="gender" required>
-                                <option value="">-- Select Gender --</option>
-                                <option value="male">Male</option>
-                                <option value="female">Female</option>
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <label for="class_name">
-                                Enrollment Class
-                                <span class="required">*</span>
-                            </label>
-                            <select id="class_name" name="class_name" required>
-                                <option value="">-- Select Class --</option>
-                                <option value="PRELIMINARY 2">PRELIMINARY 2</option>
-                                <option value="PRELIMINARY 3">PRELIMINARY 3</option>
-                                <option value="CLASS 1">CLASS 1</option>
-                                <option value="CLASS 2">CLASS 2</option>
-                                <option value="CLASS 3">CLASS 3</option>
-                                <option value="CLASS 4">CLASS 4</option>
-                                <option value="CLASS 5">CLASS 5</option>
-                                <option value="ALIF CLASS">ALIF CLASS</option>
-                                <option value="BA CLASS">BA CLASS</option>
-                                <option value="TA CLASS">TA CLASS</option>
-                            </select>
-                        </div>
-                    </div>
-
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label>Profile Picture (Optional)</label>
-                            <div class="file-upload" onclick="document.getElementById('profile_picture').click()" ondrop="handleDrop(event)" ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)">
-                                <div class="file-upload-icon">
-                                    <i class="fas fa-image"></i>
-                                </div>
-                                <div class="file-upload-label">Click or drag image here</div>
-                                <div class="file-upload-text">JPG, PNG up to 2MB</div>
-                                <input type="file" id="profile_picture" name="profile_picture" accept="image/*" onchange="handleFileSelect(event)">
-                            </div>
-                            <div class="image-preview" id="imagePreview">
-                                <img id="previewImg" src="" alt="Preview">
-                            </div>
-                        </div>
-                    </div>
+            <!-- Personal Information -->
+            <div class="form-section">
+                <div class="section-title">
+                    <i class="fas fa-user"></i> Personal Information
                 </div>
 
-                <!-- Parental Information Section -->
-                <div class="form-section">
-                    <div class="form-section-title">
-                        <i class="fas fa-family"></i>
-                        Parental/Guardian Details
-                    </div>
-
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label for="parent_name">
-                                Guardian Name
-                                <span class="required">*</span>
-                            </label>
-                            <input type="text" id="parent_name" name="parent_name" placeholder="Full name of guardian/parent" required>
-                        </div>
-                        <div class="form-group">
-                            <label for="parent_phone">
-                                Guardian Phone
-                                <span class="required">*</span>
-                            </label>
-                            <input type="tel" id="parent_phone" name="parent_phone" placeholder="+234123456789" required>
-                        </div>
-                    </div>
-
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label for="parent_email">Guardian Email</label>
-                            <input type="email" id="parent_email" name="parent_email" placeholder="guardian@example.com">
-                        </div>
-                        <div class="form-group">
-                            <label for="address">Residential Address</label>
-                            <textarea id="address" name="address" placeholder="Full home address" rows="2"></textarea>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Security Section -->
-                <div class="form-section">
-                    <div class="form-section-title">
-                        <i class="fas fa-lock"></i>
-                        Portal Access & Security
-                    </div>
-
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label for="password">
-                                Set Password
-                                <span class="required">*</span>
-                            </label>
-                            <input type="password" id="password" name="password" placeholder="At least 6 characters" required minlength="6" oninput="checkPasswordStrength(this.value)">
-                            <div class="password-strength">
-                                <div class="password-strength-bar" id="strengthBar"></div>
-                            </div>
-                        </div>
-                        <div class="form-group">
-                            <label for="confirm_password">
-                                Confirm Password
-                                <span class="required">*</span>
-                            </label>
-                            <input type="password" id="confirm_password" name="confirm_password" placeholder="Repeat your password" required minlength="6" oninput="validatePasswordMatch()">
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Agreement Section -->
-                <div class="form-section">
-                    <div class="form-check">
-                        <input type="checkbox" id="agree" name="agree" required>
-                        <label for="agree">
-                            I certify that all information provided is correct and I agree to the school's code of conduct and terms of service.
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="first_name">
+                            First Name
+                            <span class="required">*</span>
                         </label>
+                        <input type="text" id="first_name" name="first_name" placeholder="Ahmed" required>
+                        <div class="error-text" id="error_first_name"></div>
+                    </div>
+                    <div class="form-group">
+                        <label for="last_name">
+                            Last Name
+                            <span class="required">*</span>
+                        </label>
+                        <input type="text" id="last_name" name="last_name" placeholder="Hassan" required>
+                        <div class="error-text" id="error_last_name"></div>
                     </div>
                 </div>
 
-                <!-- Submit Button -->
-                <button type="submit" class="btn-register" id="submitBtn">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="email">
+                            Email Address
+                            <span class="required">*</span>
+                        </label>
+                        <input type="email" id="email" name="email" placeholder="ahmed@example.com" required>
+                        <div class="error-text" id="error_email"></div>
+                    </div>
+                    <div class="form-group">
+                        <label for="date_of_birth">
+                            Date of Birth
+                            <span class="required">*</span>
+                        </label>
+                        <input type="date" id="date_of_birth" name="date_of_birth" required>
+                        <div class="error-text" id="error_date_of_birth"></div>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="gender">
+                            Gender
+                            <span class="required">*</span>
+                        </label>
+                        <select id="gender" name="gender" required>
+                            <option value="">-- Select Gender --</option>
+                            <option value="male">Male</option>
+                            <option value="female">Female</option>
+                        </select>
+                        <div class="error-text" id="error_gender"></div>
+                    </div>
+                    <div class="form-group">
+                        <label for="class_name">
+                            Enrollment Class
+                            <span class="required">*</span>
+                        </label>
+                        <select id="class_name" name="class_name" required>
+                            <option value="">-- Select Class --</option>
+                            <option value="PRELIMINARY 2">PRELIMINARY 2</option>
+                            <option value="PRELIMINARY 3">PRELIMINARY 3</option>
+                            <option value="CLASS 1">CLASS 1</option>
+                            <option value="CLASS 2">CLASS 2</option>
+                            <option value="CLASS 3">CLASS 3</option>
+                            <option value="CLASS 4">CLASS 4</option>
+                            <option value="CLASS 5">CLASS 5</option>
+                            <option value="ALIF CLASS">ALIF CLASS</option>
+                            <option value="BA CLASS">BA CLASS</option>
+                            <option value="TA CLASS">TA CLASS</option>
+                        </select>
+                        <div class="error-text" id="error_class_name"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Guardian Information -->
+            <div class="form-section">
+                <div class="section-title">
+                    <i class="fas fa-users"></i> Guardian Information
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="parent_name">
+                            Guardian Name
+                            <span class="required">*</span>
+                        </label>
+                        <input type="text" id="parent_name" name="parent_name" placeholder="Parent/Guardian full name" required>
+                        <div class="error-text" id="error_parent_name"></div>
+                    </div>
+                    <div class="form-group">
+                        <label for="parent_phone">
+                            Guardian Phone
+                            <span class="required">*</span>
+                        </label>
+                        <input type="tel" id="parent_phone" name="parent_phone" placeholder="+234 123 456 7890" required>
+                        <div class="error-text" id="error_parent_phone"></div>
+                    </div>
+                </div>
+
+                <div class="form-row full">
+                    <div class="form-group">
+                        <label for="parent_email">Guardian Email</label>
+                        <input type="email" id="parent_email" name="parent_email" placeholder="parent@example.com">
+                        <div class="error-text" id="error_parent_email"></div>
+                    </div>
+                </div>
+
+                <div class="form-row full">
+                    <div class="form-group">
+                        <label for="address">Residential Address</label>
+                        <textarea id="address" name="address" placeholder="Full residential address" rows="3"></textarea>
+                        <div class="error-text" id="error_address"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Security -->
+            <div class="form-section">
+                <div class="section-title">
+                    <i class="fas fa-lock"></i> Portal Access
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="password">
+                            Password
+                            <span class="required">*</span>
+                        </label>
+                        <input type="password" id="password" name="password" placeholder="At least 6 characters" minlength="6" required>
+                        <div class="error-text" id="error_password"></div>
+                    </div>
+                    <div class="form-group">
+                        <label for="confirm_password">
+                            Confirm Password
+                            <span class="required">*</span>
+                        </label>
+                        <input type="password" id="confirm_password" name="confirm_password" placeholder="Confirm password" minlength="6" required>
+                        <div class="error-text" id="error_confirm_password"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Agreement -->
+            <div class="checkbox-group">
+                <input type="checkbox" id="agree" name="agree" required>
+                <label for="agree">
+                    I confirm that all information provided is accurate and I agree to the school's <a href="#">code of conduct</a> and <a href="#">terms of service</a>.
+                </label>
+            </div>
+
+            <!-- Buttons -->
+            <div class="button-group">
+                <button type="submit" class="btn btn-primary" id="submitBtn">
                     <i class="fas fa-check-circle"></i> COMPLETE REGISTRATION
                 </button>
+            </div>
 
-                <!-- Login Link -->
-                <div class="login-link">
-                    Already registered? <a href="/auth/student-login">Login here</a>
-                </div>
-            </form>
-        </div>
+            <!-- Login Link -->
+            <div class="login-link">
+                Already have an account? <a href="/auth/student-login">Login here</a>
+            </div>
+        </form>
     </div>
 </div>
 
 <script>
     const form = document.getElementById('registrationForm');
-    const errorMessage = document.getElementById('errorMessage');
+    const errorAlert = document.getElementById('errorAlert');
+    const successAlert = document.getElementById('successAlert');
 
-    // File upload handlers
-    function handleFileSelect(event) {
-        const file = event.target.files[0];
-        if (file) {
-            validateAndPreviewFile(file);
-        }
+    // Form validation
+    const fields = {
+        first_name: { required: true, type: 'text' },
+        last_name: { required: true, type: 'text' },
+        email: { required: true, type: 'email' },
+        date_of_birth: { required: true, type: 'date' },
+        gender: { required: true, type: 'select' },
+        class_name: { required: true, type: 'select' },
+        parent_name: { required: true, type: 'text' },
+        parent_phone: { required: true, type: 'tel' },
+        parent_email: { required: false, type: 'email' },
+        address: { required: false, type: 'textarea' },
+        password: { required: true, type: 'password' },
+        confirm_password: { required: true, type: 'password' }
+    };
+
+    function showError(fieldName, message) {
+        const field = document.getElementById(fieldName);
+        const errorElement = document.getElementById(`error_${fieldName}`);
+        field.classList.add('error');
+        field.classList.remove('success');
+        errorElement.textContent = message;
+        errorElement.classList.add('show');
     }
 
-    function handleDrop(event) {
-        event.preventDefault();
-        event.stopPropagation();
-        const fileUpload = event.currentTarget;
-        fileUpload.classList.remove('dragover');
-        
-        const files = event.dataTransfer.files;
-        if (files.length > 0) {
-            validateAndPreviewFile(files[0]);
-            document.getElementById('profile_picture').files = files;
-        }
+    function clearError(fieldName) {
+        const field = document.getElementById(fieldName);
+        const errorElement = document.getElementById(`error_${fieldName}`);
+        field.classList.remove('error');
+        field.classList.add('success');
+        errorElement.classList.remove('show');
     }
 
-    function handleDragOver(event) {
-        event.preventDefault();
-        event.stopPropagation();
-        event.currentTarget.classList.add('dragover');
-    }
-
-    function handleDragLeave(event) {
-        event.currentTarget.classList.remove('dragover');
-    }
-
-    function validateAndPreviewFile(file) {
-        const maxSize = 2 * 1024 * 1024; // 2MB
-        const validTypes = ['image/jpeg', 'image/png', 'image/gif'];
-
-        if (!validTypes.includes(file.type)) {
-            showError('Please upload a valid image file (JPG, PNG, GIF)');
-            return;
-        }
-
-        if (file.size > maxSize) {
-            showError('File size must be less than 2MB');
-            return;
-        }
-
-        const reader = new FileReader();
-        reader.onload = function(e) {
-            document.getElementById('previewImg').src = e.target.result;
-            document.getElementById('imagePreview').style.display = 'block';
-        };
-        reader.readAsDataURL(file);
-    }
-
-    // Password validation
-    function checkPasswordStrength(password) {
-        const strengthBar = document.getElementById('strengthBar');
-        const confirmPassword = document.getElementById('confirm_password');
-
-        if (password.length === 0) {
-            strengthBar.className = 'password-strength-bar';
-            return;
-        }
-
-        let strength = 0;
-        if (password.length >= 6) strength++;
-        if (/[a-z]/.test(password) && /[A-Z]/.test(password)) strength++;
-        if (/[0-9]/.test(password)) strength++;
-        if (/[^a-zA-Z0-9]/.test(password)) strength++;
-
-        strengthBar.className = 'password-strength-bar';
-        if (strength <= 1) strengthBar.classList.add('weak');
-        else if (strength <= 2) strengthBar.classList.add('fair');
-        else strengthBar.classList.add('good');
-
-        validatePasswordMatch();
-    }
-
-    function validatePasswordMatch() {
-        const password = document.getElementById('password').value;
-        const confirmPassword = document.getElementById('confirm_password').value;
-
-        if (confirmPassword && password !== confirmPassword) {
-            document.getElementById('confirm_password').setCustomValidity('Passwords do not match');
-        } else {
-            document.getElementById('confirm_password').setCustomValidity('');
-        }
-    }
-
-    function showError(message) {
-        errorMessage.textContent = message;
-        errorMessage.classList.add('show');
+    function showAlert(message, type) {
+        const alert = type === 'error' ? errorAlert : successAlert;
+        alert.textContent = message;
+        alert.classList.add('show');
         setTimeout(() => {
-            errorMessage.classList.remove('show');
+            alert.classList.remove('show');
         }, 5000);
     }
 
-    // Form submission
-    form.addEventListener('submit', function(e) {
-        // Client-side validation
-        if (!form.checkValidity()) {
-            e.preventDefault();
-            e.stopPropagation();
-            showError('Please fill in all required fields correctly');
-            return false;
+    form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+
+        errorAlert.classList.remove('show');
+        successAlert.classList.remove('show');
+
+        let isValid = true;
+
+        // Validate all fields
+        for (const [fieldName, config] of Object.entries(fields)) {
+            const field = document.getElementById(fieldName);
+            const value = field.value.trim();
+
+            if (config.required && !value) {
+                showError(fieldName, `${fieldName.replace(/_/g, ' ')} is required`);
+                isValid = false;
+            } else if (value) {
+                if (config.type === 'email' && !isValidEmail(value)) {
+                    showError(fieldName, 'Please enter a valid email');
+                    isValid = false;
+                } else {
+                    clearError(fieldName);
+                }
+            } else {
+                clearError(fieldName);
+            }
         }
 
+        // Check password match
         const password = document.getElementById('password').value;
         const confirmPassword = document.getElementById('confirm_password').value;
-
         if (password !== confirmPassword) {
-            e.preventDefault();
-            showError('Passwords do not match');
-            return false;
+            showError('confirm_password', 'Passwords do not match');
+            isValid = false;
         }
 
+        // Check agreement
         if (!document.getElementById('agree').checked) {
-            e.preventDefault();
-            showError('Please agree to the terms and conditions');
-            return false;
+            showAlert('Please agree to our terms and conditions', 'error');
+            isValid = false;
         }
 
-        document.getElementById('submitBtn').disabled = true;
-        document.getElementById('submitBtn').innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
+        if (!isValid) {
+            showAlert('Please fix the errors above', 'error');
+            return;
+        }
+
+        // Submit form if valid
+        const submitBtn = document.getElementById('submitBtn');
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
+
+        form.submit();
+    });
+
+    function isValidEmail(email) {
+        const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        return re.test(email);
+    }
+
+    // Real-time validation
+    document.getElementById('first_name').addEventListener('blur', () => {
+        const value = document.getElementById('first_name').value.trim();
+        if (!value) {
+            showError('first_name', 'First name is required');
+        } else {
+            clearError('first_name');
+        }
+    });
+
+    document.getElementById('last_name').addEventListener('blur', () => {
+        const value = document.getElementById('last_name').value.trim();
+        if (!value) {
+            showError('last_name', 'Last name is required');
+        } else {
+            clearError('last_name');
+        }
+    });
+
+    document.getElementById('email').addEventListener('blur', () => {
+        const value = document.getElementById('email').value.trim();
+        if (!value) {
+            showError('email', 'Email is required');
+        } else if (!isValidEmail(value)) {
+            showError('email', 'Please enter a valid email');
+        } else {
+            clearError('email');
+        }
+    });
+
+    document.getElementById('password').addEventListener('blur', () => {
+        const value = document.getElementById('password').value;
+        if (!value) {
+            showError('password', 'Password is required');
+        } else if (value.length < 6) {
+            showError('password', 'Password must be at least 6 characters');
+        } else {
+            clearError('password');
+        }
+    });
+
+    document.getElementById('confirm_password').addEventListener('blur', () => {
+        const password = document.getElementById('password').value;
+        const confirmPassword = document.getElementById('confirm_password').value;
+        if (!confirmPassword) {
+            showError('confirm_password', 'Confirm password is required');
+        } else if (password !== confirmPassword) {
+            showError('confirm_password', 'Passwords do not match');
+        } else {
+            clearError('confirm_password');
+        }
     });
 </script>
+
+</body>
+</html>
 
 <%- include('../layout/footer') %>
