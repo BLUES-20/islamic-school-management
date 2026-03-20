@@ -620,7 +620,7 @@
             <div class="alert error" id="errorAlert"></div>
             <div class="alert success" id="successAlert"></div>
 
-            <form id="registrationForm" method="POST" action="/auth/student-register">
+            <form id="registrationForm" method="POST" action="/auth/student-register" novalidate>
                 <!-- SECTION 1: Personal Information -->
                 <div class="form-section">
                     <div class="section-header">
@@ -638,7 +638,7 @@
                             <label>
                                 First Name <span class="required">*</span>
                             </label>
-                            <input type="text" id="first_name" name="first_name" placeholder="e.g., Ahmed" required>
+                            <input type="text" id="first_name" name="first_name" placeholder="e.g., Ahmed" autocomplete="given-name" required>
                             <div class="form-hint"><i class="fas fa-info-circle"></i> Your first/given name</div>
                             <div class="form-error" id="error_first_name"></div>
                         </div>
@@ -646,7 +646,7 @@
                             <label>
                                 Last Name <span class="required">*</span>
                             </label>
-                            <input type="text" id="last_name" name="last_name" placeholder="e.g., Hassan" required>
+                            <input type="text" id="last_name" name="last_name" placeholder="e.g., Hassan" autocomplete="family-name" required>
                             <div class="form-hint"><i class="fas fa-info-circle"></i> Your family name</div>
                             <div class="form-error" id="error_last_name"></div>
                         </div>
@@ -818,151 +818,154 @@
 
 <script>
     const form = document.getElementById('registrationForm');
-    const formCard = document.getElementById('formCard');
-    const successMessage = document.getElementById('successMessage');
     const errorAlert = document.getElementById('errorAlert');
     const successAlert = document.getElementById('successAlert');
     const submitBtn = document.getElementById('submitBtn');
     const submitText = document.getElementById('submitText');
 
-    // Field configuration
-    const fields = {
-        first_name: { required: true, type: 'text', minLength: 2 },
-        last_name: { required: true, type: 'text', minLength: 2 },
-        email: { required: true, type: 'email' },
-        date_of_birth: { required: true, type: 'date' },
-        gender: { required: true, type: 'select' },
-        class_name: { required: true, type: 'select' },
-        parent_name: { required: true, type: 'text', minLength: 3 },
-        parent_phone: { required: true, type: 'tel' },
-        parent_email: { required: false, type: 'email' },
-        address: { required: false, type: 'textarea' },
-        password: { required: true, type: 'password', minLength: 6 },
-        confirm_password: { required: true, type: 'password', minLength: 6 }
-    };
+    // Simple validation for required fields
+    function validateForm() {
+        const requiredFields = [
+            'first_name', 'last_name', 'email', 'date_of_birth', 'gender', 'class_name',
+            'parent_name', 'parent_phone', 'password', 'confirm_password'
+        ];
 
-    // Show error
-    function showError(fieldName, message) {
-        const field = document.getElementById(fieldName);
-        const errorElement = document.getElementById(`error_${fieldName}`);
-        field.classList.add('is-invalid');
-        field.classList.remove('is-valid');
-        errorElement.textContent = message;
-        errorElement.classList.add('show');
-    }
-
-    // Clear error
-    function clearError(fieldName) {
-        const field = document.getElementById(fieldName);
-        const errorElement = document.getElementById(`error_${fieldName}`);
-        field.classList.remove('is-invalid');
-        field.classList.add('is-valid');
-        errorElement.classList.remove('show');
-    }
-
-    // Show alert
-    function showAlert(message, type) {
-        const alert = type === 'error' ? errorAlert : successAlert;
-        alert.textContent = message;
-        alert.classList.add('show');
-        setTimeout(() => {
-            alert.classList.remove('show');
-        }, 5000);
-    }
-
-    // Validate email
-    function isValidEmail(email) {
-        return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
-    }
-
-    // Validate field
-    function validateField(fieldName) {
-        const field = document.getElementById(fieldName);
-        const config = fields[fieldName];
-        const value = field.value.trim();
-
-        if (config.required && !value) {
-            showError(fieldName, `${fieldName.replace(/_/g, ' ').toUpperCase()} is required`);
-            return false;
-        }
-
-        if (value) {
-            if (config.minLength && value.length < config.minLength) {
-                showError(fieldName, `Must be at least ${config.minLength} characters`);
-                return false;
-            }
-
-            if (config.type === 'email' && !isValidEmail(value)) {
-                showError(fieldName, 'Please enter a valid email address');
-                return false;
-            }
-
-            clearError(fieldName);
-        } else {
-            clearError(fieldName);
-        }
-
-        return true;
-    }
-
-    // Add blur listeners for real-time validation
-    Object.keys(fields).forEach(fieldName => {
-        const field = document.getElementById(fieldName);
-        field.addEventListener('blur', () => validateField(fieldName));
-        field.addEventListener('input', () => {
-            if (field.classList.contains('is-invalid')) {
-                validateField(fieldName);
-            }
-        });
-    });
-
-    // Form submission
-    form.addEventListener('submit', async (e) => {
-        e.preventDefault();
-
-        errorAlert.classList.remove('show');
-        successAlert.classList.remove('show');
-
-        // Validate all fields
         let isValid = true;
-        Object.keys(fields).forEach(fieldName => {
-            if (!validateField(fieldName)) {
+        let firstError = null;
+
+        // Clear all previous errors
+        requiredFields.forEach(fieldName => {
+            const errorEl = document.getElementById(`error_${fieldName}`);
+            const field = document.getElementById(fieldName);
+            if (errorEl) errorEl.classList.remove('show');
+            if (field) field.classList.remove('is-invalid');
+        });
+
+        // Check each field
+        requiredFields.forEach(fieldName => {
+            const field = document.getElementById(fieldName);
+            if (!field) return;
+
+            const value = field.value.trim();
+            const errorEl = document.getElementById(`error_${fieldName}`);
+
+            if (!value) {
                 isValid = false;
+                field.classList.add('is-invalid');
+                if (errorEl) {
+                    errorEl.textContent = `${fieldName.replace(/_/g, ' ').charAt(0).toUpperCase() + fieldName.replace(/_/g, ' ').slice(1)} is required`;
+                    errorEl.classList.add('show');
+                    if (!firstError) firstError = fieldName;
+                }
             }
         });
+
+        // Check email format
+        const emailField = document.getElementById('email');
+        const emailValue = emailField.value.trim();
+        const emailError = document.getElementById('error_email');
+        if (emailValue && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailValue)) {
+            isValid = false;
+            emailField.classList.add('is-invalid');
+            if (emailError) {
+                emailError.textContent = 'Please enter a valid email';
+                emailError.classList.add('show');
+                if (!firstError) firstError = 'email';
+            }
+        }
 
         // Check password match
         const password = document.getElementById('password').value;
         const confirmPassword = document.getElementById('confirm_password').value;
-        if (password !== confirmPassword) {
-            showError('confirm_password', 'Passwords do not match');
+        if (password && confirmPassword && password !== confirmPassword) {
             isValid = false;
+            const confirmField = document.getElementById('confirm_password');
+            confirmField.classList.add('is-invalid');
+            const confirmError = document.getElementById('error_confirm_password');
+            if (confirmError) {
+                confirmError.textContent = 'Passwords do not match';
+                confirmError.classList.add('show');
+                if (!firstError) firstError = 'confirm_password';
+            }
         }
 
-        // Check agreement
-        if (!document.getElementById('agree').checked) {
-            showAlert('Please agree to terms and conditions', 'error');
+        // Check password length
+        if (password && password.length < 6) {
             isValid = false;
+            const passwordField = document.getElementById('password');
+            passwordField.classList.add('is-invalid');
+            const passwordError = document.getElementById('error_password');
+            if (passwordError) {
+                passwordError.textContent = 'Password must be at least 6 characters';
+                passwordError.classList.add('show');
+                if (!firstError) firstError = 'password';
+            }
         }
 
-        if (!isValid) {
-            showAlert('Please fix all errors before submitting', 'error');
+        // Check terms agreement
+        const agreeField = document.getElementById('agree');
+        if (!agreeField.checked) {
+            isValid = false;
+            if (!firstError) firstError = 'agree';
+        }
+
+        // Scroll to first error
+        if (firstError && firstError !== 'agree') {
+            const errorField = document.getElementById(firstError);
+            if (errorField) {
+                errorField.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+        }
+
+        return isValid;
+    }
+
+    // Add real-time validation - clear error when user starts typing
+    ['first_name', 'last_name', 'email', 'date_of_birth', 'gender', 'class_name',
+     'parent_name', 'parent_phone', 'password', 'confirm_password'].forEach(fieldName => {
+        const field = document.getElementById(fieldName);
+        if (field) {
+            field.addEventListener('input', () => {
+                const errorEl = document.getElementById(`error_${fieldName}`);
+                if (field.classList.contains('is-invalid') && field.value.trim()) {
+                    field.classList.remove('is-invalid');
+                    if (errorEl) errorEl.classList.remove('show');
+                }
+            });
+            field.addEventListener('change', () => {
+                const errorEl = document.getElementById(`error_${fieldName}`);
+                if (field.classList.contains('is-invalid') && field.value.trim()) {
+                    field.classList.remove('is-invalid');
+                    if (errorEl) errorEl.classList.remove('show');
+                }
+            });
+        }
+    });
+
+    // Form submission
+    form.addEventListener('submit', (e) => {
+        e.preventDefault();
+
+        // Hide alerts first
+        errorAlert.classList.remove('show');
+        successAlert.classList.remove('show');
+
+        // Validate
+        if (!validateForm()) {
+            errorAlert.textContent = 'Please fix the errors above';
+            errorAlert.classList.add('show');
             return;
         }
 
-        // Submit
+        // Submit button state
         submitBtn.disabled = true;
         submitText.textContent = 'Processing...';
         submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> <span id="submitText">Processing...</span>';
 
-        try {
+        // Submit form
+        setTimeout(() => {
             form.submit();
-        } catch (error) {
-            submitBtn.disabled = false;
-            submitText.textContent = 'Complete Registration';
-            submitBtn.innerHTML = '<i class="fas fa-check-circle"></i> <span id="submitText">Complete Registration</span>';
-            showAlert('An error occurred. Please try again.', 'error');
-        }
+        }, 300);
     });
 </script>
 
