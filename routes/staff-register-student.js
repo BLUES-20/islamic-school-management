@@ -36,9 +36,22 @@ router.get('/register-student', isAuthenticated, (req, res) => {
 
 // POST /staff/register-student - Process form
 router.post('/register-student', isAuthenticated, uploadPicture.single('profile_picture'), async (req, res) => {
-    const formData = req.body;
+    // Trim all form data
+    const formData = Object.fromEntries(
+        Object.entries(req.body).map(([key, value]) => [key, (value || '').toString().trim()])
+    );
     const picturePath = req.file ? req.file.path : null;
     const adminEmail = process.env.ADMIN_EMAIL || req.session.staff.email || process.env.EMAIL_USER;
+
+    // Quick server-side validation
+    if (!formData.first_name || !formData.last_name || !formData.email || !formData.password) {
+        req.flash('error', 'Please fill all required fields (Name, Email, Password)');
+        return res.redirect('/staff/register-student');
+    }
+    if (formData.password.length < 6) {
+        req.flash('error', 'Password must be at least 6 characters');
+        return res.redirect('/staff/register-student');
+    }
 
     // Add picture if uploaded
     if (picturePath) {
@@ -48,7 +61,7 @@ router.post('/register-student', isAuthenticated, uploadPicture.single('profile_
     const result = await createStudentByAdmin(formData, adminEmail);
 
     if (result.success) {
-        req.flash('success', `Student "${formData.first_name} ${formData.last_name}" created! Admission: ${result.admission_number}`);
+        req.flash('success', `✅ Student "${formData.first_name} ${formData.last_name}" created! Admission: ${result.admission_number}`);
         res.redirect('/staff/register-student');
     } else {
         req.flash('error', result.error || 'Registration failed');

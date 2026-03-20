@@ -8,23 +8,44 @@ const db = require('./db');
  * @returns {Promise<{success: bool, admission_number: string, error: string|null}>}
  */
 async function createStudentByAdmin(studentData, adminEmail) {
-    const {
-        first_name,
-        last_name,
-        email,
-        password,
-        class_name,
-        date_of_birth,
-        gender,
-        parent_name,
-        parent_phone,
-        address,
-        picturePath
-    } = studentData;
+    console.log('📝 ========== ADMIN STUDENT REGISTRATION START ==========');
 
-    // Validation
-    if (!first_name || !last_name || !email || !password) {
-        return { success: false, error: 'Missing required fields: name, email, password' };
+    const first_name = (studentData.first_name || '').trim();
+    const last_name = (studentData.last_name || '').trim();
+    const email = (studentData.email || '').trim().toLowerCase();
+    const password = studentData.password || '';
+    const class_name = (studentData.class_name || '').trim() || null;
+    const date_of_birth = studentData.date_of_birth || null;
+    const gender = (studentData.gender || '').trim() || null;
+    const parent_name = (studentData.parent_name || '').trim() || null;
+    const parent_phone = (studentData.parent_phone || '').trim() || null;
+    const address = (studentData.address || '').trim() || null;
+    const picturePath = studentData.picturePath || null;
+
+    console.log('📋 Received data:', {
+      first_name,
+      last_name,
+      email,
+      password: '***',
+      class_name
+    });
+
+    // Validation (strict after trim)
+    if (!first_name) {
+        console.warn('❌ Missing first_name');
+        return { success: false, error: 'First name is required' };
+    }
+    if (!last_name) {
+        console.warn('❌ Missing last_name');
+        return { success: false, error: 'Last name is required' };
+    }
+    if (!email) {
+        console.warn('❌ Missing email');
+        return { success: false, error: 'Email is required' };
+    }
+    if (!password) {
+        console.warn('❌ Missing password');
+        return { success: false, error: 'Password is required' };
     }
     if (password.length < 6) {
         return { success: false, error: 'Password must be at least 6 characters' };
