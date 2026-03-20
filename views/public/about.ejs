@@ -1,18 +1,375 @@
 <%- include('../layout/header') %>
 
-<section class="py-5">
+<style>
+    :root {
+        --primary: #1a5f3f;
+        --secondary: #2d7a5f;
+        --accent: #3db580;
+        --light: #f8fdf9;
+        --text: #1f2937;
+        --border: #e5e7eb;
+    }
+
+    .container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 0 20px;
+    }
+
+    /* Breadcrumb */
+    .breadcrumb-section {
+        background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+        color: white;
+        padding: 60px 20px;
+        text-align: center;
+    }
+
+    .breadcrumb-section h1 {
+        font-size: 42px;
+        font-weight: 700;
+        margin-bottom: 10px;
+    }
+
+    /* About Content */
+    .about-section {
+        padding: 100px 20px;
+        background: white;
+    }
+
+    .about-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 60px;
+        align-items: center;
+        margin-bottom: 80px;
+    }
+
+    .about-text h2 {
+        font-size: 36px;
+        font-weight: 700;
+        color: var(--primary);
+        margin-bottom: 24px;
+    }
+
+    .about-text p {
+        font-size: 16px;
+        color: #6b7280;
+        line-height: 1.8;
+        margin-bottom: 16px;
+    }
+
+    .about-image {
+        background: linear-gradient(135deg, var(--primary), var(--secondary));
+        border-radius: 16px;
+        padding: 60px;
+        text-align: center;
+        color: white;
+    }
+
+    .about-image i {
+        font-size: 120px;
+        opacity: 0.3;
+    }
+
+    /* Mission Vision */
+    .mission-vision {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 30px;
+        margin-top: 60px;
+    }
+
+    .mission-card, .vision-card {
+        background: var(--light);
+        border-radius: 12px;
+        padding: 40px;
+        border-left: 5px solid var(--primary);
+    }
+
+    .mission-card h3, .vision-card h3 {
+        font-size: 24px;
+        font-weight: 700;
+        color: var(--primary);
+        margin-bottom: 16px;
+    }
+
+    .mission-card p, .vision-card p {
+        color: #6b7280;
+        line-height: 1.8;
+        font-size: 15px;
+    }
+
+    /* Values Section */
+    .values-section {
+        padding: 100px 20px;
+        background: var(--light);
+    }
+
+    .section-header {
+        text-align: center;
+        margin-bottom: 60px;
+        max-width: 600px;
+        margin-left: auto;
+        margin-right: auto;
+    }
+
+    .section-header h2 {
+        font-size: 42px;
+        font-weight: 700;
+        color: var(--primary);
+        margin-bottom: 16px;
+    }
+
+    .section-header p {
+        font-size: 16px;
+        color: #6b7280;
+    }
+
+    .values-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 30px;
+        max-width: 1200px;
+        margin: 0 auto;
+    }
+
+    .value-card {
+        background: white;
+        border-radius: 12px;
+        padding: 40px;
+        text-align: center;
+        box-shadow: 0 10px 30px rgba(26, 95, 63, 0.08);
+        transition: all 0.3s ease;
+    }
+
+    .value-card:hover {
+        transform: translateY(-8px);
+        box-shadow: 0 20px 40px rgba(26, 95, 63, 0.15);
+    }
+
+    .value-icon {
+        font-size: 48px;
+        color: var(--primary);
+        margin-bottom: 16px;
+    }
+
+    .value-card h3 {
+        font-size: 20px;
+        font-weight: 700;
+        color: var(--primary);
+        margin-bottom: 12px;
+    }
+
+    .value-card p {
+        color: #6b7280;
+        font-size: 14px;
+        line-height: 1.7;
+    }
+
+    /* Team Section */
+    .team-section {
+        padding: 100px 20px;
+        background: white;
+    }
+
+    .team-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 30px;
+        max-width: 1200px;
+        margin: 0 auto;
+    }
+
+    .team-card {
+        background: white;
+        border-radius: 12px;
+        overflow: hidden;
+        box-shadow: 0 10px 30px rgba(26, 95, 63, 0.08);
+        text-align: center;
+        transition: all 0.3s ease;
+    }
+
+    .team-card:hover {
+        transform: translateY(-8px);
+        box-shadow: 0 20px 40px rgba(26, 95, 63, 0.15);
+    }
+
+    .team-image {
+        background: linear-gradient(135deg, var(--primary), var(--secondary));
+        color: white;
+        padding: 60px 20px;
+        font-size: 48px;
+    }
+
+    .team-info {
+        padding: 25px;
+    }
+
+    .team-info h3 {
+        font-size: 18px;
+        font-weight: 700;
+        color: var(--primary);
+        margin-bottom: 8px;
+    }
+
+    .team-info p {
+        color: #6b7280;
+        font-size: 14px;
+    }
+
+    @media (max-width: 768px) {
+        .about-grid, .mission-vision {
+            grid-template-columns: 1fr;
+            gap: 30px;
+        }
+
+        .breadcrumb-section h1 {
+            font-size: 32px;
+        }
+
+        .about-text h2 {
+            font-size: 28px;
+        }
+
+        .section-header h2 {
+            font-size: 32px;
+        }
+    }
+</style>
+
+<!-- Breadcrumb -->
+<section class="breadcrumb-section">
     <div class="container">
-        <div class="row">
-            <div class="col-lg-8 mx-auto text-center">
-                <h1 class="display-4 fw-bold mb-4">About Islamic School</h1>
-                <p class="lead mb-4">
-                    Welcome to our Islamic School Management System. We are dedicated to providing quality education
-                    rooted in Islamic values and principles.
-                </p>
-                <p class="mb-4">
-                    Our mission is to nurture young minds with knowledge, faith, and character development
-                    in a supportive and inclusive environment.
-                </p>
+        <h1>About Our School</h1>
+        <p>Learn more about our mission, vision, and commitment to excellence</p>
+    </div>
+</section>
+
+<!-- About Content -->
+<section class="about-section">
+    <div class="container">
+        <div class="about-grid">
+            <div class="about-text">
+                <h2>Our Story</h2>
+                <p>Islamic School was founded with a vision to provide comprehensive education that combines Islamic values with modern academic excellence. Over the years, we have grown into a prestigious institution trusted by hundreds of families.</p>
+                <p>Our commitment is to nurture not just students' academic potential but also their spiritual and moral development. We believe in creating an environment where faith and knowledge go hand in hand.</p>
+                <p>With dedicated educators, modern facilities, and a supportive community, we continue to empower our students to become leaders of tomorrow while maintaining their Islamic identity and values.</p>
+            </div>
+            <div class="about-image">
+                <i class="fas fa-school"></i>
+            </div>
+        </div>
+
+        <div class="mission-vision">
+            <div class="mission-card">
+                <h3><i class="fas fa-bullseye" style="margin-right: 10px;"></i>Our Mission</h3>
+                <p>To provide quality Islamic education that develops well-rounded individuals with strong Islamic values, academic excellence, and leadership qualities to contribute positively to society.</p>
+            </div>
+            <div class="vision-card">
+                <h3><i class="fas fa-eye" style="margin-right: 10px;"></i>Our Vision</h3>
+                <p>To be a leading Islamic institution recognized for producing educated, ethical, and socially responsible individuals who serve as beacons of Islamic knowledge and values.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Values Section -->
+<section class="values-section">
+    <div class="container">
+        <div class="section-header">
+            <h2>Our Core Values</h2>
+            <p>Principles that guide everything we do</p>
+        </div>
+        <div class="values-grid">
+            <div class="value-card">
+                <div class="value-icon">
+                    <i class="fas fa-mosque"></i>
+                </div>
+                <h3>Islamic Faith</h3>
+                <p>Deep commitment to Islamic principles and teachings in all aspects of education and personal development.</p>
+            </div>
+            <div class="value-card">
+                <div class="value-icon">
+                    <i class="fas fa-book-open"></i>
+                </div>
+                <h3>Academic Excellence</h3>
+                <p>Pursuit of knowledge and continuous improvement in teaching methods and curriculum standards.</p>
+            </div>
+            <div class="value-card">
+                <div class="value-icon">
+                    <i class="fas fa-heart"></i>
+                </div>
+                <h3>Character Building</h3>
+                <p>Development of strong moral character, integrity, and ethical values in our students.</p>
+            </div>
+            <div class="value-card">
+                <div class="value-icon">
+                    <i class="fas fa-handshake"></i>
+                </div>
+                <h3>Community Service</h3>
+                <p>Emphasizing the importance of giving back to society and serving the community with compassion.</p>
+            </div>
+            <div class="value-card">
+                <div class="value-icon">
+                    <i class="fas fa-brain"></i>
+                </div>
+                <h3>Critical Thinking</h3>
+                <p>Encouraging analytical thinking and problem-solving skills alongside faith-based learning.</p>
+            </div>
+            <div class="value-card">
+                <div class="value-icon">
+                    <i class="fas fa-globe"></i>
+                </div>
+                <h3>Global Perspective</h3>
+                <p>Understanding diverse cultures while maintaining strong Islamic identity.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Team Section -->
+<section class="team-section">
+    <div class="container">
+        <div class="section-header">
+            <h2>Our Leadership Team</h2>
+            <p>Experienced educators dedicated to your child's success</p>
+        </div>
+        <div class="team-grid">
+            <div class="team-card">
+                <div class="team-image">
+                    <i class="fas fa-user-tie"></i>
+                </div>
+                <div class="team-info">
+                    <h3>Dr. Ahmed Hassan</h3>
+                    <p>Principal & Founder</p>
+                </div>
+            </div>
+            <div class="team-card">
+                <div class="team-image">
+                    <i class="fas fa-user"></i>
+                </div>
+                <div class="team-info">
+                    <h3>Fatima Al-Rashid</h3>
+                    <p>Vice Principal - Academics</p>
+                </div>
+            </div>
+            <div class="team-card">
+                <div class="team-image">
+                    <i class="fas fa-user-tie"></i>
+                </div>
+                <div class="team-info">
+                    <h3>Mohamed Hassan</h3>
+                    <p>Director of Islamic Studies</p>
+                </div>
+            </div>
+            <div class="team-card">
+                <div class="team-image">
+                    <i class="fas fa-user"></i>
+                </div>
+                <div class="team-info">
+                    <h3>Aisha Mohammed</h3>
+                    <p>Head of Student Affairs</p>
+                </div>
             </div>
         </div>
     </div>

@@ -1,18 +1,338 @@
 <%- include('../layout/header') %>
 
-<section class="py-5">
+<style>
+    :root {
+        --primary: #1a5f3f;
+        --secondary: #2d7a5f;
+        --accent: #3db580;
+        --light: #f8fdf9;
+        --text: #1f2937;
+        --border: #e5e7eb;
+    }
+
+    .container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 0 20px;
+    }
+
+    /* Header */
+    .breadcrumb-section {
+        background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+        color: white;
+        padding: 60px 20px;
+        text-align: center;
+    }
+
+    .breadcrumb-section h1 {
+        font-size: 42px;
+        font-weight: 700;
+        margin-bottom: 10px;
+    }
+
+    /* Content Sections */
+    .section {
+        padding: 100px 20px;
+    }
+
+    .section-header {
+        text-align: center;
+        margin-bottom: 60px;
+        max-width: 600px;
+        margin-left: auto;
+        margin-right: auto;
+    }
+
+    .section-header h2 {
+        font-size: 42px;
+        font-weight: 700;
+        color: var(--primary);
+        margin-bottom: 16px;
+    }
+
+    .section-header p {
+        font-size: 16px;
+        color: #6b7280;
+    }
+
+    /* Programs Grid */
+    .programs-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 30px;
+        max-width: 1200px;
+        margin: 0 auto;
+    }
+
+    .program-card {
+        background: white;
+        border-radius: 12px;
+        overflow: hidden;
+        box-shadow: 0 10px 30px rgba(26, 95, 63, 0.08);
+        transition: all 0.3s ease;
+    }
+
+    .program-card:hover {
+        transform: translateY(-8px);
+        box-shadow: 0 20px 40px rgba(26, 95, 63, 0.15);
+    }
+
+    .program-header {
+        background: linear-gradient(135deg, var(--primary), var(--secondary));
+        color: white;
+        padding: 40px;
+        text-align: center;
+    }
+
+    .program-header i {
+        font-size: 48px;
+        margin-bottom: 16px;
+        display: block;
+    }
+
+    .program-header h3 {
+        font-size: 24px;
+        font-weight: 700;
+        margin-bottom: 8px;
+    }
+
+    .program-level {
+        font-size: 14px;
+        opacity: 0.9;
+    }
+
+    .program-body {
+        padding: 30px;
+    }
+
+    .subject-list {
+        list-style: none;
+    }
+
+    .subject-list li {
+        padding: 12px 0;
+        border-bottom: 1px solid var(--border);
+        color: #6b7280;
+        font-size: 14px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .subject-list li:last-child {
+        border-bottom: none;
+    }
+
+    .subject-list i {
+        color: var(--accent);
+        font-weight: 700;
+    }
+
+    /* Features Section */
+    .features-white {
+        background: white;
+    }
+
+    .features-bg {
+        background: var(--light);
+    }
+
+    .features-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 30px;
+        max-width: 1200px;
+        margin: 0 auto;
+    }
+
+    .feature-item {
+        background: white;
+        border-radius: 12px;
+        padding: 40px;
+        text-align: center;
+        box-shadow: 0 10px 30px rgba(26, 95, 63, 0.08);
+        transition: all 0.3s ease;
+    }
+
+    .feature-item:hover {
+        transform: translateY(-8px);
+        box-shadow: 0 20px 40px rgba(26, 95, 63, 0.15);
+    }
+
+    .features-bg .feature-item {
+        box-shadow: none;
+        border: 2px solid var(--border);
+    }
+
+    .features-bg .feature-item:hover {
+        border-color: var(--primary);
+        box-shadow: 0 10px 30px rgba(26, 95, 63, 0.1);
+    }
+
+    .feature-icon {
+        font-size: 48px;
+        color: var(--primary);
+        margin-bottom: 16px;
+    }
+
+    .feature-item h3 {
+        font-size: 20px;
+        font-weight: 700;
+        color: var(--primary);
+        margin-bottom: 12px;
+    }
+
+    .feature-item p {
+        color: #6b7280;
+        font-size: 14px;
+        line-height: 1.7;
+    }
+
+    @media (max-width: 768px) {
+        .breadcrumb-section h1 {
+            font-size: 32px;
+        }
+
+        .section-header h2 {
+            font-size: 32px;
+        }
+
+        .section {
+            padding: 60px 20px;
+        }
+    }
+</style>
+
+<!-- Header -->
+<section class="breadcrumb-section">
     <div class="container">
-        <div class="row">
-            <div class="col-lg-8 mx-auto text-center">
-                <h1 class="display-4 fw-bold mb-4">Academics</h1>
-                <p class="lead mb-4">
-                    Our academic programs are designed to provide comprehensive education
-                    combining traditional Islamic teachings with modern curriculum.
-                </p>
-                <p class="mb-4">
-                    We offer courses in Islamic Studies, Arabic Language, Quran Memorization,
-                    and standard academic subjects.
-                </p>
+        <h1>Our Academic Programs</h1>
+        <p>Comprehensive education combining Islamic teachings with modern curriculum</p>
+    </div>
+</section>
+
+<!-- Programs -->
+<section class="section features-white">
+    <div class="container">
+        <div class="section-header">
+            <h2>Educational Levels</h2>
+            <p>Structured programs for every stage of learning</p>
+        </div>
+        <div class="programs-grid">
+            <div class="program-card">
+                <div class="program-header">
+                    <i class="fas fa-child"></i>
+                    <h3>Primary School</h3>
+                    <p class="program-level">Grades 1-5</p>
+                </div>
+                <div class="program-body">
+                    <ul class="subject-list">
+                        <li><i class="fas fa-check-circle"></i> Quranic Studies</li>
+                        <li><i class="fas fa-check-circle"></i> Arabic Language</li>
+                        <li><i class="fas fa-check-circle"></i> Islamic History</li>
+                        <li><i class="fas fa-check-circle"></i> Mathematics</li>
+                        <li><i class="fas fa-check-circle"></i> Natural Sciences</li>
+                        <li><i class="fas fa-check-circle"></i> English Language</li>
+                        <li><i class="fas fa-check-circle"></i> Arts & Crafts</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="program-card">
+                <div class="program-header">
+                    <i class="fas fa-book"></i>
+                    <h3>Middle School</h3>
+                    <p class="program-level">Grades 6-8</p>
+                </div>
+                <div class="program-body">
+                    <ul class="subject-list">
+                        <li><i class="fas fa-check-circle"></i> Quran Memorization</li>
+                        <li><i class="fas fa-check-circle"></i> Islamic Jurisprudence</li>
+                        <li><i class="fas fa-check-circle"></i> Advanced Arabic</li>
+                        <li><i class="fas fa-check-circle"></i> Advanced Mathematics</li>
+                        <li><i class="fas fa-check-circle"></i> Physics & Chemistry</li>
+                        <li><i class="fas fa-check-circle"></i> Biology</li>
+                        <li><i class="fas fa-check-circle"></i> Literature & Writing</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="program-card">
+                <div class="program-header">
+                    <i class="fas fa-graduation-cap"></i>
+                    <h3>High School</h3>
+                    <p class="program-level">Grades 9-12</p>
+                </div>
+                <div class="program-body">
+                    <ul class="subject-list">
+                        <li><i class="fas fa-check-circle"></i> Islamic Philosophy</li>
+                        <li><i class="fas fa-check-circle"></i> Quran Commentary</li>
+                        <li><i class="fas fa-check-circle"></i> Advanced Sciences</li>
+                        <li><i class="fas fa-check-circle"></i> Social Studies</li>
+                        <li><i class="fas fa-check-circle"></i> Technology & Skills</li>
+                        <li><i class="fas fa-check-circle"></i> Economics</li>
+                        <li><i class="fas fa-check-circle"></i> Professional Skills</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Key Features -->
+<section class="section features-bg">
+    <div class="container">
+        <div class="section-header">
+            <h2>Why Our Academics Excel</h2>
+            <p>Key features that set us apart</p>
+        </div>
+        <div class="features-grid">
+            <div class="feature-item">
+                <div class="feature-icon">
+                    <i class="fas fa-quran"></i>
+                </div>
+                <h3>Islamic Integration</h3>
+                <p>Arabic and Islamic studies integrated throughout the curriculum, not isolated subjects.</p>
+            </div>
+
+            <div class="feature-item">
+                <div class="feature-icon">
+                    <i class="fas fa-chalkboard-user"></i>
+                </div>
+                <h3>Expert Teachers</h3>
+                <p>Qualified educators with advanced degrees and passion for teaching.</p>
+            </div>
+
+            <div class="feature-item">
+                <div class="feature-icon">
+                    <i class="fas fa-laptop"></i>
+                </div>
+                <h3>Modern Technology</h3>
+                <p>Up-to-date classrooms and learning management systems for interactive education.</p>
+            </div>
+
+            <div class="feature-item">
+                <div class="feature-icon">
+                    <i class="fas fa-microscope"></i>
+                </div>
+                <h3>Hands-On Learning</h3>
+                <p>Laboratory facilities and practical experience in science and technology.</p>
+            </div>
+
+            <div class="feature-item">
+                <div class="feature-icon">
+                    <i class="fas fa-users-class"></i>
+                </div>
+                <h3>Small Class Sizes</h3>
+                <p>Limited class sizes ensuring personalized attention and support for each student.</p>
+            </div>
+
+            <div class="feature-item">
+                <div class="feature-icon">
+                    <i class="fas fa-trophy"></i>
+                </div>
+                <h3>Excellence Recognition</h3>
+                <p>Awards and recognition programs for academic and behavioral excellence.</p>
             </div>
         </div>
     </div>

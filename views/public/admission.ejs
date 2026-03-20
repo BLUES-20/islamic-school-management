@@ -1,49 +1,379 @@
 <%- include('../layout/header') %>
 
-<section class="py-5">
+<style>
+    :root {
+        --primary: #1a5f3f;
+        --secondary: #2d7a5f;
+        --accent: #3db580;
+        --light: #f8fdf9;
+        --text: #1f2937;
+        --border: #e5e7eb;
+    }
+
+    .container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 0 20px;
+    }
+
+    /* Header */
+    .breadcrumb-section {
+        background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+        color: white;
+        padding: 60px 20px;
+        text-align: center;
+    }
+
+    .breadcrumb-section h1 {
+        font-size: 42px;
+        font-weight: 700;
+        margin-bottom: 10px;
+    }
+
+    /* Section */
+    .section {
+        padding: 100px 20px;
+    }
+
+    .section-header {
+        text-align: center;
+        margin-bottom: 60px;
+        max-width: 700px;
+        margin-left: auto;
+        margin-right: auto;
+    }
+
+    .section-header h2 {
+        font-size: 42px;
+        font-weight: 700;
+        color: var(--primary);
+        margin-bottom: 20px;
+    }
+
+    .section-header p {
+        font-size: 16px;
+        color: #6b7280;
+        line-height: 1.8;
+    }
+
+    /* Steps */
+    .steps-section {
+        background: white;
+    }
+
+    .steps-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 30px;
+        max-width: 1000px;
+        margin: 0 auto 60px auto;
+    }
+
+    .step-card {
+        background: white;
+        border-radius: 12px;
+        padding: 40px;
+        text-align: center;
+        border: 2px solid var(--border);
+        transition: all 0.3s ease;
+        position: relative;
+    }
+
+    .step-card:hover {
+        border-color: var(--primary);
+        box-shadow: 0 10px 30px rgba(26, 95, 63, 0.1);
+    }
+
+    .step-number {
+        width: 70px;
+        height: 70px;
+        background: linear-gradient(135deg, var(--primary), var(--secondary));
+        color: white;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 32px;
+        font-weight: 700;
+        margin: 0 auto 24px auto;
+    }
+
+    .step-card h3 {
+        font-size: 20px;
+        font-weight: 700;
+        color: var(--primary);
+        margin-bottom: 12px;
+    }
+
+    .step-card p {
+        color: #6b7280;
+        font-size: 14px;
+        line-height: 1.7;
+    }
+
+    .step-connector {
+        display: none;
+        position: absolute;
+        top: 50%;
+        right: -15px;
+        width: 30px;
+        height: 3px;
+        background: var(--border);
+    }
+
+    .step-card:not(:last-child) .step-connector {
+        display: block;
+    }
+
+    /* CTA Section */
+    .cta-box {
+        background: linear-gradient(135deg, var(--primary), var(--secondary));
+        border-radius: 16px;
+        padding: 60px 40px;
+        text-align: center;
+        color: white;
+        margin: 60px 0;
+    }
+
+    .cta-box h3 {
+        font-size: 32px;
+        font-weight: 700;
+        margin-bottom: 16px;
+    }
+
+    .cta-box p {
+        font-size: 16px;
+        opacity: 0.95;
+        margin-bottom: 32px;
+    }
+
+    .btn-primary {
+        background: white;
+        color: var(--primary);
+        padding: 14px 40px;
+        border: none;
+        border-radius: 8px;
+        font-size: 16px;
+        font-weight: 600;
+        cursor: pointer;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        transition: all 0.3s ease;
+    }
+
+    .btn-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+    }
+
+    .btn-secondary {
+        background: transparent;
+        color: white;
+        border: 2px solid white;
+        padding: 12px 32px;
+        border-radius: 8px;
+        font-size: 16px;
+        font-weight: 600;
+        cursor: pointer;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        transition: all 0.3s ease;
+    }
+
+    .btn-secondary:hover {
+        background: white;
+        color: var(--primary);
+    }
+
+    /* Requirements */
+    .requirements-section {
+        background: var(--light);
+    }
+
+    .requirements-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 30px;
+        max-width: 1200px;
+        margin: 0 auto;
+    }
+
+    .requirement-card {
+        background: white;
+        border-radius: 12px;
+        padding: 30px;
+        box-shadow: 0 5px 15px rgba(26, 95, 63, 0.08);
+    }
+
+    .requirement-card h3 {
+        font-size: 20px;
+        font-weight: 700;
+        color: var(--primary);
+        margin-bottom: 16px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .requirement-card ul {
+        list-style: none;
+    }
+
+    .requirement-card li {
+        padding: 10px 0;
+        color: #6b7280;
+        font-size: 14px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .requirement-card li:before {
+        content: '✓';
+        color: var(--accent);
+        font-weight: 700;
+        font-size: 16px;
+    }
+
+    @media (max-width: 768px) {
+        .breadcrumb-section h1 {
+            font-size: 32px;
+        }
+
+        .section-header h2 {
+            font-size: 32px;
+        }
+
+        .cta-box {
+            padding: 40px 20px;
+        }
+
+        .cta-box h3 {
+            font-size: 24px;
+        }
+
+        .step-connector {
+            display: none !important;
+        }
+    }
+</style>
+
+<!-- Header -->
+<section class="breadcrumb-section">
     <div class="container">
-        <div class="row">
-            <div class="col-lg-8 mx-auto text-center">
-                <h1 class="display-4 fw-bold mb-4">Admission</h1>
-                <p class="lead mb-4">
-                    Join our Islamic School community. We welcome students who are committed
-                    to academic excellence and Islamic values.
-                </p>
+        <h1>Admission Process</h1>
+        <p>Join our Islamic School Community</p>
+    </div>
+</section>
 
-                <div class="card shadow-sm mb-5 text-start">
-                    <div class="card-body p-4 p-md-5">
-                        <h3 class="text-center mb-4 text-success">How to Get Your Registration Number</h3>
-
-                        <div class="row g-4">
-                            <div class="col-md-4 text-center">
-                                <div class="rounded-circle bg-success text-white d-inline-flex align-items-center justify-content-center mb-3" style="width: 60px; height: 60px; font-size: 24px;">1</div>
-                                <h5>Register Online</h5>
-                                <p class="text-muted small">Fill out the student application form with your personal details.</p>
-                            </div>
-                            <div class="col-md-4 text-center">
-                                <div class="rounded-circle bg-success text-white d-inline-flex align-items-center justify-content-center mb-3" style="width: 60px; height: 60px; font-size: 24px;">2</div>
-                                <h5>Get Reg. Number</h5>
-                                <p class="text-muted small">System will instantly generate your unique <strong>Admission Number</strong>.</p>
-                            </div>
-                            <div class="col-md-4 text-center">
-                                <div class="rounded-circle bg-success text-white d-inline-flex align-items-center justify-content-center mb-3" style="width: 60px; height: 60px; font-size: 24px;">3</div>
-                                <h5>Login to Portal</h5>
-                                <p class="text-muted small">Use your number to access the student dashboard.</p>
-                            </div>
-                        </div>
-
-                        <div class="text-center mt-4">
-                            <a href="/auth/student-register" class="btn btn-success btn-lg px-5">Register Now</a>
-                            <p class="mt-2 small text-muted">Already have a number? <a href="/auth/student-login">Login here</a></p>
-                        </div>
-                    </div>
-                </div>
-
-                <p class="mb-4">
-                    For inquiries about fee structure and curriculum, please contact the administration.
-                </p>
-                <a href="/contact" class="btn btn-outline-primary">Contact Us</a>
+<!-- Steps Section -->
+<section class="section steps-section">
+    <div class="container">
+        <div class="section-header">
+            <h2>Getting Started is Easy</h2>
+            <p>A simplified process to welcome your child to our school</p>
+        </div>
+        <div class="steps-grid">
+            <div class="step-card">
+                <div class="step-number">1</div>
+                <h3>Complete Registration</h3>
+                <p>Fill out our comprehensive online registration form with your personal details and academic information.</p>
+                <div class="step-connector"></div>
             </div>
+            <div class="step-card">
+                <div class="step-number">2</div>
+                <h3>Receive Admission Number</h3>
+                <p>After registration, our system instantly generates a unique admission number for your student profile.</p>
+                <div class="step-connector"></div>
+            </div>
+            <div class="step-card">
+                <div class="step-number">3</div>
+                <h3>Access Student Portal</h3>
+                <p>Use your admission number to log in to the student portal and track your application status.</p>
+                <div class="step-connector"></div>
+            </div>
+            <div class="step-card">
+                <div class="step-number">4</div>
+                <h3>Enrollment Complete</h3>
+                <p>Complete any remaining requirements and officially become part of our Islamic School family.</p>
+            </div>
+        </div>
+
+        <div class="cta-box">
+            <h3>Ready to Apply?</h3>
+            <p>Start your journey with us today and give your child the gift of quality Islamic education</p>
+            <a href="/auth/student-register" class="btn-primary">
+                <i class="fas fa-user-plus"></i> Register Now
+            </a>
+            <div style="margin-top: 20px;">
+                <small>Already registered?</small><br>
+                <a href="/auth/student-login" class="btn-secondary" style="margin-top: 8px;">
+                    <i class="fas fa-sign-in-alt"></i> Login
+                </a>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Requirements Section -->
+<section class="section requirements-section">
+    <div class="container">
+        <div class="section-header">
+            <h2>Admission Requirements</h2>
+            <p>What you need to know before applying</p>
+        </div>
+        <div class="requirements-grid">
+            <div class="requirement-card">
+                <h3><i class="fas fa-file-alt"></i> Required Documents</h3>
+                <ul>
+                    <li>Valid birth certificate</li>
+                    <li>Academic records from previous school</li>
+                    <li>Medical examination report</li>
+                    <li>Two passport-size photographs</li>
+                    <li>Parent/Guardian identification</li>
+                </ul>
+            </div>
+
+            <div class="requirement-card">
+                <h3><i class="fas fa-info-circle"></i> Eligibility Criteria</h3>
+                <ul>
+                    <li>Age appropriate for grade level</li>
+                    <li>Commitment to Islamic values</li>
+                    <li>Academic readiness assessment</li>
+                    <li>Good behavioral record</li>
+                    <li>Parent support and involvement</li>
+                </ul>
+            </div>
+
+            <div class="requirement-card">
+                <h3><i class="fas fa-calendar"></i> Important Dates</h3>
+                <ul>
+                    <li>Academic year starts September</li>
+                    <li>Registration opens: June</li>
+                    <li>Admission closes: August</li>
+                    <li>Late admission: By special approval</li>
+                    <li>Orientation: Beginning of term</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Contact Section -->
+<section class="section steps-section">
+    <div class="container">
+        <div class="section-header">
+            <h2>Have Questions?</h2>
+            <p>Contact our admission office for more information about fees, curriculum, and enrollment</p>
+        </div>
+        <div style="text-align: center;">
+            <a href="/contact" class="btn-secondary" style="background: linear-gradient(135deg, var(--primary), var(--secondary)); color: white; display: inline-flex;">
+                <i class="fas fa-envelope"></i> Get in Touch
+            </a>
         </div>
     </div>
 </section>
