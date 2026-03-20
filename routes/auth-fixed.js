@@ -187,7 +187,7 @@ router.get('/student-register', (req, res) => {
     });
 });
 
-
+router.post('/student-register', async (req, res) => {
     console.log('\n📝 ========== STUDENT REGISTRATION START ==========');
     
 
