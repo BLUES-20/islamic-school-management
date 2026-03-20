@@ -130,10 +130,10 @@ async function sendEmail(to, subject, html, options = {}) {
     console.log(`📤 Sending email via ${status.provider} to ${toList.join(', ')}`);
 
     try {
-        if (status.provider === 'resend') {
+    if (status.provider === 'resend') {
             console.log('   Using Resend API...');
             const resend = getResendClient();
-            const { error } = await resend.emails.send({
+            const { data, error } = await resend.emails.send({
                 from,
                 to: toList,
                 subject,
@@ -146,7 +146,7 @@ async function sendEmail(to, subject, html, options = {}) {
                 throw new Error(error.message || 'Resend email error');
             }
 
-            console.log(`✅ Email sent via Resend to ${toList.join(', ')}`);
+            console.log(`✅ Email sent via Resend to ${toList.join(', ')} ID: ${data.id}`);
             return true;
         }
 
