@@ -191,6 +191,7 @@ router.post('/student-register', async (req, res) => {
     console.log('\n📝 ========== STUDENT REGISTRATION START ==========');
     
 
+    const first_name = (req.body?.first_name || '').trim();
     const last_name = (req.body?.last_name || '').trim();
     const email = (req.body?.email || '').trim().toLowerCase();
     const password = req.body?.password || '';
@@ -203,7 +204,7 @@ router.post('/student-register', async (req, res) => {
     const parent_email = (req.body?.parent_email || '').trim();
     const address = (req.body?.address || '').trim();
 
-    console.log('📋 Received data:', { first_name: req.body?.first_name || '', last_name, email, password: '***', class_name });
+    console.log('📋 Received data:', { first_name, last_name, email, password: '***', class_name });
 
 
     // ===== VALIDATION =====
