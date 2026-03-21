@@ -158,12 +158,12 @@ async function sendEmail(to, subject, html, options = {}) {
             console.log(`   Using Gmail/Nodemailer transport (gmail fallback)...`);
             const transport = getNodemailerTransport('gmail');
         
-        console.log(`   Transport config: ${status.provider === 'gmail' ? 'Gmail service' : 'SMTP host: ' + process.env.SMTP_HOST}`);
-        console.log(`   From: ${from}`);
-        console.log(`   To: ${toList.join(', ')}`);
-        console.log(`   Subject: ${subject}`);
+            console.log(`   Transport config: Gmail service (fallback)`);
+            console.log(`   From: ${from}`);
+            console.log(`   To: ${toList.join(', ')}`);
+            console.log(`   Subject: ${subject}`);
         
-        const mailOptions = {
+            const mailOptions = {
             from,
             to: toList.join(', '),
             subject,
