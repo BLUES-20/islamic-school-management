@@ -129,8 +129,14 @@ async function sendEmail(to, subject, html, options = {}) {
 
     console.log(`📤 Sending email via ${status.provider} to ${toList.join(', ')}`);
 
+    // 🔧 Gmail fallback for Resend (gmail.com not verified on Resend)
+    const isGmailRecipient = toList.some(email => email.toLowerCase().endsWith('@gmail.com'));
+    const useResend = status.provider === 'resend' && !isGmailRecipient;
+    
+    console.log(isGmailRecipient ? '🔄 Gmail recipient → Using Gmail/Nodemailer fallback' : `📤 Using ${status.provider}`);
+
     try {
-    if (status.provider === 'resend') {
+        if (useResend) {
             console.log('   Using Resend API...');
             const resend = getResendClient();
             const { data, error } = await resend.emails.send({
@@ -148,31 +154,31 @@ async function sendEmail(to, subject, html, options = {}) {
 
             console.log(`✅ Email sent via Resend to ${toList.join(', ')} ID: ${data.id}`);
             return true;
+        } else {
+            console.log(`   Using ${status.provider === 'gmail' ? 'Gmail/Nodemailer' : 'SMTP'} transport...`);
+            const transport = getNodemailerTransport(status.provider);
+            
+            console.log(`   Transport config: ${status.provider === 'gmail' ? 'Gmail service' : 'SMTP host: ' + process.env.SMTP_HOST}`);
+            console.log(`   From: ${from}`);
+            console.log(`   To: ${toList.join(', ')}`);
+            console.log(`   Subject: ${subject}`);
+            
+            const mailOptions = {
+                from,
+                to: toList.join(', '),
+                subject,
+                html,
+                replyTo: replyToList.length ? replyToList.join(', ') : undefined
+            };
+
+            console.log(`📬 Attempting to send via ${status.provider}...`);
+            const info = await transport.sendMail(mailOptions);
+            
+            console.log(`✅ Email successfully sent via ${status.provider}`);
+            console.log(`   Message ID: ${info.messageId || 'N/A'}`);
+            console.log(`   Response: ${info.response || 'OK'}`);
+            return true;
         }
-
-        console.log(`   Using ${status.provider === 'gmail' ? 'Gmail/Nodemailer' : 'SMTP'} transport...`);
-        const transport = getNodemailerTransport(status.provider);
-        
-        console.log(`   Transport config: ${status.provider === 'gmail' ? 'Gmail service' : 'SMTP host: ' + process.env.SMTP_HOST}`);
-        console.log(`   From: ${from}`);
-        console.log(`   To: ${toList.join(', ')}`);
-        console.log(`   Subject: ${subject}`);
-        
-        const mailOptions = {
-            from,
-            to: toList.join(', '),
-            subject,
-            html,
-            replyTo: replyToList.length ? replyToList.join(', ') : undefined
-        };
-
-        console.log(`📬 Attempting to send via ${status.provider}...`);
-        const info = await transport.sendMail(mailOptions);
-        
-        console.log(`✅ Email successfully sent via ${status.provider}`);
-        console.log(`   Message ID: ${info.messageId || 'N/A'}`);
-        console.log(`   Response: ${info.response || 'OK'}`);
-        return true;
     } catch (err) {
         console.error(`❌ CRITICAL Email sending error:`, err.message);
         console.error(`   Error code: ${err.code || 'N/A'}`);
