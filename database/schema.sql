@@ -56,6 +56,7 @@ CREATE TABLE IF NOT EXISTS students (
     parent_phone VARCHAR(20),
     parent_email VARCHAR(255),
     address TEXT,
+    payment_status TEXT DEFAULT 'pending' CHECK (payment_status IN ('pending', 'paid', 'failed')),
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );

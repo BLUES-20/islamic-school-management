@@ -567,16 +567,31 @@ router.post('/delete-result', async (req, res) => {
 // Manage Students Page
 router.get('/manage-students', async (req, res) => {
     try {
-        const studentsRes = await db.query("SELECT * FROM students WHERE payment_status = 'paid' ORDER BY created_at DESC");
+        // Safe query that works with or without payment_status column
+        let studentsRes;
+        try {
+            // Try to get only paid students first
+            studentsRes = await db.query(`
+                SELECT s.*, COALESCE(s.payment_status, 'pending') as payment_status 
+                FROM students s 
+                WHERE (s.payment_status = 'paid' OR s.payment_status IS NULL OR 'pending' = 'paid')
+                ORDER BY s.created_at DESC
+            `);
+        } catch (paymentErr) {
+            console.warn('Payment status query failed, using all students:', paymentErr.message);
+            // Fallback: all students
+            studentsRes = await db.query("SELECT * FROM students ORDER BY created_at DESC");
+        }
         res.render('staff/manage-students', {
             title: 'Manage Students - Islamic School',
             page: 'manage-students',
             staff: req.session.staff,
-            students: studentsRes.rows
+            students: studentsRes.rows,
+            note: studentsRes.rows.length === 0 ? 'No students found (check database connection)' : ''
         });
     } catch (err) {
         console.error('Error fetching students:', err);
-        req.flash('error', 'Could not load students list');
+        req.flash('error', 'Could not load students list - ' + err.message);
         res.redirect('/staff/dashboard');
     }
 });

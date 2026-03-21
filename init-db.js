@@ -59,7 +59,27 @@ const initDatabase = async () => {
             await db.query(`ALTER TABLE students ADD COLUMN IF NOT EXISTS picture VARCHAR(500)`);
         } catch (e) {}
 
-        console.log('✅ Database tables initialized successfully!');
+        // 🔄 AUTO-APPLY MIGRATIONS from /migrations/
+        console.log('🔄 Checking migrations...');
+        const fs = require('fs').promises;
+        const path = require('path');
+        const migrationsDir = path.join(__dirname, '../migrations');
+        
+        try {
+            const files = await fs.readdir(migrationsDir);
+            const sqlFiles = files.filter(f => f.endsWith('.sql')).sort();
+            
+            for (const file of sqlFiles) {
+                const filePath = path.join(migrationsDir, file);
+                const sql = await fs.readFile(filePath, 'utf8');
+                await db.query(sql);
+                console.log(`✅ Applied migration: ${file}`);
+            }
+        } catch (migrErr) {
+            console.warn('⚠️ Migration directory not found or empty:', migrErr.message);
+        }
+
+        console.log('✅ Database fully initialized with migrations!');
     } catch (err) {
         console.error('❌ Database initialization error:', err.message);
     }

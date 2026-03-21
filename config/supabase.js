@@ -15,7 +15,7 @@ const supabaseConfig = {
     port: process.env.SUPABASE_PORT || 5432,
     database: process.env.SUPABASE_DB || 'postgres',
     user: process.env.SUPABASE_USER || 'postgres',
-    password: process.env.SUPABASE_PASSWORD || '', // Set your Supabase database password
+    password: process.env.SUPABASE_PASSWORD || process.env.DB_PASSWORD || '', // Set your Supabase database password
     ssl: {
         rejectUnauthorized: false
     }
