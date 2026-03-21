@@ -84,10 +84,10 @@ router.post('/student-login', async (req, res) => {
     }
 
     try {
-        const { rows } = await db.query(`
-            SELECT u.password, s.id, s.user_id, s.admission_number, s.first_name, s.last_name, s.email, s.class, s.picture
-            FROM users u JOIN students s ON u.id = s.user_id
-            WHERE s.admission_number = $1 AND u.role = 'student' AND s.payment_status = 'paid'`, [admission_number]);
+const { rows } = await db.query(`
+SELECT u.password, s.id, s.user_id, s.admission_number, s.first_name, s.last_name, s.email, s.class, s.picture
+FROM users u JOIN students s ON u.id = s.user_id
+WHERE s.admission_number = $1 AND u.role = 'student'`, [admission_number]);
 
         if (!rows.length) {
             req.flash('error', 'Invalid admission number or password');

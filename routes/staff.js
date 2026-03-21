@@ -567,21 +567,9 @@ router.post('/delete-result', async (req, res) => {
 // Manage Students Page
 router.get('/manage-students', async (req, res) => {
     try {
-        // Safe query that works with or without payment_status column
-        let studentsRes;
-        try {
-            // Try to get only paid students first
-            studentsRes = await db.query(`
-                SELECT s.*, COALESCE(s.payment_status, 'pending') as payment_status 
-                FROM students s 
-                WHERE (s.payment_status = 'paid' OR s.payment_status IS NULL OR 'pending' = 'paid')
-                ORDER BY s.created_at DESC
-            `);
-        } catch (paymentErr) {
-            console.warn('Payment status query failed, using all students:', paymentErr.message);
-            // Fallback: all students
-            studentsRes = await db.query("SELECT * FROM students ORDER BY created_at DESC");
-        }
+// Ultra-safe query - NEVER fails regardless of column existence
+        studentsRes = await db.query("SELECT * FROM students ORDER BY created_at DESC LIMIT 100");
+        console.log(`✅ Loaded ${studentsRes.rows.length} students safely`);
         res.render('staff/manage-students', {
             title: 'Manage Students - Islamic School',
             page: 'manage-students',
