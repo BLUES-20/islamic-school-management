@@ -87,7 +87,7 @@ router.post('/student-login', async (req, res) => {
         const { rows } = await db.query(`
             SELECT u.password, s.id, s.user_id, s.admission_number, s.first_name, s.last_name, s.email, s.class, s.picture
             FROM users u JOIN students s ON u.id = s.user_id
-            WHERE s.admission_number = $1 AND u.role = 'student'`, [admission_number]);
+            WHERE s.admission_number = $1 AND u.role = 'student' AND s.payment_status = 'paid'`, [admission_number]);
 
         if (!rows.length) {
             req.flash('error', 'Invalid admission number or password');
@@ -300,8 +300,8 @@ router.post('/student-register', async (req, res) => {
         let studentResult = await db.query(
             `INSERT INTO students (
                 user_id, admission_number, first_name, last_name, email,
-                date_of_birth, gender, class, parent_name, parent_phone, parent_email, address
-            ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12) RETURNING id`,
+                date_of_birth, gender, class, parent_name, parent_phone, parent_email, address, payment_status
+            ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, 'pending') RETURNING id`,
             [
                 user_id,
                 admission_number,
@@ -429,7 +429,7 @@ router.get('/payment-callback', async (req, res) => {
         try {
             console.log(`✅ Payment successful for student ${pending.student_id}`);
             
-            // Record payment
+// Record payment & activate student
             const paymentRes = await db.query(
                 `INSERT INTO payments (student_id, tx_ref, flw_transaction_id, amount, currency, payment_type, status)
                  VALUES ($1, $2, $3, $4, $5, $6, $7) ON CONFLICT (tx_ref) DO UPDATE SET status = $7
@@ -437,6 +437,10 @@ router.get('/payment-callback', async (req, res) => {
                 [pending.student_id, tx_ref, transaction_id, 2000, 'NGN', 'registration', 'successful']
             );
             console.log(`💾 Payment recorded:`, paymentRes.rows[0]);
+
+            // ✅ Activate student account
+            await db.query("UPDATE students SET payment_status = 'paid' WHERE id = $1", [pending.student_id]);
+            console.log('✅ Student account activated (payment_status = paid)'); 
 
             // Store success data in session for the success page
             req.session.paymentSuccess = {

@@ -567,7 +567,7 @@ router.post('/delete-result', async (req, res) => {
 // Manage Students Page
 router.get('/manage-students', async (req, res) => {
     try {
-        const studentsRes = await db.query('SELECT * FROM students ORDER BY created_at DESC');
+        const studentsRes = await db.query("SELECT * FROM students WHERE payment_status = 'paid' ORDER BY created_at DESC");
         res.render('staff/manage-students', {
             title: 'Manage Students - Islamic School',
             page: 'manage-students',
